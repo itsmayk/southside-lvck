@@ -365,6 +365,30 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 550);
       }
 
+      // silently detect the visitor's country from their IP so most people
+      // never see the manual list at all; only falls back to it if
+      // detection fails or times out.
+      function detectCountry(cb) {
+        var done = false;
+        function finish(lang) {
+          if (done) return;
+          done = true;
+          cb(lang);
+        }
+        var timer = window.setTimeout(function () { finish(null); }, 3000);
+        fetch("https://ipapi.co/json/")
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            window.clearTimeout(timer);
+            var code = data && data.country_code;
+            finish(code ? (LANG_OVERRIDES[code] || "en") : null);
+          })
+          .catch(function () {
+            window.clearTimeout(timer);
+            finish(null);
+          });
+      }
+
       // event delegation: keeps working even if the modal node gets rebuilt
       document.addEventListener("click", function (e) {
         var btn = e.target.closest && e.target.closest(".ss-lang-btn");
@@ -385,14 +409,27 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       var saved = getLang();
       applyLang(saved || "en");
-      if (!saved) showModal();
+
+      var detecting = !saved;
+      if (!saved) {
+        detectCountry(function (lang) {
+          detecting = false;
+          if (getLang()) return; // user already picked manually while we waited
+          if (lang) {
+            setLang(lang);
+            applyLang(lang);
+          } else {
+            showModal();
+          }
+        });
+      }
 
       // self-healing: re-query text targets and re-attach the modal on every
       // pass, since this page's own render can replace nodes after mount
       // (the same "re-query, don't cache" fix the rotating phrase needed).
       window.setInterval(function () {
         applyLang(getLang() || "en");
-        if (!getLang()) showModal();
+        if (!getLang() && !detecting) showModal();
       }, 500);
     })();
   </script>
