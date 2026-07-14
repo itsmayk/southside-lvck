@@ -227,7 +227,64 @@ document.addEventListener('DOMContentLoaded', async function() {
         es: { phrase: "Regístrate para ser el primero en tenerlo.", welcome: "Bienvenido", email: "tu@email.com" },
         pt: { phrase: "Cadastre-se para ser o primeiro a ter.", welcome: "Bem-vindo", email: "seu@email.com" }
       };
-      var BTN_STYLE = "display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 20px;border:1px solid rgba(255,255,255,0.35);background:transparent;color:#f5f5f0;font-family:'Playfair Display', Georgia, serif;font-size:15px;letter-spacing:0.02em;cursor:pointer;border-radius:2px;transition:background 0.2s, color 0.2s;";
+      var ROW_STYLE = "display:flex;align-items:center;gap:10px;width:100%;padding:10px 14px;border:none;border-bottom:1px solid rgba(255,255,255,0.08);background:transparent;color:#f5f5f0;font-family:'Playfair Display', Georgia, serif;font-size:14px;cursor:pointer;text-align:left;";
+
+      var LANG_OVERRIDES = {
+        AR: "es", BO: "es", CL: "es", CO: "es", CR: "es", CU: "es", DO: "es", EC: "es",
+        SV: "es", GQ: "es", GT: "es", HN: "es", MX: "es", NI: "es", PA: "es", PY: "es",
+        PE: "es", ES: "es", UY: "es", VE: "es",
+        AO: "pt", BR: "pt", CV: "pt", GW: "pt", MZ: "pt", PT: "pt", ST: "pt", TL: "pt"
+      };
+
+      var COUNTRIES = [
+        ["AF","Afghanistan"], ["AL","Albania"], ["DZ","Algeria"], ["AD","Andorra"], ["AO","Angola"],
+        ["AG","Antigua and Barbuda"], ["AR","Argentina"], ["AM","Armenia"], ["AU","Australia"], ["AT","Austria"],
+        ["AZ","Azerbaijan"], ["BS","Bahamas"], ["BH","Bahrain"], ["BD","Bangladesh"], ["BB","Barbados"],
+        ["BY","Belarus"], ["BE","Belgium"], ["BZ","Belize"], ["BJ","Benin"], ["BT","Bhutan"],
+        ["BO","Bolivia"], ["BA","Bosnia and Herzegovina"], ["BW","Botswana"], ["BR","Brazil"], ["BN","Brunei"],
+        ["BG","Bulgaria"], ["BF","Burkina Faso"], ["BI","Burundi"], ["CV","Cabo Verde"], ["KH","Cambodia"],
+        ["CM","Cameroon"], ["CA","Canada"], ["CF","Central African Republic"], ["TD","Chad"], ["CL","Chile"],
+        ["CN","China"], ["CO","Colombia"], ["KM","Comoros"], ["CG","Congo"], ["CR","Costa Rica"],
+        ["HR","Croatia"], ["CU","Cuba"], ["CY","Cyprus"], ["CZ","Czechia"], ["CD","Democratic Republic of the Congo"],
+        ["DK","Denmark"], ["DJ","Djibouti"], ["DM","Dominica"], ["DO","Dominican Republic"], ["EC","Ecuador"],
+        ["EG","Egypt"], ["SV","El Salvador"], ["GQ","Equatorial Guinea"], ["ER","Eritrea"], ["EE","Estonia"],
+        ["SZ","Eswatini"], ["ET","Ethiopia"], ["FJ","Fiji"], ["FI","Finland"], ["FR","France"],
+        ["GA","Gabon"], ["GM","Gambia"], ["GE","Georgia"], ["DE","Germany"], ["GH","Ghana"],
+        ["GR","Greece"], ["GD","Grenada"], ["GT","Guatemala"], ["GN","Guinea"], ["GW","Guinea-Bissau"],
+        ["GY","Guyana"], ["HT","Haiti"], ["HN","Honduras"], ["HU","Hungary"], ["IS","Iceland"],
+        ["IN","India"], ["ID","Indonesia"], ["IR","Iran"], ["IQ","Iraq"], ["IE","Ireland"],
+        ["IL","Israel"], ["IT","Italy"], ["CI","Ivory Coast"], ["JM","Jamaica"], ["JP","Japan"],
+        ["JO","Jordan"], ["KZ","Kazakhstan"], ["KE","Kenya"], ["KI","Kiribati"], ["KW","Kuwait"],
+        ["KG","Kyrgyzstan"], ["LA","Laos"], ["LV","Latvia"], ["LB","Lebanon"], ["LS","Lesotho"],
+        ["LR","Liberia"], ["LY","Libya"], ["LI","Liechtenstein"], ["LT","Lithuania"], ["LU","Luxembourg"],
+        ["MG","Madagascar"], ["MW","Malawi"], ["MY","Malaysia"], ["MV","Maldives"], ["ML","Mali"],
+        ["MT","Malta"], ["MH","Marshall Islands"], ["MR","Mauritania"], ["MU","Mauritius"], ["MX","Mexico"],
+        ["FM","Micronesia"], ["MD","Moldova"], ["MC","Monaco"], ["MN","Mongolia"], ["ME","Montenegro"],
+        ["MA","Morocco"], ["MZ","Mozambique"], ["MM","Myanmar"], ["NA","Namibia"], ["NR","Nauru"],
+        ["NP","Nepal"], ["NL","Netherlands"], ["NZ","New Zealand"], ["NI","Nicaragua"], ["NE","Niger"],
+        ["NG","Nigeria"], ["KP","North Korea"], ["MK","North Macedonia"], ["NO","Norway"], ["OM","Oman"],
+        ["PK","Pakistan"], ["PW","Palau"], ["PS","Palestine"], ["PA","Panama"], ["PG","Papua New Guinea"],
+        ["PY","Paraguay"], ["PE","Peru"], ["PH","Philippines"], ["PL","Poland"], ["PT","Portugal"],
+        ["QA","Qatar"], ["RO","Romania"], ["RU","Russia"], ["RW","Rwanda"], ["KN","Saint Kitts and Nevis"],
+        ["LC","Saint Lucia"], ["VC","Saint Vincent and the Grenadines"], ["WS","Samoa"], ["SM","San Marino"], ["ST","São Tomé and Príncipe"],
+        ["SA","Saudi Arabia"], ["SN","Senegal"], ["RS","Serbia"], ["SC","Seychelles"], ["SL","Sierra Leone"],
+        ["SG","Singapore"], ["SK","Slovakia"], ["SI","Slovenia"], ["SB","Solomon Islands"], ["SO","Somalia"],
+        ["ZA","South Africa"], ["KR","South Korea"], ["SS","South Sudan"], ["ES","Spain"], ["LK","Sri Lanka"],
+        ["SD","Sudan"], ["SR","Suriname"], ["SE","Sweden"], ["CH","Switzerland"], ["SY","Syria"],
+        ["TJ","Tajikistan"], ["TZ","Tanzania"], ["TH","Thailand"], ["TL","Timor-Leste"], ["TG","Togo"],
+        ["TO","Tonga"], ["TT","Trinidad and Tobago"], ["TN","Tunisia"], ["TR","Turkey"], ["TM","Turkmenistan"],
+        ["TV","Tuvalu"], ["UG","Uganda"], ["UA","Ukraine"], ["AE","United Arab Emirates"], ["GB","United Kingdom"],
+        ["US","United States"], ["UY","Uruguay"], ["UZ","Uzbekistan"], ["VU","Vanuatu"], ["VA","Vatican City"],
+        ["VE","Venezuela"], ["VN","Vietnam"], ["YE","Yemen"], ["ZM","Zambia"], ["ZW","Zimbabwe"]
+      ];
+
+      function flagEmoji(code) {
+        var points = [];
+        for (var i = 0; i < code.length; i++) {
+          points.push(0x1F1E6 + (code.charCodeAt(i) - 65));
+        }
+        return String.fromCodePoint.apply(null, points);
+      }
 
       function getLang() {
         try { return localStorage.getItem(LANG_KEY); } catch (e) { return null; }
@@ -262,17 +319,25 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
 
       function buildModal() {
+        var rows = COUNTRIES.slice()
+          .sort(function (a, b) { return a[1].localeCompare(b[1]); })
+          .map(function (c) {
+            var code = c[0], name = c[1];
+            var lang = LANG_OVERRIDES[code] || "en";
+            return '<button type="button" class="ss-lang-btn" data-lang="' + lang + '" style="' + ROW_STYLE + '">' +
+              '<span style="font-size:16px;line-height:1;">' + flagEmoji(code) + '</span>' +
+              '<span style="flex:1;">' + name + '</span>' +
+              '</button>';
+          })
+          .join("");
+
         var modal = document.createElement("div");
         modal.id = "ss-lang-modal";
         modal.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(8,8,8,0.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);opacity:0;pointer-events:none;transition:opacity 0.5s ease;";
         modal.innerHTML =
-          '<div style="display:flex;flex-direction:column;align-items:center;gap:22px;padding:24px;text-align:center;">' +
-            '<div style="font-family:\'Playfair Display\', Georgia, serif;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.65);">Select your country</div>' +
-            '<div style="display:flex;flex-direction:column;gap:14px;width:100%;max-width:300px;">' +
-              '<button type="button" class="ss-lang-btn" data-lang="en" style="' + BTN_STYLE + '"><span style="font-size:20px;line-height:1;">🇺🇸</span><span>United States</span></button>' +
-              '<button type="button" class="ss-lang-btn" data-lang="es" style="' + BTN_STYLE + '"><span style="font-size:20px;line-height:1;">🇪🇸</span><span>España</span></button>' +
-              '<button type="button" class="ss-lang-btn" data-lang="pt" style="' + BTN_STYLE + '"><span style="font-size:20px;line-height:1;">🇧🇷</span><span>Brasil</span></button>' +
-            '</div>' +
+          '<div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;text-align:center;max-height:86vh;">' +
+            '<div style="font-family:\'Playfair Display\', Georgia, serif;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:rgba(255,255,255,0.65);flex-shrink:0;">Select your country</div>' +
+            '<div style="overflow-y:auto;width:100%;max-width:320px;border:1px solid rgba(255,255,255,0.15);border-radius:2px;background:rgba(0,0,0,0.3);">' + rows + '</div>' +
           '</div>';
         document.body.appendChild(modal);
         return modal;
