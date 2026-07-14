@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Shop — SouthSide x LVCK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0A;
+    --fg: #f5f5f0;
+    --muted: #8a8a85;
+    --border: #2a2a2a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Playfair Display', serif;
+    min-height: 100vh;
+    padding: 60px 24px 100px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  header .brand {
+    font-size: 13px;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  header h1 {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: clamp(32px, 6vw, 56px);
+    letter-spacing: 0.05em;
+  }
+  .products {
+    max-width: 880px;
+    margin: 0 auto;
+    display: grid;
+    gap: 48px;
+  }
+  .product {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+  }
+  .product h2 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(20px, 3vw, 28px);
+    margin-bottom: 6px;
+  }
+  .product .price {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  .sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .size-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 64px;
+    padding: 12px 18px;
+    border: 1px solid rgba(255,255,255,0.35);
+    color: var(--fg);
+    text-decoration: none;
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    border-radius: 2px;
+    transition: background 0.2s, color 0.2s, opacity 0.2s;
+  }
+  .size-btn:hover {
+    background: #fff;
+    color: #0A0A0A;
+  }
+  .size-btn.sold-out {
+    opacity: 0.35;
+    border-color: rgba(255,255,255,0.15);
+    color: var(--muted);
+    text-decoration: line-through;
+    pointer-events: none;
+    cursor: not-allowed;
+  }
+  .size-btn.loading {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">LVCK</div>
+    <h1>SouthSide</h1>
+  </header>
+
+  <div class="products" id="products"></div>
+
+  <script>
+    let PRODUCTS = [];
+
+    function fmtCOP(n) {
+      return "$" + n.toLocaleString("es-CO") + " COP";
+    }
+
+    function render(stock) {
+      const grouped = {};
+      for (const item of PRODUCTS) {
+        (grouped[item.product] ||= []).push(item);
+      }
+
+      const container = document.getElementById("products");
+      container.innerHTML = "";
+
+      for (const [productName, items] of Object.entries(grouped)) {
+        const section = document.createElement("section");
+        section.className = "product";
+
+        const title = document.createElement("h2");
+        title.textContent = productName;
+        section.appendChild(title);
+
+        const price = document.createElement("div");
+        price.className = "price";
+        price.textContent = fmtCOP(items[0].priceCOP);
+        section.appendChild(price);
+
+        const sizesEl = document.createElement("div");
+        sizesEl.className = "sizes";
+
+        for (const item of items) {
+          const btn = document.createElement("a");
+          btn.className = "size-btn loading";
+          btn.textContent = item.size;
+          btn.href = item.url;
+          btn.target = "_blank";
+          btn.rel = "noopener";
+          btn.dataset.slug = item.slug;
+          sizesEl.appendChild(btn);
+        }
+
+        section.appendChild(sizesEl);
+        container.appendChild(section);
+      }
+
+      if (stock) applyStock(stock);
+    }
+
+    function applyStock(stock) {
+      document.querySelectorAll(".size-btn").forEach((btn) => {
+        const slug = btn.dataset.slug;
+        btn.classList.remove("loading");
+        if (stock[slug] === false) {
+          btn.classList.add("sold-out");
+          btn.textContent = btn.textContent + " · Agotado";
+          btn.removeAttribute("href");
+        }
+      });
+    }
+
+    fetch("/shop-config.json")
+      .then((r) => r.json())
+      .then((data) => {
+        PRODUCTS = data;
+        render(null);
+        return fetch("/api/stock");
+      })
+      .then((r) => r.json())
+      .then((stock) => applyStock(stock))
+      .catch((err) => {
+        console.warn("No se pudo consultar el stock:", err);
+        document.querySelectorAll(".size-btn").forEach((btn) => btn.classList.remove("loading"));
+      });
+  </script>
+</body>
+</html>
