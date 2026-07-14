@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LVCK — Instagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+  :root {
+    --bg: #0A0A0A;
+    --fg: #f5f5f0;
+    --muted: #8a8a85;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Playfair Display', Georgia, serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px;
+    text-align: center;
+  }
+  .logo {
+    width: 170px;
+    height: auto;
+    margin-bottom: 28px;
+    will-change: transform;
+  }
+  h1 {
+    font-size: clamp(9px, 1.6vw, 13px);
+    font-weight: 400;
+    margin-bottom: 18px;
+    color: var(--muted);
+  }
+  .ig-icon {
+    width: 26px;
+    height: 26px;
+    margin-bottom: 40px;
+  }
+  .langs {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+    max-width: 320px;
+  }
+  .langs a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 18px 22px;
+    border: 1px solid rgba(255,255,255,0.3);
+    color: var(--fg);
+    text-decoration: none;
+    border-radius: 2px;
+    transition: background 0.2s, color 0.2s;
+  }
+  .langs a:hover {
+    background: #fff;
+    color: #0A0A0A;
+  }
+  .langs a .flag {
+    font-size: 22px;
+    line-height: 1;
+  }
+  .langs a .handle {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+  <img class="logo" src="logo-w.png" alt="LVCK">
+  <h1>Choose your language</h1>
+  <svg class="ig-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="20" height="20" rx="5" stroke="#f5f5f0" stroke-width="1.6"/>
+    <circle cx="12" cy="12" r="4.5" stroke="#f5f5f0" stroke-width="1.6"/>
+    <circle cx="17.2" cy="6.8" r="1.15" fill="#f5f5f0"/>
+  </svg>
+  <div class="langs">
+    <a href="https://instagram.com/lvck.us" target="_blank" rel="noopener"><span class="flag">🇺🇸</span><span class="handle">@lvck.us</span></a>
+    <a href="https://instagram.com/lvck.es" target="_blank" rel="noopener"><span class="flag">🇪🇸</span><span class="handle">@lvck.es</span></a>
+    <a href="https://instagram.com/lvck.br" target="_blank" rel="noopener"><span class="flag">🇧🇷</span><span class="handle">@lvck.br</span></a>
+  </div>
+
+  <script>
+    (function () {
+      const logo = document.querySelector(".logo");
+      let mx = 0, my = 0, tmx = 0, tmy = 0;
+
+      window.addEventListener("mousemove", (e) => {
+        tmx = (e.clientX / window.innerWidth - 0.5) * 2;
+        tmy = (e.clientY / window.innerHeight - 0.5) * 2;
+      });
+
+      function tick() {
+        mx += (tmx - mx) * 0.08;
+        my += (tmy - my) * 0.08;
+        logo.style.transform = `translate(${mx * 16}px, ${my * 16}px)`;
+        requestAnimationFrame(tick);
+      }
+      tick();
+    })();
+  </script>
+</body>
+</html>
