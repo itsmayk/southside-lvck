@@ -318,13 +318,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 550);
       }
 
+      function ensureGlassKeyframes() {
+        if (document.getElementById("ss-glass-keyframes")) return;
+        var style = document.createElement("style");
+        style.id = "ss-glass-keyframes";
+        style.textContent = "@keyframes ssGlassPulse{0%,100%{opacity:0.4;}50%{opacity:1;}}";
+        document.head.appendChild(style);
+      }
+
       function ensureChangeControl() {
+        ensureGlassKeyframes();
         if (document.getElementById("ss-change-lang")) return;
         var btn = document.createElement("button");
         btn.id = "ss-change-lang";
         btn.type = "button";
         btn.textContent = (COPY[getLang()] || COPY.en).change;
-        btn.style.cssText = "position:fixed;bottom:14px;right:16px;z-index:2147483000;background:transparent;border:none;color:rgba(255,255,255,0.35);font-family:'Playfair Display', Georgia, serif;font-size:11px;letter-spacing:0.08em;text-decoration:underline;cursor:pointer;padding:6px;";
+        btn.style.cssText = "position:fixed;bottom:14px;right:16px;z-index:2147483000;background:rgba(255,255,255,0.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.28);border-radius:999px;color:rgba(255,255,255,0.85);font-family:'Playfair Display', Georgia, serif;font-size:11px;letter-spacing:0.08em;cursor:pointer;padding:9px 16px;box-shadow:0 4px 18px rgba(0,0,0,0.25);animation:ssGlassPulse 3.4s ease-in-out infinite;transition:background 0.2s;";
+        btn.addEventListener("mouseover", function () {
+          btn.style.animationPlayState = "paused";
+          btn.style.opacity = "1";
+          btn.style.background = "rgba(255,255,255,0.18)";
+        });
+        btn.addEventListener("mouseout", function () {
+          btn.style.animationPlayState = "running";
+          btn.style.background = "rgba(255,255,255,0.08)";
+        });
         btn.addEventListener("click", function () { showModal(); });
         document.body.appendChild(btn);
       }
