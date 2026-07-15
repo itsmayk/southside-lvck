@@ -224,9 +224,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     (function () {
       var LANG_KEY = "ss-lang";
       var COPY = {
-        en: { phrase: "Sign up to be the first to have it.", welcome: "Welcome", email: "your@email.com", date: "15 AUG 2026", change: "Change language", dropInfo: "You'll be among the first to access and own our new South Side Set." },
-        es: { phrase: "Regístrate para ser el primero en tenerlo.", welcome: "Bienvenido", email: "tu@email.com", date: "15 AGO 2026", change: "Cambiar idioma", dropInfo: "Serás de los primeros en poder acceder y tener nuestro nuevo Set South Side." },
-        pt: { phrase: "Cadastre-se para ser o primeiro a ter.", welcome: "Bem-vindo", email: "seu@email.com", date: "15 AGO 2026", change: "Mudar idioma", dropInfo: "Você será um dos primeiros a poder acessar e ter nosso novo Set South Side." }
+        en: { phrase: "Sign up to be the first to have it.", welcome: "Welcome", email: "your@email.com", date: "15 AUG 2026", change: "Change language", dropInfo: "You'll be among the first to access and own our new South Side Set.", share: "Share with friends", shareMsg: "Check out this LVCK drop — South Side", copied: "Link copied ✓" },
+        es: { phrase: "Regístrate para ser el primero en tenerlo.", welcome: "Bienvenido", email: "tu@email.com", date: "15 AGO 2026", change: "Cambiar idioma", dropInfo: "Serás de los primeros en poder acceder y tener nuestro nuevo Set South Side.", share: "Compartir con amigos", shareMsg: "Mira este drop de LVCK — South Side", copied: "Link copiado ✓" },
+        pt: { phrase: "Cadastre-se para ser o primeiro a ter.", welcome: "Bem-vindo", email: "seu@email.com", date: "15 AGO 2026", change: "Mudar idioma", dropInfo: "Você será um dos primeiros a poder acessar e ter nosso novo Set South Side.", share: "Compartilhar com amigos", shareMsg: "Vê esse drop da LVCK — South Side", copied: "Link copiado ✓" }
       };
       var BTN_STYLE = "display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 20px;border:1px solid rgba(255,255,255,0.35);background:transparent;color:#f5f5f0;font-family:'Playfair Display', Georgia, serif;font-size:15px;letter-spacing:0.02em;cursor:pointer;border-radius:2px;transition:background 0.2s, color 0.2s;";
 
@@ -290,6 +290,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         var tyDateEl = document.getElementById("ss-ty-date");
         if (tyDateEl && tyDateEl.textContent !== copy.date) {
           tyDateEl.textContent = copy.date;
+        }
+        var shareBtn = document.getElementById("ss-ty-share");
+        if (shareBtn && !shareBtn.dataset.copied) {
+          var shareLabel = shareBtn.querySelector(".ss-ty-share-label");
+          if (shareLabel && shareLabel.textContent !== copy.share) shareLabel.textContent = copy.share;
         }
       }
 
@@ -394,6 +399,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         info.appendChild(date);
         info.appendChild(countdown);
 
+        // "share with friends" — invites the new subscriber to spread the drop.
+        // Uses the native share sheet on mobile, falls back to copy-to-clipboard
+        // on desktop.
+        var share = document.createElement("button");
+        share.id = "ss-ty-share";
+        share.type = "button";
+        share.style.cssText = "margin-top:clamp(14px, 2.5vh, 26px);display:inline-flex;align-items:center;gap:9px;background:linear-gradient(135deg, rgba(255,255,255,0.08), rgba(0,0,0,0.35));backdrop-filter:blur(16px) saturate(120%);-webkit-backdrop-filter:blur(16px) saturate(120%);border:1px solid rgba(255,255,255,0.2);border-radius:999px;color:rgba(255,255,255,0.8);font-family:'Playfair Display', Georgia, serif;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;padding:11px 22px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.15), 0 2px 12px rgba(0,0,0,0.4);opacity:0;transition:opacity 0.8s ease 1.95s, background 0.25s, border-color 0.25s;";
+        share.innerHTML = '<span style="font-size:14px;line-height:1;">↗</span><span class="ss-ty-share-label"></span>';
+        share.addEventListener("mouseover", function () { share.style.background = "linear-gradient(135deg, rgba(255,255,255,0.14), rgba(0,0,0,0.28))"; share.style.borderColor = "rgba(255,255,255,0.4)"; });
+        share.addEventListener("mouseout", function () { share.style.background = "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(0,0,0,0.35))"; share.style.borderColor = "rgba(255,255,255,0.2)"; });
+        share.addEventListener("click", shareDropLink);
+
         // whole group floats gently as one unit; entrance transforms live on
         // the children, so the float (a transform on this wrapper) never
         // fights them.
@@ -403,9 +420,37 @@ document.addEventListener('DOMContentLoaded', async function() {
         floatWrap.appendChild(welcome);
         floatWrap.appendChild(sub);
         floatWrap.appendChild(info);
+        floatWrap.appendChild(share);
         overlay.appendChild(floatWrap);
         document.body.appendChild(overlay);
         return overlay;
+      }
+
+      var SHARE_URL = "https://southside-lvck.vercel.app/";
+      function setShareLabel(text) {
+        var el = document.querySelector("#ss-ty-share .ss-ty-share-label");
+        if (el) el.textContent = text;
+      }
+      function shareDropLink() {
+        var copy = COPY[getLang()] || COPY.en;
+        if (navigator.share) {
+          navigator.share({ title: "SouthSide — LVCK", text: copy.shareMsg, url: SHARE_URL }).catch(function () {});
+          return;
+        }
+        var done = function () {
+          var btn = document.getElementById("ss-ty-share");
+          if (btn) btn.dataset.copied = "1";
+          setShareLabel(copy.copied);
+          window.setTimeout(function () {
+            if (btn) delete btn.dataset.copied;
+            setShareLabel((COPY[getLang()] || COPY.en).share);
+          }, 2200);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(SHARE_URL).then(done).catch(done);
+        } else {
+          done();
+        }
       }
 
       function showThankYou() {
@@ -426,6 +471,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         document.getElementById("ss-ty-sub").style.opacity = "1";
         document.getElementById("ss-ty-sub").style.transform = "translateY(0)";
         document.getElementById("ss-ty-info").style.opacity = "1";
+        setShareLabel(copy.share);
+        document.getElementById("ss-ty-share").style.opacity = "1";
       }
 
       // silently detect the visitor's country from their IP so most people
