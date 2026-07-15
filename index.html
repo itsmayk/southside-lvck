@@ -472,13 +472,10 @@ document.addEventListener('DOMContentLoaded', async function() {
 
       // capture-phase so this runs before the bundle's own onRegister handler
       // (which preventDefaults and just flips the "Welcome" state); the email
-      // is sent to MailerLite in the background without touching that UX.
-      // Posts to the classic embedded-form endpoint (account 2512440, form
-      // 193091934337631383) exactly as MailerLite's own form would — no-cors
-      // because that endpoint returns no CORS headers; the subscriber is still
-      // recorded. Keeps our custom design + thank-you animation intact and
-      // works on both the Vercel and GitHub Pages hosts (no secret key).
-      var ML_ENDPOINT = "https://assets.mailerlite.com/jsonp/2512440/forms/193091934337631383/subscribe";
+      // is sent to our own /api/subscribe serverless function, which forwards
+      // it to MailerLite using the secret API key (kept server-side, never in
+      // the page). Same-origin, so no CORS issues. Runs on the Vercel host.
+      var SUBSCRIBE_ENDPOINT = "/api/subscribe";
       var lastSentEmail = null;
       document.addEventListener("submit", function (e) {
         var form = e.target;
@@ -488,12 +485,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         var email = (input.value || "").trim();
         if (!email || email === lastSentEmail) return;
         lastSentEmail = email;
-        var body = new URLSearchParams();
-        body.append("fields[email]", email);
-        body.append("ml-submit", "1");
-        body.append("anticsrf", "true");
-        fetch(ML_ENDPOINT, { method: "POST", mode: "no-cors", body: body })
-          .catch(function () { lastSentEmail = null; });
+        fetch(SUBSCRIBE_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email, lang: getLang() || "en" })
+        }).catch(function () { lastSentEmail = null; });
         showThankYou();
       }, true);
 
