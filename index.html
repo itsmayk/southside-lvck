@@ -18,9 +18,11 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { background: #0A0A0A; display: flex; align-items: center; justify-content: center; min-height: 100vh; font-family: 'Playfair Display', serif; }
-    #__bundler_loading { position: fixed; bottom: 20px; right: 20px; font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: #666; background: #fff; padding: 8px 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.12); z-index: 10000; }
+    /* the bundler's status pill is white-on-black technical jargon — keep the
+       element (its JS writes to it) but never show it to visitors */
+    #__bundler_loading { display: none !important; }
     #__bundler_thumbnail { position: fixed; inset: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #0A0A0A; z-index: 9999; }
-    #__bundler_thumbnail svg { width: 100%; height: 100%; object-fit: contain; }
+    #ss-boot-canvas { image-rendering: pixelated; filter: drop-shadow(0 0 18px rgba(255,255,255,0.18)); }
     #__bundler_placeholder { color: #999; font-size: 14px; }
   </style>
   <noscript>
@@ -32,12 +34,107 @@
 </head>
 <body>
   <div id="__bundler_thumbnail">
-    <svg sc-camel-view-box="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="100" cy="100" r="60" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.8"></circle>
-      <circle cx="100" cy="100" r="30" fill="#FFFFFF" opacity="0.9"></circle>
-    </svg>
+    <canvas id="ss-boot-canvas"></canvas>
   </div>
   <div id="__bundler_loading">Unpacking...</div>
+
+  <script>
+  /* Loading screen: the LVCK arch as pixel art, recharging itself bottom-up in a
+     loop until the bundle takes over (which happens via documentElement.replaceWith,
+     so nothing here needs tearing down). The logo is baked in as a luminance mask
+     sampled from favicon.png at 24x14 — no image request, so it paints instantly. */
+  (function () {
+    var ROWS = [
+      "000000023899998320000000",
+      "000001799999999997100000",
+      "000039999999999999930000",
+      "000499999952259999994000",
+      "004999982789987289999400",
+      "008999469999999964999800",
+      "069995799999999997599960",
+      "089975999965569999579980",
+      "299949999200002999949992",
+      "899949991000000199949998",
+      "899679990000000099976998",
+      "899599990000000099995998",
+      "899569930000000039955998",
+      "033013300000000003310330"
+    ];
+    var W = ROWS[0].length, H = ROWS.length;
+
+    var cv = document.getElementById("ss-boot-canvas");
+    if (!cv || !cv.getContext) return;
+    var ctx = cv.getContext("2d");
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    var block = 8;
+    var live = true;
+
+    // the bundle boots via documentElement.replaceWith, which detaches this canvas
+    // but leaves our window listeners alive — shut down rather than burn frames
+    // repainting an orphan for the life of the page
+    function stop() {
+      live = false;
+      window.removeEventListener("resize", resize);
+    }
+
+    function resize() {
+      if (!cv.isConnected) return stop();
+      var target = Math.min(window.innerWidth * 0.46, window.innerHeight * 0.36, 320);
+      block = Math.max(3, Math.round(target / W));
+      cv.width = W * block * dpr;
+      cv.height = H * block * dpr;
+      cv.style.width = W * block + "px";
+      cv.style.height = H * block + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    // chunky, stable-per-step flicker (a per-frame Math.random reads as noise)
+    function noise(x, y, step) {
+      var n = (x * 73856093) ^ (y * 19349663) ^ (step * 83492791);
+      n = (n ^ (n >> 13)) * 1274126177;
+      return ((n ^ (n >> 16)) >>> 0) / 4294967295;
+    }
+
+    function paint(progress, flash) {
+      var step = Math.floor(performance.now() / 70);
+      ctx.clearRect(0, 0, W * block, H * block);
+      for (var y = 0; y < H; y++) {
+        var row = ROWS[y];
+        for (var x = 0; x < W; x++) {
+          var lum = (row.charCodeAt(x) - 48) / 9;
+          if (!(lum > 0)) continue;
+          var rowP = 1 - y / (H - 1);          // bottom rows charge first
+          var charge = (progress - rowP) * 6 + 0.5;
+          charge = charge < 0 ? 0 : charge > 1 ? 1 : charge;
+          if (charge > 0.05 && charge < 0.95) {
+            charge *= 0.5 + 0.5 * noise(x, y, step);   // leading edge flickers
+          }
+          var a = (0.07 + 0.93 * charge) * lum;        // faint ghost always visible
+          if (flash > 0) a = Math.min(1, a * (1 + 0.5 * flash));
+          ctx.fillStyle = "rgba(255,255,255," + a.toFixed(3) + ")";
+          ctx.fillRect(x * block, y * block, block - 1, block - 1);
+        }
+      }
+    }
+
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { paint(1, 0); return; }
+
+    var CYCLE = 2100, HOLD = 420;
+    var start = performance.now();
+    (function frame(now) {
+      if (!live) return;
+      if (!cv.isConnected) return stop();
+      var t = (now - start) % (CYCLE + HOLD);
+      if (t < CYCLE) paint(t / CYCLE, 0);
+      else paint(1, 1 - (t - CYCLE) / HOLD);   // brief flash, then loop
+      requestAnimationFrame(frame);
+    })(start);
+  })();
+  </script>
 
   <script>
     
