@@ -335,9 +335,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     (function () {
       var LANG_KEY = "ss-lang";
       var COPY = {
-        en: { phrase: "Sign up to be the first to have it.", welcome: "Welcome", email: "your@email.com", date: "15 AUG 2026", change: "Change language", dropInfo: "You'll be among the first to access and own our new South Side Set.", share: "Share with friends", shareMsg: "LVCK is back with a new drop. Sign up to be among the first to know.", copied: "Link copied ✓", error: "We couldn't sign you up. Please try again." },
-        es: { phrase: "Regístrate para ser el primero en tenerlo.", welcome: "Bienvenido", email: "tu@email.com", date: "15 AGO 2026", change: "Cambiar idioma", dropInfo: "Serás de los primeros en poder acceder y tener nuestro nuevo Set South Side.", share: "Compartir con amigos", shareMsg: "Mira, LVCK vuelve con un nuevo drop. Regístrate para ser de los primeros en enterarte de todo.", copied: "Link copiado ✓", error: "No pudimos registrarte. Intenta de nuevo." },
-        pt: { phrase: "Cadastre-se para ser o primeiro a ter.", welcome: "Bem-vindo", email: "seu@email.com", date: "15 AGO 2026", change: "Mudar idioma", dropInfo: "Você será um dos primeiros a poder acessar e ter nosso novo Set South Side.", share: "Compartilhar com amigos", shareMsg: "A LVCK está de volta com um novo drop. Cadastre-se para ser um dos primeiros a saber de tudo.", copied: "Link copiado ✓", error: "Não conseguimos cadastrar você. Tente novamente." }
+        en: { phrase: "Sign up to be the first to have it.", welcome: "Welcome", email: "your@email.com", date: "15 AUG 2026", change: "Change language", dropInfo: "You'll be among the first to access and own our new South Side Set.", share: "Share with friends", shareMsg: "LVCK is back with a new drop. Sign up to be among the first to know.", copied: "Link copied ✓", error: "We couldn't sign you up. Please try again.", signedUp: "{n} already signed up" },
+        es: { phrase: "Regístrate para ser el primero en tenerlo.", welcome: "Bienvenido", email: "tu@email.com", date: "15 AGO 2026", change: "Cambiar idioma", dropInfo: "Serás de los primeros en poder acceder y tener nuestro nuevo Set South Side.", share: "Compartir con amigos", shareMsg: "Mira, LVCK vuelve con un nuevo drop. Regístrate para ser de los primeros en enterarte de todo.", copied: "Link copiado ✓", error: "No pudimos registrarte. Intenta de nuevo.", signedUp: "{n} ya registrados" },
+        pt: { phrase: "Cadastre-se para ser o primeiro a ter.", welcome: "Bem-vindo", email: "seu@email.com", date: "15 AGO 2026", change: "Mudar idioma", dropInfo: "Você será um dos primeiros a poder acessar e ter nosso novo Set South Side.", share: "Compartilhar com amigos", shareMsg: "A LVCK está de volta com um novo drop. Cadastre-se para ser um dos primeiros a saber de tudo.", copied: "Link copiado ✓", error: "Não conseguimos cadastrar você. Tente novamente.", signedUp: "{n} já cadastrados" }
       };
       var BTN_STYLE = "display:flex;align-items:center;justify-content:center;gap:14px;padding:16px 20px;border:1px solid rgba(255,255,255,0.35);background:transparent;color:#f5f5f0;font-family:'Playfair Display', Georgia, serif;font-size:15px;letter-spacing:0.02em;cursor:pointer;border-radius:2px;transition:background 0.2s, color 0.2s;";
 
@@ -406,6 +406,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (errEl && errEl.textContent && errEl.textContent !== copy.error) {
           errEl.textContent = copy.error;
         }
+
+        if (typeof renderCount === "function") renderCount();
 
         var shareBtn = document.getElementById("ss-ty-share");
         if (shareBtn && !shareBtn.dataset.copied) {
@@ -684,7 +686,12 @@ document.addEventListener('DOMContentLoaded', async function() {
           settled = true;
           sending = false;
           if (btn) { btn.disabled = false; btn.style.opacity = ""; }
-          if (ok) { showThankYou(); return; }
+          if (ok) {
+            // reflect this signup right away instead of waiting out the API cache
+            if (subscriberCount !== null) { subscriberCount++; renderCount(); }
+            showThankYou();
+            return;
+          }
           errEl.textContent = (COPY[getLang()] || COPY.en).error;
           errEl.style.opacity = "1";
         }
@@ -726,6 +733,52 @@ document.addEventListener('DOMContentLoaded', async function() {
       }
       updateCountdown();
       window.setInterval(updateCountdown, 1000);
+
+      /* Social proof under the form. A visible low number is worse than no
+         number at all ("only 4 people want this"), so nothing is rendered until
+         the count clears MIN_COUNT_TO_SHOW. Raise or lower that one constant. */
+      var MIN_COUNT_TO_SHOW = 25;
+      var subscriberCount = null;
+
+      function ensureCountEl() {
+        var el = document.getElementById("ss-count");
+        if (el) return el;
+        var input = document.getElementById("ss-email-input");
+        var form = input && input.form;
+        if (!form || !form.parentNode) return null;
+        el = document.createElement("div");
+        el.id = "ss-count";
+        el.style.cssText = "font-family:'Playfair Display', serif;font-size:11px;letter-spacing:0.2em;" +
+          "text-transform:uppercase;color:rgba(255,255,255,0.42);text-align:center;margin-top:2px;" +
+          "opacity:0;transition:opacity 0.8s ease;pointer-events:none;";
+        var anchor = document.getElementById("ss-form-error") || form;
+        form.parentNode.insertBefore(el, anchor.nextSibling);
+        return el;
+      }
+
+      function renderCount() {
+        if (subscriberCount === null || subscriberCount < MIN_COUNT_TO_SHOW) return;
+        var el = ensureCountEl();
+        if (!el) return;
+        var lang = getLang() || "en";
+        var copy = COPY[lang] || COPY.en;
+        var locale = lang === "es" ? "es-CO" : lang === "pt" ? "pt-BR" : "en-US";
+        var text = copy.signedUp.replace("{n}", subscriberCount.toLocaleString(locale));
+        if (el.textContent !== text) el.textContent = text;
+        el.style.opacity = "1";
+      }
+
+      function loadCount() {
+        fetch("/api/count")
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (j) {
+            if (!j || typeof j.count !== "number") return;
+            subscriberCount = j.count;
+            renderCount();
+          })
+          .catch(function () { /* social proof is optional — stay silent */ });
+      }
+      loadCount();
 
       var saved = getLang();
       applyLang(saved || "en");
