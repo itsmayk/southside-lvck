@@ -191,21 +191,38 @@ h1.display {
   font-weight: 400;
   font-size: clamp(40px, 11vw, 104px);
   letter-spacing: 0.06em;
-  line-height: 1.08;
   text-transform: uppercase;
+
+  /* AngerStyles hangs long swashes well below the baseline. With
+     background-clip: text the gradient is painted across the element's box, so
+     anything the box doesn't cover is filled with nothing and reads as a
+     chopped-off letter. The tall line-height plus the bottom padding exist to
+     give those tails a box to be painted in — they are not spacing. */
+  line-height: 1.34;
+  padding-bottom: 0.16em;
+
   background: linear-gradient(180deg,
-    #3E3E3C 0%,
-    #101010 26%,
+    #3E3E3C 6%,
+    #101010 28%,
     #9A9A94 47%,
-    #14141A 55%,
-    #6C6C66 79%,
-    #23232A 100%);
+    #14141A 56%,
+    #6C6C66 76%,
+    #23232A 94%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.85))
           drop-shadow(0 6px 18px rgba(10, 10, 10, 0.22));
+
+  /* a slow drift, so the metal reads as suspended rather than pasted on */
+  will-change: transform;
+  animation: chromeFloat 9s ease-in-out infinite;
+}
+
+@keyframes chromeFloat {
+  0%, 100% { transform: translateY(-5px); }
+  50%      { transform: translateY(5px); }
 }
 
 /* placeholders the brand still has to fill in — deliberately loud so they
@@ -280,8 +297,15 @@ h1.display {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    /* the iteration count matters as much as the duration: a looping animation
+       squeezed to 0.01ms doesn't stop, it thrashes. Capping it at one pass
+       lands the element on its final keyframe and leaves it there. */
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ---------- language modal ---------- */
