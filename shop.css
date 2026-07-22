@@ -388,8 +388,10 @@ h1.display {
   }
 }
 
-/* the wordmark grows past the edges on the way out */
-.hero { overflow-x: clip; }
+/* No clip on .hero. It is a 1180px-wide centred column, so clipping there cut
+   the growing wordmark along the column's edges instead of the screen's — a
+   hard rectangle drawn across the middle of the slide. The pin is the element
+   that matches the viewport, and it already clips. */
 
 /* ---------- scroll cue ---------- */
 
