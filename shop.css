@@ -256,7 +256,7 @@ h1.display {
 
   /* a slow drift, so the metal reads as suspended rather than pasted on */
   will-change: transform;
-  animation: chromeFloat 6s var(--ease-loop) infinite;
+  animation: chromeFloat 3.4s var(--ease-loop) infinite;
 }
 
 /* On charcoal the dark-bodied metal disappears, so the wordmark goes back to
@@ -357,7 +357,7 @@ h1.display {
      rather than stamped onto it. It rides the standalone `translate` property
      and hover rides `scale`, which are independent of each other — sharing one
      `transform` would mean the hover wiped out the float mid-animation. */
-  animation: btnFloat 5.5s var(--ease-loop) infinite;
+  animation: btnFloat 3.2s var(--ease-loop) infinite;
 }
 
 @keyframes btnFloat {
@@ -366,7 +366,7 @@ h1.display {
 }
 
 /* two buttons side by side bobbing in lockstep look mechanical */
-.card:nth-child(2n) .btn { animation-delay: -1.9s; }
+.card:nth-child(2n) .btn { animation-delay: -1.1s; }
 
 /* The metal catches more light rather than changing colour, and the drift
    stops: a target that keeps moving while you reach for it is a target you
