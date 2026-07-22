@@ -30,8 +30,11 @@
       "foot.note": "Bogotá, Colombia",
       "lang.pick": "Elige tu idioma",
       "test.notice": "Modo prueba · ningún pago es real todavía",
+      "drop.label": "Lanzamiento",
+      "drop.date": "15 AGO 2026",
+      "drop.live": "Ya disponible",
 
-      "shop.eyebrow": "Colección",
+      "shop.eyebrow": "Lanzamiento",
       "shop.intro": "Dos piezas. Producción corta. Cuando se agota una talla, no vuelve.",
       "shop.view": "Ver producto",
       "shop.soldOut": "Agotado",
@@ -78,8 +81,11 @@
       "foot.note": "Bogotá, Colombia",
       "lang.pick": "Choose your language",
       "test.notice": "Test mode · no payment is real yet",
+      "drop.label": "Drop",
+      "drop.date": "15 AUG 2026",
+      "drop.live": "Available now",
 
-      "shop.eyebrow": "Collection",
+      "shop.eyebrow": "Drop",
       "shop.intro": "Two pieces. Short production run. Once a size is gone, it's gone.",
       "shop.view": "View product",
       "shop.soldOut": "Sold out",
@@ -126,8 +132,11 @@
       "foot.note": "Bogotá, Colômbia",
       "lang.pick": "Escolha seu idioma",
       "test.notice": "Modo teste · nenhum pagamento é real ainda",
+      "drop.label": "Lançamento",
+      "drop.date": "15 AGO 2026",
+      "drop.live": "Já disponível",
 
-      "shop.eyebrow": "Coleção",
+      "shop.eyebrow": "Lançamento",
       "shop.intro": "Duas peças. Produção curta. Quando um tamanho acaba, não volta.",
       "shop.view": "Ver produto",
       "shop.soldOut": "Esgotado",
@@ -302,8 +311,46 @@
     });
   }
 
+  /* ---------- countdown ---------- */
+
+  // same instant the landing page counts to: midnight in Colombia, 15 Aug 2026
+  var DROP_AT = new Date("2026-08-15T00:00:00-05:00").getTime();
+
+  function pad(n) { return n < 10 ? "0" + n : String(n); }
+
+  /* The strip under the header. Right now everyone sees it; when the drop is
+     gated this is the element to hide behind whatever grants early access —
+     the markup and the clock stay exactly as they are. */
+  function initCountdown() {
+    var bar = document.querySelector(".countdown-bar");
+    if (!bar) return;
+
+    var clock = bar.querySelector(".clock");
+    if (!clock) return;
+
+    function tick() {
+      var diff = DROP_AT - Date.now();
+      if (diff <= 0) {
+        bar.classList.add("live");
+        clock.textContent = t("drop.live");
+        return;
+      }
+      bar.classList.remove("live");
+      var d = Math.floor(diff / 86400000);
+      var h = Math.floor((diff % 86400000) / 3600000);
+      var m = Math.floor((diff % 3600000) / 60000);
+      var s = Math.floor((diff % 60000) / 1000);
+      clock.textContent = d + "D " + pad(h) + "H " + pad(m) + "M " + pad(s) + "S";
+    }
+
+    tick();
+    setInterval(tick, 1000);
+    global.addEventListener("lvck:lang", tick);   // "Ya disponible" is translated
+  }
+
   // called by every page once its own markup exists
   function boot(afterLang) {
+    initCountdown();
     var lang = getLang();
     applyI18n();
     if (!lang) {

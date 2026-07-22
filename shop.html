@@ -23,14 +23,15 @@
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
   .hero {
-    padding: clamp(48px, 10vh, 110px) clamp(16px, 4vw, 48px) clamp(32px, 6vh, 64px);
+    padding: clamp(44px, 9vh, 96px) clamp(16px, 4vw, 48px) clamp(28px, 5vh, 56px);
     max-width: 1180px;
     margin: 0 auto;
+    text-align: center;
   }
-  .hero .eyebrow { margin-bottom: 18px; }
+  .hero .eyebrow { margin-bottom: 16px; }
   .hero p {
     max-width: 44ch;
-    margin-top: 20px;
+    margin: 22px auto 0;
     font-size: clamp(15px, 1.6vw, 18px);
     line-height: 1.65;
     color: var(--muted);
@@ -40,6 +41,7 @@
     max-width: 1180px;
     margin: 0 auto;
     padding: 0 clamp(16px, 4vw, 48px);
+    text-align: center;
   }
   .test-notice span {
     display: inline-block;
@@ -182,20 +184,27 @@
 </head>
 <body>
 
-<header class="site-head">
-  <a class="mark" href="shop.html">
-    <img src="logo-w.png" alt="LVCK">
-    <span>LVCK</span>
-  </a>
-  <nav class="head-links">
-    <a href="shop.html" data-i18n="nav.shop">Tienda</a>
-    <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
-  </nav>
-</header>
+<div class="topbar">
+  <header class="site-head">
+    <a class="mark" href="shop.html" aria-label="LVCK">
+      <img src="logo-w.png" alt="LVCK">
+    </a>
+    <nav class="head-links">
+      <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
+    </nav>
+  </header>
+  <div class="countdown-bar">
+    <span data-i18n="drop.label">Lanzamiento</span>
+    <span class="sep">·</span>
+    <span data-i18n="drop.date">15 AGO 2026</span>
+    <span class="sep">·</span>
+    <span class="clock"></span>
+  </div>
+</div>
 
 <section class="hero">
-  <div class="eyebrow" data-i18n="shop.eyebrow">Colección</div>
-  <h1 class="display">South Side</h1>
+  <div class="eyebrow" data-i18n="shop.eyebrow">Lanzamiento</div>
+  <h1 class="chrome">South Side</h1>
   <p data-i18n="shop.intro">Dos piezas. Producción corta. Cuando se agota una talla, no vuelve.</p>
 </section>
 

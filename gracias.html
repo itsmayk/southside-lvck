@@ -88,16 +88,23 @@
 </head>
 <body>
 
-<header class="site-head">
-  <a class="mark" href="shop.html">
-    <img src="logo-w.png" alt="LVCK">
-    <span>LVCK</span>
-  </a>
-  <nav class="head-links">
-    <a href="shop.html" data-i18n="nav.shop">Tienda</a>
-    <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
-  </nav>
-</header>
+<div class="topbar">
+  <header class="site-head">
+    <a class="mark" href="shop.html" aria-label="LVCK">
+      <img src="logo-w.png" alt="LVCK">
+    </a>
+    <nav class="head-links">
+      <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
+    </nav>
+  </header>
+  <div class="countdown-bar">
+    <span data-i18n="drop.label">Lanzamiento</span>
+    <span class="sep">·</span>
+    <span data-i18n="drop.date">15 AGO 2026</span>
+    <span class="sep">·</span>
+    <span class="clock"></span>
+  </div>
+</div>
 
 <main class="thanks">
   <img class="arch" src="logo-w.png" alt="">

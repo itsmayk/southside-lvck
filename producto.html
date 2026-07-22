@@ -98,7 +98,8 @@
 
   /* ---------- info column ---------- */
   @media (min-width: 861px) {
-    .info { position: sticky; top: 96px; }
+    /* clears the sticky header + countdown strip above it */
+    .info { position: sticky; top: 148px; }
   }
   .info h1 {
     font-family: 'Cinzel', serif;
@@ -243,16 +244,23 @@
 </head>
 <body>
 
-<header class="site-head">
-  <a class="mark" href="shop.html">
-    <img src="logo-w.png" alt="LVCK">
-    <span>LVCK</span>
-  </a>
-  <nav class="head-links">
-    <a href="shop.html" data-i18n="nav.shop">Tienda</a>
-    <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
-  </nav>
-</header>
+<div class="topbar">
+  <header class="site-head">
+    <a class="mark" href="shop.html" aria-label="LVCK">
+      <img src="logo-w.png" alt="LVCK">
+    </a>
+    <nav class="head-links">
+      <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
+    </nav>
+  </header>
+  <div class="countdown-bar">
+    <span data-i18n="drop.label">Lanzamiento</span>
+    <span class="sep">·</span>
+    <span data-i18n="drop.date">15 AGO 2026</span>
+    <span class="sep">·</span>
+    <span class="clock"></span>
+  </div>
+</div>
 
 <div class="wrap" id="wrap"></div>
 <div class="also" id="also" hidden></div>

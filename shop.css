@@ -14,6 +14,13 @@
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
+/* the display face from the landing page, so the two halves share a voice */
+@font-face {
+  font-family: 'AngerStyles';
+  src: url('fonts/AngerStyles.ttf') format('truetype');
+  font-display: swap;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -30,42 +37,73 @@ img { display: block; max-width: 100%; }
 
 /* ---------- shared chrome ---------- */
 
-.site-head {
+/* header + countdown travel together, so the drop date is never more than a
+   glance away no matter how far down the page you are */
+.topbar {
   position: sticky;
   top: 0;
   z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px clamp(16px, 4vw, 48px);
-  background: rgba(245, 245, 240, 0.82);
+  background: rgba(245, 245, 240, 0.86);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+
+.site-head {
+  /* three tracks, so the logo is centred against the page rather than against
+     whatever happens to sit beside it */
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 16px clamp(16px, 4vw, 48px);
   border-bottom: 1px solid var(--hairline);
 }
 
 .site-head .mark {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  grid-column: 2;
+  justify-self: center;
+  display: block;
   text-decoration: none;
-  color: var(--ink);
+  line-height: 0;
 }
 
 /* logo-w.png is white on transparent — invert it rather than ship a second
-   asset, so the brand only ever maintains one logo file */
+   asset, so the brand only ever maintains one logo file. The logo IS the way
+   home; there is no "Shop" link because every page here is the shop. */
 .site-head .mark img {
-  width: 34px;
+  width: clamp(46px, 6.5vw, 70px);
   filter: invert(1);
+  transition: opacity 0.3s var(--ease);
+}
+.site-head .mark:hover img { opacity: 0.6; }
+
+.site-head .head-links {
+  grid-column: 3;
+  justify-self: end;
 }
 
-.site-head .mark span {
-  font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 0.36em;
+/* ---------- countdown strip ---------- */
+
+.countdown-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 3vw, 26px);
+  flex-wrap: wrap;
+  padding: 9px clamp(16px, 4vw, 48px);
+  border-bottom: 1px solid var(--hairline);
+  font-size: 10px;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
+  color: var(--muted);
 }
+
+.countdown-bar .sep { opacity: 0.4; }
+.countdown-bar .clock {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;   /* stops the bar twitching each second */
+}
+.countdown-bar.live .clock { letter-spacing: 0.3em; }
 
 .head-links {
   display: flex;
@@ -122,6 +160,33 @@ h1.display {
   font-size: clamp(34px, 7vw, 68px);
   letter-spacing: 0.04em;
   line-height: 1.05;
+}
+
+/* The landing page's chrome wordmark, flipped for a pale background. There the
+   metal runs near-white with a white bloom around it — on bone that is invisible,
+   so the gradient is rebuilt dark-bodied with light highlight bands, and the
+   glow becomes a hairline top light plus a soft cast shadow. Same font, same
+   polished-steel read, opposite value. */
+.chrome {
+  font-family: 'AngerStyles', 'Cinzel', serif;
+  font-weight: 400;
+  font-size: clamp(40px, 11vw, 104px);
+  letter-spacing: 0.06em;
+  line-height: 1.08;
+  text-transform: uppercase;
+  background: linear-gradient(180deg,
+    #3E3E3C 0%,
+    #101010 26%,
+    #9A9A94 47%,
+    #14141A 55%,
+    #6C6C66 79%,
+    #23232A 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.85))
+          drop-shadow(0 6px 18px rgba(10, 10, 10, 0.22));
 }
 
 /* placeholders the brand still has to fill in — deliberately loud so they
