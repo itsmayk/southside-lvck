@@ -154,13 +154,27 @@ img { display: block; max-width: 100%; }
 
 .countdown-bar.live .clock { letter-spacing: 0.26em; }
 
-/* Narrow screens can't hold all three without crushing the clock. The label is
-   the one that goes — the date says the same thing in less room — and the date
-   moves to the left track so the clock keeps the centre of the screen. */
+/* Phones keep all three parts, in the same order as the desktop. Rather than
+   drop the label, the type and the tracking come down in two steps so the row
+   still fits on one line and the clock still lands on the screen's centre. */
 @media (max-width: 620px) {
-  .countdown-bar { font-size: 11px; letter-spacing: 0.16em; }
-  .countdown-bar .label { display: none; }
-  .countdown-bar .date { grid-area: 1 / 1; justify-self: start; }
+  .countdown-bar {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    gap: 10px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  .countdown-bar {
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    gap: 6px;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
 
 .head-links {
