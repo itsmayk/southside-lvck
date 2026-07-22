@@ -294,9 +294,62 @@ h1.display {
           drop-shadow(0 0 3px rgba(255, 255, 255, 0.22));
 }
 
+/* on `translate`, not `transform`, so the scroll-driven approach below can own
+   `scale` without the two wiping each other out */
 @keyframes chromeFloat {
-  0%, 100% { transform: translateY(-5px); }
-  50%      { transform: translateY(5px); }
+  0%, 100% { translate: 0 -5px; }
+  50%      { translate: 0 5px; }
+}
+
+/* ---------- scroll-driven ---------- */
+
+/* Tied to scroll position rather than fired once on arrival, so the motion
+   tracks the finger and reverses when you scroll back — the difference between
+   a page that animates and a page that responds.
+
+   Behind @supports because these run on the compositor where available and
+   are simply absent where they aren't: the wordmark still sits there, the
+   photos still appear (the IntersectionObserver in shop-common.js picks them
+   up instead). Nothing here is load-bearing. */
+@supports (animation-timeline: view()) {
+  .chrome {
+    animation: chromeFloat 3.4s var(--ease-loop) infinite,
+               chromeApproach linear both;
+    animation-timeline: auto, scroll(root block);
+    animation-range: normal, 0 62vh;
+  }
+
+  /* it grows past you and dissolves, the way the landing page's arch does */
+  @keyframes chromeApproach {
+    from { scale: 1;    opacity: 1; }
+    60%  { scale: 1.22; opacity: 0.55; }
+    to   { scale: 1.62; opacity: 0; }
+  }
+
+  /* each card lifts into place as it enters, on its own timeline, so the two
+     arrive one after the other rather than together */
+  .card {
+    animation: cardRise linear both;
+    animation-timeline: view();
+    animation-range: entry 4% cover 34%;
+  }
+
+  @keyframes cardRise {
+    from { translate: 0 90px; opacity: 0; }
+    to   { translate: 0 0;    opacity: 1; }
+  }
+}
+
+/* the wordmark grows past the edges on the way out */
+.hero { overflow-x: clip; }
+
+@media (prefers-reduced-motion: reduce) {
+  .chrome, .card {
+    animation: none !important;
+    scale: 1 !important;
+    translate: none !important;
+    opacity: 1 !important;
+  }
 }
 
 /* placeholders the brand still has to fill in — deliberately loud so they

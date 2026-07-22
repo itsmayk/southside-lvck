@@ -418,10 +418,17 @@
     .then(function (r) { return r.json(); })
     .then(function (config) {
       products = config.products || [];
+      // where the browser can drive animation from scroll position, the cards'
+      // entrance lives in CSS; the observer is only the fallback, and running
+      // both would have them fighting over the same opacity
+      var scrollDriven = window.CSS && CSS.supports && CSS.supports("animation-timeline: view()");
+
       products.forEach(function (p, i) {
         var card = buildCard(p);
-        card.setAttribute("data-reveal", "up");
-        card.setAttribute("data-reveal-delay", String(i * 0.1));
+        if (!scrollDriven) {
+          card.setAttribute("data-reveal", "up");
+          card.setAttribute("data-reveal-delay", String(i * 0.1));
+        }
         grid.appendChild(card);
         wireGallery(card.querySelector(".frame"));
       });
