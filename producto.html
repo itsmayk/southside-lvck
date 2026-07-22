@@ -407,7 +407,7 @@
     var buy = el("a", "btn btn-block buy is-disabled");
     buy.id = "buy";
     buy.rel = "noopener";
-    buy.textContent = LVCK.t("p.pickFirst", lang);
+    LVCK.btnLabel(buy).textContent = LVCK.t("p.pickFirst", lang);
     col.appendChild(buy);
 
     var secure = el("div", "secure");
@@ -428,7 +428,7 @@
     buy.classList.remove("is-disabled");
     buy.href = size.url;
     // the label stays one word: the chosen size is already lit up right above
-    buy.textContent = LVCK.t("p.buy");
+    LVCK.btnLabel(buy).textContent = LVCK.t("p.buy");
   }
 
   /* Everything here is copy the brand still owes us. Rather than invent
@@ -524,7 +524,7 @@
 
     var close = el("button", "btn close");
     close.type = "button";
-    close.setAttribute("data-i18n", "p.close");
+    LVCK.btnLabel(close).setAttribute("data-i18n", "p.close");
     close.addEventListener("click", closeGuide);
     panel.appendChild(close);
 
@@ -552,7 +552,7 @@
     var buy = document.getElementById("buy");
     buy.classList.add("is-disabled");
     buy.removeAttribute("href");
-    buy.textContent = LVCK.t("p.pickFirst");
+    LVCK.btnLabel(buy).textContent = LVCK.t("p.pickFirst");
   }
 
   /* ---------- cross-sell ---------- */
@@ -615,7 +615,7 @@
 
     var buy = document.getElementById("buy");
     if (buy) {
-      buy.textContent = LVCK.t(chosen ? "p.buy" : "p.pickFirst", lang);
+      LVCK.btnLabel(buy).textContent = LVCK.t(chosen ? "p.buy" : "p.pickFirst", lang);
     }
 
     document.querySelectorAll("#sizes .size.sold").forEach(function (b) {
@@ -635,7 +635,7 @@
     box.appendChild(p);
     var back = el("a", "btn");
     back.href = "shop.html";
-    back.setAttribute("data-i18n", "btn.back");
+    LVCK.btnLabel(back).setAttribute("data-i18n", "btn.back");
     back.style.marginTop = "24px";
     box.appendChild(back);
     wrap.appendChild(box);

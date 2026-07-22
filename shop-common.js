@@ -220,6 +220,20 @@
     if (!root) global.dispatchEvent(new CustomEvent("lvck:lang", { detail: { lang: lang } }));
   }
 
+  /* The flame's fill is the button's own background-colour, so the label can't
+     also carry a gradient — it needs its own box. Every button therefore holds
+     a .lbl span, and that span is what gets the chrome. */
+  function btnLabel(btn) {
+    var lbl = btn.querySelector(".lbl");
+    if (lbl) return lbl;
+    lbl = document.createElement("span");
+    lbl.className = "lbl";
+    lbl.textContent = btn.textContent.trim();
+    btn.textContent = "";
+    btn.appendChild(lbl);
+    return lbl;
+  }
+
   function setLang(lang) {
     if (LANGS.indexOf(lang) === -1) return;
     store(LANG_KEY, lang);
@@ -368,6 +382,6 @@
   global.LVCK = {
     t: t, money: money, getLang: getLang, setLang: setLang,
     applyI18n: applyI18n, initReveal: initReveal, boot: boot,
-    openLangModal: openLangModal
+    openLangModal: openLangModal, btnLabel: btnLabel
   };
 })(window);

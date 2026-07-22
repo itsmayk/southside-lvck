@@ -350,8 +350,7 @@
     var btn = document.createElement("a");
     btn.className = "btn";
     btn.href = link;
-    btn.setAttribute("data-i18n", "shop.view");
-    btn.textContent = "Ver producto";
+    LVCK.btnLabel(btn).setAttribute("data-i18n", "shop.view");
     card.appendChild(btn);
 
     return card;

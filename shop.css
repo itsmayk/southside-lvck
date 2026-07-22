@@ -10,6 +10,9 @@
   --ink: #0A0A0A;
   --muted: #6B6B66;
   --hairline: #D6D6CD;
+  --pearl: #4F4F49;       /* dark pearl grey — buttons, softer than ink on bone */
+  --pearl-deep: #3B3B36;  /* its pressed/hover state */
+  --pearl-off: #7C7C75;   /* a button that isn't available yet */
   --pending: #B03A2E;     /* copy the brand still has to write */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
 }
@@ -267,7 +270,10 @@ h1.display {
   padding: 0 36%;
   border: none;
   background: none;
-  background-color: var(--ink);
+  /* pearl grey, not ink: at full black the flames punched holes in a page whose
+     whole character is the quiet distance between bone and grey. This sits in
+     the same family as the header rules and the muted type. */
+  background-color: var(--pearl);
   -webkit-mask: var(--tribal) no-repeat center / 100% 100%;
   mask: var(--tribal) no-repeat center / 100% 100%;
 
@@ -282,19 +288,57 @@ h1.display {
   transition: background-color 0.3s var(--ease), transform 0.35s var(--ease);
 }
 
-.btn:hover { background-color: #2A2A26; transform: scale(1.04); }
+.btn:hover { background-color: var(--pearl-deep); transform: scale(1.04); }
 
 /* a focus ring would be clipped away by the mask, so focus reads as a colour
    shift instead — keyboard users still see where they are */
-.btn:focus-visible { background-color: #45453E; outline: none; }
+.btn:focus-visible { background-color: var(--pearl-deep); outline: none; }
 
-/* muted grey rather than a pale one: the flame still has to read as a flame,
-   and bone text on a near-bone fill is unreadable */
+/* light enough to read as unavailable, dark enough that the label survives —
+   bone text on a near-bone fill is unreadable */
 .btn[disabled],
 .btn.is-disabled {
-  background-color: var(--muted);
-  color: var(--bone);
+  background-color: var(--pearl-off);
   pointer-events: none;
+}
+
+/* ---------- the label's chrome ---------- */
+
+/* The same polished-steel idea as the wordmark, at label size. It cannot live
+   on the button itself — that element's background-colour is the flame — so
+   every button carries a .lbl span and the gradient is clipped to that.
+   The highlight travels while the whole thing swells and settles, which is
+   what makes it read as a shine rather than as blinking text. */
+.btn .lbl {
+  background: linear-gradient(100deg,
+    #CFCFC7 0%,
+    #E8E8E1 26%,
+    #FFFFFF 43%,
+    #8F8F88 50%,
+    #FFFFFF 57%,
+    #E8E8E1 74%,
+    #CFCFC7 100%);
+  background-size: 340% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: btnShine 7s ease-in-out infinite;
+}
+
+@keyframes btnShine {
+  0%, 100% { background-position: 118% 0; opacity: 0.7; filter: brightness(0.92); }
+  50%      { background-position: -18% 0; opacity: 1;   filter: brightness(1.5); }
+}
+
+/* on the unavailable state the shine would look like an invitation */
+.btn.is-disabled .lbl,
+.btn[disabled] .lbl {
+  animation: none;
+  background: none;
+  -webkit-text-fill-color: var(--bone);
+  color: var(--bone);
+  opacity: 0.9;
 }
 
 /* .btn is inline-flex, so an auto margin has nothing to centre; going
