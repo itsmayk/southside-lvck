@@ -15,6 +15,9 @@
   --pearl-off: #7C7C75;   /* a button that isn't available yet */
   --pending: #B03A2E;     /* copy the brand still has to write */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* the idle animations: nearer constant speed than ease-in-out, which loiters
+     at both ends and makes a loop feel like it is drifting rather than moving */
+  --ease-loop: cubic-bezier(0.37, 0, 0.63, 1);
 }
 
 /* the display face from the landing page, so the two halves share a voice */
@@ -227,7 +230,7 @@ h1.display {
 
   /* a slow drift, so the metal reads as suspended rather than pasted on */
   will-change: transform;
-  animation: chromeFloat 9s ease-in-out infinite;
+  animation: chromeFloat 6s var(--ease-loop) infinite;
 }
 
 @keyframes chromeFloat {
@@ -311,7 +314,7 @@ h1.display {
      rather than stamped onto it. It rides the standalone `translate` property
      and hover rides `scale`, which are independent of each other — sharing one
      `transform` would mean the hover wiped out the float mid-animation. */
-  animation: btnFloat 8s ease-in-out infinite;
+  animation: btnFloat 5.5s var(--ease-loop) infinite;
 }
 
 @keyframes btnFloat {
@@ -320,7 +323,7 @@ h1.display {
 }
 
 /* two buttons side by side bobbing in lockstep look mechanical */
-.card:nth-child(2n) .btn { animation-delay: -2.8s; }
+.card:nth-child(2n) .btn { animation-delay: -1.9s; }
 
 /* The metal catches more light rather than changing colour, and the drift
    stops: a target that keeps moving while you reach for it is a target you
@@ -374,7 +377,7 @@ h1.display {
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: btnShine 7s ease-in-out infinite;
+  animation: btnShine 4.6s var(--ease-loop) infinite;
 }
 
 @keyframes btnShine {
