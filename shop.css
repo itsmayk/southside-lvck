@@ -305,11 +305,29 @@ h1.display {
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color 0.3s var(--ease), transform 0.35s var(--ease);
+  transition: filter 0.3s var(--ease), scale 0.35s var(--ease);
+
+  /* Same drift as the wordmark, so the metal reads as suspended over the page
+     rather than stamped onto it. It rides the standalone `translate` property
+     and hover rides `scale`, which are independent of each other — sharing one
+     `transform` would mean the hover wiped out the float mid-animation. */
+  animation: btnFloat 8s ease-in-out infinite;
 }
 
-/* the metal catches more light rather than changing colour */
-.btn:hover { filter: brightness(1.22); transform: scale(1.04); }
+@keyframes btnFloat {
+  0%, 100% { translate: 0 -3px; }
+  50%      { translate: 0 3px; }
+}
+
+/* two buttons side by side bobbing in lockstep look mechanical */
+.card:nth-child(2n) .btn { animation-delay: -2.8s; }
+
+/* The metal catches more light rather than changing colour, and the drift
+   stops: a target that keeps moving while you reach for it is a target you
+   can miss. It settles under the pointer and under keyboard focus. */
+.btn:hover,
+.btn:focus-visible { animation-play-state: paused; }
+.btn:hover { filter: brightness(1.22); scale: 1.04; }
 
 /* a focus ring would be clipped away by the mask, so focus reads as a
    brightening instead — keyboard users still see where they are */
