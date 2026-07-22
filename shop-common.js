@@ -25,6 +25,8 @@
     es: {
       "nav.shop": "Tienda",
       "nav.lang": "Idioma",
+      "nav.dark": "Oscuro",
+      "nav.light": "Claro",
       "nav.back": "Volver a la tienda",
       "foot.brand": "LVCK · South Side",
       "foot.note": "Bogotá, Colombia",
@@ -76,6 +78,8 @@
     en: {
       "nav.shop": "Shop",
       "nav.lang": "Language",
+      "nav.dark": "Dark",
+      "nav.light": "Light",
       "nav.back": "Back to the shop",
       "foot.brand": "LVCK · South Side",
       "foot.note": "Bogotá, Colombia",
@@ -127,6 +131,8 @@
     pt: {
       "nav.shop": "Loja",
       "nav.lang": "Idioma",
+      "nav.dark": "Escuro",
+      "nav.light": "Claro",
       "nav.back": "Voltar para a loja",
       "foot.brand": "LVCK · South Side",
       "foot.note": "Bogotá, Colômbia",
@@ -213,12 +219,84 @@
         if (bits.length === 2) el.setAttribute(bits[0].trim(), t(bits[1].trim(), lang));
       });
     });
+    // the theme control's label is generated, not marked up, so it needs
+    // translating by hand whenever the language changes
+    var themeBtn = document.getElementById("ss-theme-btn");
+    if (themeBtn) {
+      themeBtn.textContent = t(
+        document.documentElement.getAttribute("data-theme") === "dark" ? "nav.light" : "nav.dark",
+        lang);
+    }
+
     // Only a whole-document pass announces the change. Listeners react by
     // re-rendering config-driven copy and then translating that new markup with
     // a subtree call — if those announced too, the listener would re-enter
     // itself until the stack blew.
     if (!root) global.dispatchEvent(new CustomEvent("lvck:lang", { detail: { lang: lang } }));
   }
+
+  /* ---------- light / dark ---------- */
+
+  /* The theme is already on <html> by the time this runs: a tiny inline script
+     in each page's <head> sets it before the stylesheet paints, so the page
+     never flashes bone at someone whose phone is in dark mode. This half owns
+     the manual override and keeps the browser chrome in step. */
+  var THEME_KEY = "ss-theme";
+  var PAGE_COLOUR = { light: "#F5F5F0", dark: "#232320" };
+
+  function storedTheme() {
+    var t = store(THEME_KEY);
+    return t === "light" || t === "dark" ? t : null;
+  }
+
+  function systemTheme() {
+    return global.matchMedia && global.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark" : "light";
+  }
+
+  function getTheme() {
+    return document.documentElement.getAttribute("data-theme") || storedTheme() || systemTheme();
+  }
+
+  function applyTheme(theme, remember) {
+    document.documentElement.setAttribute("data-theme", theme);
+    if (remember) store(THEME_KEY, theme);
+
+    // the phone's status bar and the desktop browser's surround
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.name = "theme-color";
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", PAGE_COLOUR[theme]);
+
+    var btn = document.getElementById("ss-theme-btn");
+    // the control names where it will take you, not where you are
+    if (btn) btn.textContent = t(theme === "dark" ? "nav.light" : "nav.dark");
+
+    global.dispatchEvent(new CustomEvent("lvck:theme", { detail: { theme: theme } }));
+  }
+
+  function toggleTheme() {
+    applyTheme(getTheme() === "dark" ? "light" : "dark", true);
+  }
+
+  function initTheme() {
+    applyTheme(getTheme(), false);
+
+    // follow the device until the visitor overrides it by hand
+    if (global.matchMedia) {
+      var mq = global.matchMedia("(prefers-color-scheme: dark)");
+      var onChange = function () { if (!storedTheme()) applyTheme(systemTheme(), false); };
+      if (mq.addEventListener) mq.addEventListener("change", onChange);
+      else if (mq.addListener) mq.addListener(onChange);
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest && e.target.closest("[data-toggle-theme]")) toggleTheme();
+  });
 
   /* The flame's fill is the button's own background-colour, so the label can't
      also carry a gradient — it needs its own box. Every button therefore holds
@@ -364,6 +442,7 @@
 
   // called by every page once its own markup exists
   function boot(afterLang) {
+    initTheme();
     initCountdown();
     var lang = getLang();
     applyI18n();
@@ -382,6 +461,7 @@
   global.LVCK = {
     t: t, money: money, getLang: getLang, setLang: setLang,
     applyI18n: applyI18n, initReveal: initReveal, boot: boot,
-    openLangModal: openLangModal, btnLabel: btnLabel
+    openLangModal: openLangModal, btnLabel: btnLabel,
+    getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme
   };
 })(window);

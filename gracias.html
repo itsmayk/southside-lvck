@@ -14,6 +14,23 @@
     location.replace("https://southside-lvck.vercel.app" + rest + location.search + location.hash);
   })();
 </script>
+<meta name="theme-color" content="#F5F5F0">
+<script>
+  /* Runs before the stylesheet so the page never paints the wrong mode first.
+     A stored choice wins; otherwise follow the device. */
+  (function () {
+    try {
+      var t = localStorage.getItem("ss-theme");
+      if (t !== "light" && t !== "dark") {
+        t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", t);
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute("content", t === "dark" ? "#232320" : "#F5F5F0");
+    } catch (e) {}
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
@@ -43,7 +60,7 @@
   .arch {
     width: clamp(70px, 14vw, 104px);
     margin: 0 auto clamp(28px, 5vh, 48px);
-    filter: invert(1);
+    filter: invert(var(--logo-invert));
     animation: rise 1.4s var(--ease) both;
   }
   @keyframes rise {
@@ -94,6 +111,7 @@
       <img src="logo-w.png" alt="LVCK">
     </a>
     <nav class="head-links">
+      <button type="button" id="ss-theme-btn" data-toggle-theme>Oscuro</button>
       <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
     </nav>
   </header>

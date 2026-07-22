@@ -4,6 +4,9 @@
    #FFFFFF makes those photos look grey and cut-out, bone lets them sit in the
    page. Every product here is black, so contrast comes from the garment. */
 
+/* THEME NOTE — these names are roles, not literal colours. In dark mode --bone
+   is still "the page" and --ink is still "the type"; only their values swap.
+   Nothing else in this file needs to know which mode is on. */
 :root {
   --bone: #F5F5F0;
   --bone-deep: #EBEBE4;   /* recessed panels, image beds */
@@ -14,10 +17,33 @@
   --pearl-deep: #3B3B36;  /* its pressed/hover state */
   --pearl-off: #7C7C75;   /* a button that isn't available yet */
   --pending: #B03A2E;     /* copy the brand still has to write */
+  --topbar: rgba(245, 245, 240, 0.86);
+  --scrim: rgba(10, 10, 10, 0.35);   /* behind the size guide */
+  --logo-invert: 1;       /* logo-w.png is white; invert it on a pale page */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   /* the idle animations: nearer constant speed than ease-in-out, which loiters
      at both ends and makes a loop feel like it is drifting rather than moving */
   --ease-loop: cubic-bezier(0.37, 0, 0.63, 1);
+  color-scheme: light;
+}
+
+/* Dark GREY, not black: the product photography was shot on a light backdrop,
+   and the darker the page the more those photos read as cut-out rectangles
+   floating on it. A charcoal keeps them looking placed rather than pasted. */
+:root[data-theme="dark"] {
+  --bone: #232320;
+  --bone-deep: #2C2C28;
+  --ink: #F0F0EA;
+  --muted: #A2A29A;
+  --hairline: #3E3E38;
+  --pearl: #C4C4BA;       /* the metal flips: light flame on a dark page */
+  --pearl-deep: #DEDED3;
+  --pearl-off: #45453F;
+  --pending: #E0806E;     /* the light-mode red goes muddy on charcoal */
+  --topbar: rgba(35, 35, 32, 0.86);
+  --scrim: rgba(0, 0, 0, 0.55);
+  --logo-invert: 0;       /* white logo, already right on a dark page */
+  color-scheme: dark;
 }
 
 /* the display face from the landing page, so the two halves share a voice */
@@ -49,7 +75,7 @@ img { display: block; max-width: 100%; }
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(245, 245, 240, 0.86);
+  background: var(--topbar);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
@@ -78,7 +104,7 @@ img { display: block; max-width: 100%; }
    home; there is no "Shop" link because every page here is the shop. */
 .site-head .mark img {
   width: clamp(46px, 6.5vw, 70px);
-  filter: invert(1);
+  filter: invert(var(--logo-invert));
   transition: opacity 0.3s var(--ease);
 }
 .site-head .mark:hover img { opacity: 0.6; }
@@ -233,6 +259,23 @@ h1.display {
   animation: chromeFloat 6s var(--ease-loop) infinite;
 }
 
+/* On charcoal the dark-bodied metal disappears, so the wordmark goes back to
+   the landing page's near-white chrome and its white bloom — this is the
+   original, and the light-mode version is the one that had to be rebuilt. */
+:root[data-theme="dark"] .chrome {
+  background: linear-gradient(180deg,
+    #FFFFFF 0%,
+    #E8E8EC 28%,
+    #8E9096 48%,
+    #F4F5F7 55%,
+    #6E7076 78%,
+    #D8D9DD 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.30))
+          drop-shadow(0 0 3px rgba(255, 255, 255, 0.22));
+}
+
 @keyframes chromeFloat {
   0%, 100% { transform: translateY(-5px); }
   50%      { transform: translateY(5px); }
@@ -380,6 +423,40 @@ h1.display {
   animation: btnShine 4.6s var(--ease-loop) infinite;
 }
 
+/* The flame flips to light metal on a dark page, which means the label has to
+   flip too: the centre band is the pale one now and the lettering runs dark
+   through it. Same construction, opposite values. */
+:root[data-theme="dark"] .btn {
+  background: linear-gradient(180deg,
+    #8E8E86 0%,
+    #55554F 17%,
+    #B6B6AC 34%,
+    #DCDCD2 50%,
+    #B6B6AC 66%,
+    #5E5E58 83%,
+    #9C9C93 100%);
+}
+
+:root[data-theme="dark"] .btn .lbl {
+  background: linear-gradient(100deg,
+    #3A3A34 0%,
+    #1C1C18 26%,
+    #000000 43%,
+    #6E6E66 50%,
+    #000000 57%,
+    #1C1C18 74%,
+    #3A3A34 100%);
+  background-size: 340% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+:root[data-theme="dark"] .btn.is-disabled .lbl,
+:root[data-theme="dark"] .btn[disabled] .lbl {
+  -webkit-text-fill-color: var(--ink);
+  color: var(--ink);
+}
+
 @keyframes btnShine {
   0%, 100% { background-position: 118% 0; opacity: 0.78; filter: brightness(0.95); }
   50%      { background-position: -18% 0; opacity: 1;   filter: brightness(1.5); }
@@ -436,7 +513,7 @@ h1.display {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(245, 245, 240, 0.9);
+  background: var(--topbar);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   opacity: 0;
