@@ -427,7 +427,8 @@
     var buy = document.getElementById("buy");
     buy.classList.remove("is-disabled");
     buy.href = size.url;
-    buy.textContent = LVCK.t("p.buySize").replace("{s}", size.size);
+    // the label stays one word: the chosen size is already lit up right above
+    buy.textContent = LVCK.t("p.buy");
   }
 
   /* Everything here is copy the brand still owes us. Rather than invent
@@ -521,7 +522,7 @@
     todo.appendChild(span);
     panel.appendChild(todo);
 
-    var close = el("button", "btn btn-ghost close");
+    var close = el("button", "btn close");
     close.type = "button";
     close.setAttribute("data-i18n", "p.close");
     close.addEventListener("click", closeGuide);
@@ -614,9 +615,7 @@
 
     var buy = document.getElementById("buy");
     if (buy) {
-      buy.textContent = chosen
-        ? LVCK.t("p.buySize", lang).replace("{s}", chosen.size)
-        : LVCK.t("p.pickFirst", lang);
+      buy.textContent = LVCK.t(chosen ? "p.buy" : "p.pickFirst", lang);
     }
 
     document.querySelectorAll("#sizes .size.sold").forEach(function (b) {
@@ -636,7 +635,7 @@
     box.appendChild(p);
     var back = el("a", "btn");
     back.href = "shop.html";
-    back.setAttribute("data-i18n", "nav.back");
+    back.setAttribute("data-i18n", "btn.back");
     back.style.marginTop = "24px";
     box.appendChild(back);
     wrap.appendChild(box);
