@@ -265,22 +265,35 @@ h1.display {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: clamp(158px, 22.5vw, 218px);
+  width: clamp(126px, 18vw, 174px);
   aspect-ratio: 1728 / 453.543;
   padding: 0 36%;
   border: none;
-  background: none;
-  /* pearl grey, not ink: at full black the flames punched holes in a page whose
-     whole character is the quiet distance between bone and grey. This sits in
-     the same family as the header rules and the muted type. */
-  background-color: var(--pearl);
+
+  /* The flame is chromed, not flat. Built around pearl rather than around ink
+     so the buttons keep the weight they have now — the highlight bands lift,
+     the shadow bands sink, and the average stays where the flat grey sat. */
+  /* Highlights ride above and below, never across the middle. The label sits on
+     the centre line, and a light band there put pale text on a pale ground —
+     "COMPRAR" vanished into its own button. */
+  background: linear-gradient(180deg,
+    #5A5A52 0%,
+    #909087 17%,
+    #4A4A44 34%,
+    #2E2E29 50%,
+    #4A4A44 66%,
+    #7E7E76 83%,
+    #474742 100%);
   -webkit-mask: var(--tribal) no-repeat center / 100% 100%;
   mask: var(--tribal) no-repeat center / 100% 100%;
 
+  /* the label sizes itself off the button, so shrinking a button can never
+     push its text out onto the thin tips of the flame */
+  container-type: inline-size;
+
   color: var(--bone);
   font-family: 'Cinzel', serif;
-  font-size: clamp(9px, 1vw, 12px);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
   white-space: nowrap;
@@ -288,17 +301,19 @@ h1.display {
   transition: background-color 0.3s var(--ease), transform 0.35s var(--ease);
 }
 
-.btn:hover { background-color: var(--pearl-deep); transform: scale(1.04); }
+/* the metal catches more light rather than changing colour */
+.btn:hover { filter: brightness(1.22); transform: scale(1.04); }
 
-/* a focus ring would be clipped away by the mask, so focus reads as a colour
-   shift instead — keyboard users still see where they are */
-.btn:focus-visible { background-color: var(--pearl-deep); outline: none; }
+/* a focus ring would be clipped away by the mask, so focus reads as a
+   brightening instead — keyboard users still see where they are */
+.btn:focus-visible { filter: brightness(1.35); outline: none; }
 
-/* light enough to read as unavailable, dark enough that the label survives —
-   bone text on a near-bone fill is unreadable */
+/* unavailable means flat: no chrome, no shine. Light enough to read as inert,
+   dark enough that the label survives on it. */
 .btn[disabled],
 .btn.is-disabled {
-  background-color: var(--pearl-off);
+  background: var(--pearl-off);
+  filter: none;
   pointer-events: none;
 }
 
@@ -310,6 +325,11 @@ h1.display {
    The highlight travels while the whole thing swells and settles, which is
    what makes it read as a shine rather than as blinking text. */
 .btn .lbl {
+  /* 4.6cqw against the button's own width, so a label occupies the same share
+     of the flame at every button size. 28% of the width is all the solid room
+     there is, which caps a label at roughly eight characters. */
+  font-size: clamp(7px, 4.6cqw, 11px);
+
   background: linear-gradient(100deg,
     #CFCFC7 0%,
     #E8E8E1 26%,
@@ -327,7 +347,7 @@ h1.display {
 }
 
 @keyframes btnShine {
-  0%, 100% { background-position: 118% 0; opacity: 0.7; filter: brightness(0.92); }
+  0%, 100% { background-position: 118% 0; opacity: 0.78; filter: brightness(0.95); }
   50%      { background-position: -18% 0; opacity: 1;   filter: brightness(1.5); }
 }
 
@@ -345,7 +365,7 @@ h1.display {
    block-level is what lets these sit in the middle of their section */
 .btn-block {
   display: flex;
-  width: 75%;
+  width: 60%;
   max-width: 100%;
   margin-inline: auto;
 }
