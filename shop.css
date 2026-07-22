@@ -312,18 +312,57 @@ h1.display {
    photos still appear (the IntersectionObserver in shop-common.js picks them
    up instead). Nothing here is load-bearing. */
 @supports (animation-timeline: view()) {
+  /* The hero holds still while you scroll through it. The stage supplies the
+     scroll distance; the pin is what stays on screen for that distance, so the
+     wordmark grows into the viewport instead of sliding out the top of it.
+     Both only exist where the animation does — without it a tall empty stage
+     would just be 80vh of nothing to scroll past. */
+  .hero-stage { height: 160vh; }
+
+  .hero-pin {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: grid;
+    place-items: center;
+    overflow: clip;          /* the wordmark gets much bigger than the screen */
+  }
+
   .chrome {
     animation: chromeFloat 3.4s var(--ease-loop) infinite,
                chromeApproach linear both;
     animation-timeline: auto, scroll(root block);
-    animation-range: normal, 0 62vh;
+    /* Runs until the pin lets go, not until 60vh. The stage gives 60vh of
+       pinned scroll but starts one topbar down the page, so an approach that
+       ended at 60vh left the wordmark gone while the hero was still holding
+       the screen — a blank slide you had to scroll past. */
+    animation-range: normal, 0 72vh;
   }
 
-  /* it grows past you and dissolves, the way the landing page's arch does */
+  /* it comes the whole way at you and you pass through it */
   @keyframes chromeApproach {
-    from { scale: 1;    opacity: 1; }
-    60%  { scale: 1.22; opacity: 0.55; }
-    to   { scale: 1.62; opacity: 0; }
+    from { scale: 1;   opacity: 1; }
+    55%  { scale: 1.8; opacity: 0.9; }
+    85%  { scale: 2.7; opacity: 0.45; }
+    to   { scale: 3.6; opacity: 0; }
+  }
+
+  /* they clear the way early rather than riding along */
+  .hero .eyebrow,
+  .hero p,
+  .test-notice,
+  .scroll-cue {
+    animation: heroStepBack linear both;
+    animation-timeline: scroll(root block);
+    animation-range: 0 26vh;
+  }
+
+  /* the cue is the first thing to go — it has done its job by then */
+  .scroll-cue { animation-range: 0 16vh; }
+
+  @keyframes heroStepBack {
+    from { opacity: 1; }
+    to   { opacity: 0; }
   }
 
   /* each card lifts into place as it enters, on its own timeline, so the two
@@ -331,8 +370,17 @@ h1.display {
   .card {
     animation: cardRise linear both;
     animation-timeline: view();
-    animation-range: entry 4% cover 34%;
+    animation-range: entry 0% entry 82%;
   }
+
+  /* Side by side, the two cards cross the viewport edge at the same instant, so
+     a view timeline alone gives them identical progress and they land together.
+     Offsetting the second one's range is what actually staggers them — there is
+     no animation-delay for a scroll timeline. */
+  .card:nth-child(2n) { animation-range: entry 10% entry 96%; }
+
+  /* the grid's own overlap lives in shop.html beside its margin rule — set
+     here it loses to that shorthand, which comes later in the document */
 
   @keyframes cardRise {
     from { translate: 0 90px; opacity: 0; }
@@ -343,13 +391,50 @@ h1.display {
 /* the wordmark grows past the edges on the way out */
 .hero { overflow-x: clip; }
 
+/* ---------- scroll cue ---------- */
+
+/* The landing page's chevron, borrowed. It matters more here than there: the
+   first screen of a shop shows no product, so something has to say there is
+   more below.
+
+   The drift and the fade are kept on separate properties and separate
+   elements. Sharing `opacity` between a time-based loop and a scroll-driven
+   fade means one overwrites the other — the same trap the button's float hit
+   with `transform`. */
+.scroll-cue {
+  margin-top: clamp(26px, 5vh, 52px);
+  display: grid;
+  place-items: center;
+  height: 26px;
+  pointer-events: none;
+}
+
+.scroll-cue i {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(45deg);
+  animation: cueDrift 2s var(--ease-loop) infinite;
+}
+
+@keyframes cueDrift {
+  0%, 100% { translate: 0 -4px; }
+  50%      { translate: 0 6px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .chrome, .card {
+  .chrome, .card, .hero .eyebrow, .hero p, .scroll-cue, .scroll-cue i {
     animation: none !important;
     scale: 1 !important;
     translate: none !important;
     opacity: 1 !important;
   }
+  /* no pin either — otherwise it is a screenful of scrolling with nothing
+     happening, which is worse than the animation was */
+  .hero-stage { height: auto !important; }
+  .hero-pin { position: static !important; height: auto !important; overflow: visible !important; }
 }
 
 /* placeholders the brand still has to fill in — deliberately loud so they
