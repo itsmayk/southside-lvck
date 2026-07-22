@@ -349,16 +349,74 @@ document.addEventListener('DOMContentLoaded', async function() {
         AO: "pt", BR: "pt", CV: "pt", GW: "pt", MZ: "pt", PT: "pt", ST: "pt", TL: "pt"
       };
 
+      /* Region banner. The IP lookup already tells us the country — it was
+         being thrown away once a language had been picked. We keep it so the
+         page can greet the visitor with where the drop is coming from and
+         going to. Regions are deliberately coarse: everything outside our
+         three home markets is one "intl" bucket. Editing REGION_COPY is the
+         only thing needed to change what any market sees. */
+      var COUNTRY_KEY = "ss-country";
+      var REGION_MAP = { CO: "co", BR: "br", US: "us" };
+      var REGION_COPY = {
+        co: { es: "Hecho en Colombia", en: "Made in Colombia", pt: "Feito na Colômbia" },
+        br: { es: "De Colombia para Brasil", en: "From Colombia to Brazil", pt: "Da Colômbia para o Brasil" },
+        us: { es: "De Colombia para Estados Unidos", en: "From Colombia to the U.S.", pt: "Da Colômbia para os EUA" },
+        intl: { es: "Drop mundial", en: "Worldwide drop", pt: "Drop mundial" }
+      };
+
       function getLang() {
         try { return localStorage.getItem(LANG_KEY); } catch (e) { return null; }
       }
       function setLang(lang) {
         try { localStorage.setItem(LANG_KEY, lang); } catch (e) {}
       }
+      function getCountry() {
+        try { return localStorage.getItem(COUNTRY_KEY); } catch (e) { return null; }
+      }
+      function setCountry(code) {
+        try { localStorage.setItem(COUNTRY_KEY, code); } catch (e) {}
+      }
+
+      // ?region=br forces a market, so we can check any banner without a VPN
+      function getRegion() {
+        var forced = /[?&]region=([a-z]+)/i.exec(window.location.search);
+        if (forced && REGION_COPY[forced[1].toLowerCase()]) return forced[1].toLowerCase();
+        var code = getCountry();
+        if (!code) return null;            // still detecting — show nothing yet
+        return REGION_MAP[code] || "intl";
+      }
+
+      // sits just under the countdown, inside the register block, so it rises
+      // with it and is counted by measure() when the logo is fitted
+      function ensureRegionEl() {
+        var el = document.getElementById("ss-region");
+        if (el) return el;
+        var anchor = document.getElementById("ss-countdown");
+        if (!anchor || !anchor.parentNode) return null;
+        el = document.createElement("div");
+        el.id = "ss-region";
+        el.style.cssText = "font-family:'Playfair Display', serif;font-size:10px;letter-spacing:0.34em;" +
+          "text-transform:uppercase;color:rgba(255,255,255,0.34);text-align:center;" +
+          "margin-top:-6px;opacity:0;transition:opacity 1s ease;pointer-events:none;";
+        anchor.parentNode.insertBefore(el, anchor.nextSibling);
+        return el;
+      }
+
+      function renderRegion() {
+        var region = getRegion();
+        if (!region) return;                 // country unknown so far — stay quiet
+        var el = ensureRegionEl();
+        if (!el) return;
+        var copy = REGION_COPY[region];
+        var text = copy[getLang() || "en"] || copy.en;
+        if (el.textContent !== text) el.textContent = text;
+        el.style.opacity = "1";
+      }
 
       function applyLang(lang) {
         var copy = COPY[lang] || COPY.en;
         document.documentElement.lang = lang;
+        renderRegion();
 
         var phraseEl = document.getElementById("ss-phrase");
         if (phraseEl && phraseEl.textContent !== copy.phrase) {
@@ -602,16 +660,20 @@ document.addEventListener('DOMContentLoaded', async function() {
           done = true;
           cb(lang);
         }
-        var timer = window.setTimeout(function () { finish(null); }, 3000);
+        // "ZZ" records that we asked and got nothing, so a returning visitor
+        // isn't made to wait on the same lookup again; it reads as "intl"
+        var timer = window.setTimeout(function () { setCountry("ZZ"); finish(null); }, 3000);
         fetch("https://ipapi.co/json/")
           .then(function (r) { return r.json(); })
           .then(function (data) {
             window.clearTimeout(timer);
             var code = data && data.country_code;
+            setCountry(code || "ZZ");
             finish(code ? (LANG_OVERRIDES[code] || "en") : null);
           })
           .catch(function () {
             window.clearTimeout(timer);
+            setCountry("ZZ");
             finish(null);
           });
       }
@@ -784,9 +846,12 @@ document.addEventListener('DOMContentLoaded', async function() {
       applyLang(saved || "en");
 
       var detecting = !saved;
-      if (!saved) {
+      // returning visitors already have a language but no stored country, so
+      // the lookup runs on its own account too — the banner needs it
+      if (!saved || !getCountry()) {
         detectCountry(function (lang) {
           detecting = false;
+          renderRegion();
           if (getLang()) return; // user already picked manually while we waited
           if (lang) {
             setLang(lang);
