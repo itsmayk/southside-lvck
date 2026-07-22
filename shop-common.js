@@ -25,8 +25,8 @@
     es: {
       "nav.shop": "Tienda",
       "nav.lang": "Idioma",
-      "nav.dark": "Oscuro",
-      "nav.light": "Claro",
+      "theme.toDark": "Cambiar a modo oscuro",
+      "theme.toLight": "Cambiar a modo claro",
       "nav.back": "Volver a la tienda",
       "foot.brand": "LVCK · South Side",
       "foot.note": "Bogotá, Colombia",
@@ -78,8 +78,8 @@
     en: {
       "nav.shop": "Shop",
       "nav.lang": "Language",
-      "nav.dark": "Dark",
-      "nav.light": "Light",
+      "theme.toDark": "Switch to dark mode",
+      "theme.toLight": "Switch to light mode",
       "nav.back": "Back to the shop",
       "foot.brand": "LVCK · South Side",
       "foot.note": "Bogotá, Colombia",
@@ -131,8 +131,8 @@
     pt: {
       "nav.shop": "Loja",
       "nav.lang": "Idioma",
-      "nav.dark": "Escuro",
-      "nav.light": "Claro",
+      "theme.toDark": "Mudar para o modo escuro",
+      "theme.toLight": "Mudar para o modo claro",
       "nav.back": "Voltar para a loja",
       "foot.brand": "LVCK · South Side",
       "foot.note": "Bogotá, Colômbia",
@@ -219,14 +219,9 @@
         if (bits.length === 2) el.setAttribute(bits[0].trim(), t(bits[1].trim(), lang));
       });
     });
-    // the theme control's label is generated, not marked up, so it needs
-    // translating by hand whenever the language changes
-    var themeBtn = document.getElementById("ss-theme-btn");
-    if (themeBtn) {
-      themeBtn.textContent = t(
-        document.documentElement.getAttribute("data-theme") === "dark" ? "nav.light" : "nav.dark",
-        lang);
-    }
+    // the switch carries no visible text, so its accessible name is set here
+    // rather than by the data-i18n sweep
+    labelThemeSwitch(document.documentElement.getAttribute("data-theme"), lang);
 
     // Only a whole-document pass announces the change. Listeners react by
     // re-rendering config-driven copy and then translating that new markup with
@@ -243,6 +238,14 @@
      the manual override and keeps the browser chrome in step. */
   var THEME_KEY = "ss-theme";
   var PAGE_COLOUR = { light: "#F5F5F0", dark: "#232320" };
+
+  function labelThemeSwitch(theme, lang) {
+    var btn = document.getElementById("ss-theme-btn");
+    if (!btn) return;
+    var text = t(theme === "dark" ? "theme.toLight" : "theme.toDark", lang);
+    btn.setAttribute("aria-label", text);
+    btn.setAttribute("title", text);
+  }
 
   function storedTheme() {
     var t = store(THEME_KEY);
@@ -271,9 +274,10 @@
     }
     meta.setAttribute("content", PAGE_COLOUR[theme]);
 
-    var btn = document.getElementById("ss-theme-btn");
-    // the control names where it will take you, not where you are
-    if (btn) btn.textContent = t(theme === "dark" ? "nav.light" : "nav.dark");
+    // The switch is a sun and a moon, not words — its meaning is carried for
+    // screen readers and for the tooltip. Like the icon, it names where it
+    // will take you rather than where you are.
+    labelThemeSwitch(theme);
 
     global.dispatchEvent(new CustomEvent("lvck:theme", { detail: { theme: theme } }));
   }

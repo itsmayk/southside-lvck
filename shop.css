@@ -504,6 +504,67 @@ h1.display {
   }
 }
 
+/* ---------- theme switch ---------- */
+
+/* Floats bottom-right, out of the header's way. Same frosted glass as the
+   topbar — that treatment is the one thing the dark landing page and this pale
+   shop have in common, so it is what makes them read as one brand. */
+.theme-switch {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 60;
+
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  background: var(--topbar);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.16);
+  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease),
+              box-shadow 0.3s var(--ease);
+}
+
+.theme-switch:hover {
+  border-color: var(--ink);
+  transform: translateY(-2px);
+  box-shadow: 0 7px 22px rgba(0, 0, 0, 0.22);
+}
+
+.theme-switch:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* Both icons live in the same cell and trade places. The one on its way out
+   rotates and shrinks away, so the change reads as a single object turning
+   over rather than two pictures swapping. */
+.theme-switch svg {
+  grid-area: 1 / 1;
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: opacity 0.42s var(--ease), rotate 0.55s var(--ease), scale 0.42s var(--ease);
+}
+
+/* light mode shows the moon: the icon names where the switch will take you */
+.theme-switch .i-sun  { opacity: 0; rotate: -70deg; scale: 0.5; }
+.theme-switch .i-moon { opacity: 1; rotate: 0deg;   scale: 1; }
+
+:root[data-theme="dark"] .theme-switch .i-sun  { opacity: 1; rotate: 0deg;  scale: 1; }
+:root[data-theme="dark"] .theme-switch .i-moon { opacity: 0; rotate: 70deg; scale: 0.5; }
+
 /* ---------- language modal ---------- */
 
 .lang-modal {

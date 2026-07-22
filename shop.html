@@ -207,7 +207,6 @@
       <img src="logo-w.png" alt="LVCK">
     </a>
     <nav class="head-links">
-      <button type="button" id="ss-theme-btn" data-toggle-theme>Oscuro</button>
       <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
     </nav>
   </header>
@@ -253,6 +252,17 @@
   <div data-i18n="foot.brand">LVCK · South Side</div>
   <div data-i18n="foot.note">Bogotá, Colombia</div>
 </footer>
+
+<button type="button" class="theme-switch" id="ss-theme-btn" data-toggle-theme
+        aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">
+  <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="4.2"/>
+    <path d="M12 2.4v2.6M12 19v2.6M4.4 12H1.8M22.2 12h-2.6M6.4 6.4 4.6 4.6M19.4 19.4l-1.8-1.8M17.6 6.4l1.8-1.8M4.6 19.4l1.8-1.8"/>
+  </svg>
+  <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"/>
+  </svg>
+</button>
 
 <script src="shop-common.js"></script>
 <script>
