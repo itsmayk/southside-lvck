@@ -265,9 +265,16 @@ h1.display {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: clamp(126px, 18vw, 174px);
+  width: clamp(150px, 18vw, 174px);
   aspect-ratio: 1728 / 453.543;
-  padding: 0 36%;
+  /* No percentage padding here. A percentage padding resolves against the
+     CONTAINING BLOCK, not the element, so 36% meant 36% of whatever card or
+     column happened to hold the button: it forced every button out to ~364px
+     regardless of its width, made two buttons in different containers come out
+     different sizes, and crushed the container-query box to 15px so the label
+     could never grow past its clamp floor. The label is constrained by its own
+     max-width instead. */
+  padding: 0;
   border: none;
 
   /* The flame is chromed, not flat. Built around pearl rather than around ink
@@ -325,10 +332,16 @@ h1.display {
    The highlight travels while the whole thing swells and settles, which is
    what makes it read as a shine rather than as blinking text. */
 .btn .lbl {
-  /* 4.6cqw against the button's own width, so a label occupies the same share
-     of the flame at every button size. 28% of the width is all the solid room
-     there is, which caps a label at roughly eight characters. */
-  font-size: clamp(7px, 4.6cqw, 11px);
+  /* Sized against the button's own width, so a label occupies the same share of
+     the flame whatever the button's size. The ceiling comes from measuring the
+     rasterised artwork: the band that stays fully solid across the middle is
+     28% of the width and 19% of the height, and line-height 1 keeps the box
+     equal to the type size so that second limit is honest. */
+  font-size: clamp(7px, 4.8cqw, 15px);
+  /* tighter than the button's 0.1em: every bit of tracking spent is type size
+     the label can't have, and the glyphs matter more here than the air */
+  letter-spacing: 0.06em;
+  line-height: 1;
 
   background: linear-gradient(100deg,
     #CFCFC7 0%,
