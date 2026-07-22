@@ -1,5 +1,9 @@
 const Stripe = require("stripe");
-const products = require("../shop-config.json");
+const config = require("../shop-config.json");
+
+// the catalog is grouped by product; stock is reported per size, keyed by the
+// same slug the storefront puts on each size button
+const variants = config.products.flatMap((p) => p.sizes);
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -9,7 +13,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const entries = await Promise.all(
-      products.map(async (item) => {
+      variants.map(async (item) => {
         const link = await stripe.paymentLinks.retrieve(item.paymentLinkId);
         return [item.slug, link.active];
       })

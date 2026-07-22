@@ -1,12 +1,47 @@
-[
-  { "product": "Chaqueta SouthSide", "slug": "chaqueta-xs", "size": "XS", "priceCOP": 300000, "paymentLinkId": "plink_1Tsubh4GA47N8MPIj88Eb0dw", "url": "https://buy.stripe.com/test_00wdR20yT8DX1ArbTi3AY00" },
-  { "product": "Chaqueta SouthSide", "slug": "chaqueta-s", "size": "S", "priceCOP": 300000, "paymentLinkId": "plink_1Tsubi4GA47N8MPIVYTgMsoS", "url": "https://buy.stripe.com/test_cNi28kdlFcUdbb19La3AY01" },
-  { "product": "Chaqueta SouthSide", "slug": "chaqueta-m", "size": "M", "priceCOP": 300000, "paymentLinkId": "plink_1Tsubi4GA47N8MPIY5vATzO5", "url": "https://buy.stripe.com/test_4gM9AMbdx3jDdj9f5u3AY02" },
-  { "product": "Chaqueta SouthSide", "slug": "chaqueta-l", "size": "L", "priceCOP": 300000, "paymentLinkId": "plink_1Tsubj4GA47N8MPIEcMwTUQI", "url": "https://buy.stripe.com/test_3cI14gepJdYhend2iI3AY03" },
-  { "product": "Chaqueta SouthSide", "slug": "chaqueta-xl", "size": "XL", "priceCOP": 300000, "paymentLinkId": "plink_1Tsubk4GA47N8MPIwDr8OodT", "url": "https://buy.stripe.com/test_aFa14g5Td07r2Evf5u3AY04" },
-  { "product": "Jean SouthSide", "slug": "jean-xs", "size": "XS", "priceCOP": 269000, "paymentLinkId": "plink_1Tsubk4GA47N8MPIVwkZNg59", "url": "https://buy.stripe.com/test_cNiaEQa9t2fzdj9f5u3AY05" },
-  { "product": "Jean SouthSide", "slug": "jean-s", "size": "S", "priceCOP": 269000, "paymentLinkId": "plink_1Tsubl4GA47N8MPIKdwmoXQK", "url": "https://buy.stripe.com/test_7sY4gsftN5rL0wn4qQ3AY06" },
-  { "product": "Jean SouthSide", "slug": "jean-m", "size": "M", "priceCOP": 269000, "paymentLinkId": "plink_1Tsubl4GA47N8MPIfCuRfOw9", "url": "https://buy.stripe.com/test_fZu14ga9tg6pbb1aPe3AY07" },
-  { "product": "Jean SouthSide", "slug": "jean-l", "size": "L", "priceCOP": 269000, "paymentLinkId": "plink_1Tsubm4GA47N8MPITxpD2NHs", "url": "https://buy.stripe.com/test_6oU14g3L57zTgvlbTi3AY08" },
-  { "product": "Jean SouthSide", "slug": "jean-xl", "size": "XL", "priceCOP": 269000, "paymentLinkId": "plink_1Tsubm4GA47N8MPI8g8TTNRJ", "url": "https://buy.stripe.com/test_14AbIUchB2fz0wn8H63AY09" }
-]
+{
+  "products": [
+    {
+      "slug": "jean-lxc",
+      "name": "Jean LXC",
+      "tagline": {
+        "es": "Denim negro, corte holgado",
+        "en": "Black denim, relaxed cut",
+        "pt": "Denim preto, corte solto"
+      },
+      "priceCOP": 269000,
+      "photos": [
+        { "src": "photos/jean-lxc-01.jpg", "alt": { "es": "Jean LXC visto de lado, cuerpo completo", "en": "Jean LXC side view, full body", "pt": "Jean LXC de lado, corpo inteiro" } },
+        { "src": "photos/jean-lxc-02.jpg", "alt": { "es": "Detalle del logo LXC sobre la pierna", "en": "Close-up of the LXC logo on the leg", "pt": "Detalhe do logo LXC na perna" } }
+      ],
+      "sizes": [
+        { "size": "XS", "slug": "jean-xs", "paymentLinkId": "plink_1Tsubk4GA47N8MPIVwkZNg59", "url": "https://buy.stripe.com/test_cNiaEQa9t2fzdj9f5u3AY05" },
+        { "size": "S",  "slug": "jean-s",  "paymentLinkId": "plink_1Tsubl4GA47N8MPIKdwmoXQK", "url": "https://buy.stripe.com/test_7sY4gsftN5rL0wn4qQ3AY06" },
+        { "size": "M",  "slug": "jean-m",  "paymentLinkId": "plink_1Tsubl4GA47N8MPIfCuRfOw9", "url": "https://buy.stripe.com/test_fZu14ga9tg6pbb1aPe3AY07" },
+        { "size": "L",  "slug": "jean-l",  "paymentLinkId": "plink_1Tsubm4GA47N8MPITxpD2NHs", "url": "https://buy.stripe.com/test_6oU14g3L57zTgvlbTi3AY08" },
+        { "size": "XL", "slug": "jean-xl", "paymentLinkId": "plink_1Tsubm4GA47N8MPI8g8TTNRJ", "url": "https://buy.stripe.com/test_14AbIUchB2fz0wn8H63AY09" }
+      ]
+    },
+    {
+      "slug": "boxi-fit",
+      "name": "LVCK Boxi Fit",
+      "tagline": {
+        "es": "Camiseta oversize, corte cuadrado",
+        "en": "Oversized tee, boxy cut",
+        "pt": "Camiseta oversized, corte quadrado"
+      },
+      "priceCOP": 300000,
+      "photos": [
+        { "src": "photos/boxi-fit-01.jpg", "alt": { "es": "LVCK Boxi Fit de pie, cuerpo completo", "en": "LVCK Boxi Fit standing, full body", "pt": "LVCK Boxi Fit em pé, corpo inteiro" } },
+        { "src": "photos/boxi-fit-02.jpg", "alt": { "es": "LVCK Boxi Fit sentado, se ve la caída", "en": "LVCK Boxi Fit seated, showing the drape", "pt": "LVCK Boxi Fit sentado, mostrando o caimento" } },
+        { "src": "photos/boxi-fit-03.jpg", "alt": { "es": "Tercera vista del LVCK Boxi Fit", "en": "Third view of the LVCK Boxi Fit", "pt": "Terceira vista do LVCK Boxi Fit" } }
+      ],
+      "sizes": [
+        { "size": "XS", "slug": "chaqueta-xs", "paymentLinkId": "plink_1Tsubh4GA47N8MPIj88Eb0dw", "url": "https://buy.stripe.com/test_00wdR20yT8DX1ArbTi3AY00" },
+        { "size": "S",  "slug": "chaqueta-s",  "paymentLinkId": "plink_1Tsubi4GA47N8MPIVYTgMsoS", "url": "https://buy.stripe.com/test_cNi28kdlFcUdbb19La3AY01" },
+        { "size": "M",  "slug": "chaqueta-m",  "paymentLinkId": "plink_1Tsubi4GA47N8MPIY5vATzO5", "url": "https://buy.stripe.com/test_4gM9AMbdx3jDdj9f5u3AY02" },
+        { "size": "L",  "slug": "chaqueta-l",  "paymentLinkId": "plink_1Tsubj4GA47N8MPIEcMwTUQI", "url": "https://buy.stripe.com/test_3cI14gepJdYhend2iI3AY03" },
+        { "size": "XL", "slug": "chaqueta-xl", "paymentLinkId": "plink_1Tsubk4GA47N8MPIwDr8OodT", "url": "https://buy.stripe.com/test_aFa14g5Td07r2Evf5u3AY04" }
+      ]
+    }
+  ]
+}

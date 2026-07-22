@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SouthSide x LVCK</title>
+<link rel="icon" type="image/png" href="favicon.png?v=3">
+<link rel="apple-touch-icon" href="favicon.png?v=3">
+<script>
+  (function () {
+    if (location.hostname.indexOf("github.io") === -1) return;
+    var rest = location.pathname.replace(/^\/[^/]+/, "") || "/";
+    location.replace("https://southside-lvck.vercel.app" + rest + location.search + location.hash);
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<script defer src="/_vercel/insights/script.js"></script>
+<style>
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(24px, 5vh, 56px) clamp(16px, 4vw, 48px) 0;
+  }
+
+  .crumb {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: clamp(20px, 4vh, 40px);
+  }
+  .crumb:hover { color: var(--ink); }
+
+  .product {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(28px, 5vw, 72px);
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .product { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- gallery ---------- */
+  .stage {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    background: var(--bone-deep);
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+  .stage img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.7s var(--ease), transform 0.5s var(--ease);
+  }
+  .stage img.on { opacity: 1; }
+  /* the pointer becomes a loupe: the image scales around wherever it sits */
+  .stage.zoom img.on { transform: scale(1.6); transition: transform 0.15s linear, opacity 0.7s var(--ease); }
+
+  .thumbs {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .thumbs button {
+    flex: 0 0 auto;
+    width: 74px;
+    aspect-ratio: 4 / 5;
+    padding: 0;
+    border: 1px solid transparent;
+    background: var(--bone-deep);
+    cursor: pointer;
+    overflow: hidden;
+    opacity: 0.55;
+    transition: opacity 0.3s var(--ease), border-color 0.3s var(--ease);
+  }
+  .thumbs button img { width: 100%; height: 100%; object-fit: cover; }
+  .thumbs button.on,
+  .thumbs button:hover { opacity: 1; border-color: var(--ink); }
+
+  .zoom-note {
+    margin-top: 10px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- info column ---------- */
+  @media (min-width: 861px) {
+    .info { position: sticky; top: 96px; }
+  }
+  .info h1 {
+    font-family: 'Cinzel', serif;
+    font-weight: 600;
+    font-size: clamp(26px, 3.4vw, 40px);
+    letter-spacing: 0.03em;
+    line-height: 1.15;
+  }
+  .info .tagline { margin-top: 10px; font-size: 15px; color: var(--muted); }
+  .info .price { margin-top: 18px; font-size: 21px; }
+
+  .size-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: clamp(26px, 4vh, 38px) 0 12px;
+  }
+  .size-head .label { font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase; }
+  .size-head button {
+    background: none; border: none; padding: 0; cursor: pointer;
+    font: inherit; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); text-decoration: underline; text-underline-offset: 4px;
+  }
+  .size-head button:hover { color: var(--ink); }
+
+  .sizes { display: flex; flex-wrap: wrap; gap: 9px; }
+  .size {
+    min-width: 62px;
+    padding: 13px 16px;
+    border: 1px solid var(--hairline);
+    background: transparent;
+    color: var(--ink);
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: border-color 0.25s var(--ease), background 0.25s var(--ease), color 0.25s var(--ease);
+  }
+  .size:hover { border-color: var(--ink); }
+  .size.on { background: var(--ink); color: var(--bone); border-color: var(--ink); }
+  .size.sold {
+    opacity: 0.34;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    pointer-events: none;
+  }
+  .size.pending { opacity: 0.45; pointer-events: none; }   /* stock not known yet */
+
+  .buy { margin-top: 24px; }
+  .secure {
+    margin-top: 12px;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ---------- accordion ---------- */
+  .facts { margin-top: clamp(30px, 5vh, 44px); border-top: 1px solid var(--hairline); }
+  .fact { border-bottom: 1px solid var(--hairline); }
+  .fact > button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 17px 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink);
+    text-align: left;
+  }
+  .fact > button .sign { font-size: 17px; line-height: 1; transition: transform 0.35s var(--ease); }
+  .fact.open > button .sign { transform: rotate(45deg); }
+  .fact .body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.4s var(--ease);
+  }
+  .fact.open .body { grid-template-rows: 1fr; }
+  .fact .body > div { overflow: hidden; }
+  .fact .body p {
+    padding-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+
+  /* ---------- size guide ---------- */
+  .sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(10, 10, 10, 0.35);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s var(--ease);
+  }
+  .sheet.open { opacity: 1; pointer-events: auto; }
+  .sheet .panel {
+    background: var(--bone);
+    border: 1px solid var(--ink);
+    padding: clamp(22px, 4vw, 38px);
+    width: min(560px, 100%);
+    max-height: 86vh;
+    overflow-y: auto;
+  }
+  .sheet h3 { font-family: 'Cinzel', serif; font-size: 19px; margin-bottom: 12px; }
+  .sheet p { font-size: 14px; line-height: 1.65; color: var(--muted); margin-bottom: 18px; }
+  .sheet table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .sheet th, .sheet td {
+    padding: 11px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .sheet th { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .sheet td.todo { color: var(--pending); }
+  .sheet .close { margin-top: 22px; }
+
+  /* ---------- cross-sell ---------- */
+  .also { max-width: 1180px; margin: clamp(64px, 11vh, 120px) auto 0; padding: 0 clamp(16px, 4vw, 48px); }
+  .also h2 { font-family: 'Cinzel', serif; font-size: 15px; letter-spacing: 0.24em; text-transform: uppercase; margin-bottom: 20px; color: var(--muted); }
+  .also a { display: flex; gap: 20px; align-items: center; text-decoration: none; color: var(--ink); }
+  .also img { width: clamp(96px, 16vw, 150px); aspect-ratio: 4/5; object-fit: cover; background: var(--bone-deep); }
+  .also .n { font-family: 'Cinzel', serif; font-size: clamp(17px, 2.4vw, 23px); }
+  .also .p { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+  .missing { max-width: 700px; margin: 18vh auto; padding: 0 24px; text-align: center; }
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <a class="mark" href="shop.html">
+    <img src="logo-w.png" alt="LVCK">
+    <span>LVCK</span>
+  </a>
+  <nav class="head-links">
+    <a href="shop.html" data-i18n="nav.shop">Tienda</a>
+    <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
+  </nav>
+</header>
+
+<div class="wrap" id="wrap"></div>
+<div class="also" id="also" hidden></div>
+
+<footer class="site-foot">
+  <div data-i18n="foot.brand">LVCK · South Side</div>
+  <div data-i18n="foot.note">Bogotá, Colombia</div>
+</footer>
+
+<script src="shop-common.js"></script>
+<script>
+(function () {
+  var wrap = document.getElementById("wrap");
+  var alsoEl = document.getElementById("also");
+  var product = null, allProducts = [], stock = null;
+  var chosen = null;               // the size object the visitor picked
+
+  function param(name) {
+    var m = new RegExp("[?&]" + name + "=([^&]*)").exec(location.search);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+
+  /* ---------- gallery ---------- */
+
+  function buildGallery() {
+    var col = el("div", "gallery");
+    var stage = el("div", "stage");
+    var thumbs = el("div", "thumbs");
+    var lang = LVCK.getLang() || "es";
+
+    product.photos.forEach(function (photo, i) {
+      var img = new Image();
+      img.src = photo.src;
+      img.alt = photo.alt[lang] || photo.alt.es;
+      img.dataset.i = i;
+      img.loading = i === 0 ? "eager" : "lazy";
+      if (i === 0) img.classList.add("on");
+      stage.appendChild(img);
+
+      var tb = el("button");
+      tb.type = "button";
+      tb.dataset.i = i;
+      if (i === 0) tb.classList.add("on");
+      var ti = new Image();
+      ti.src = photo.src;
+      ti.alt = "";
+      ti.loading = "lazy";
+      tb.appendChild(ti);
+      tb.addEventListener("click", function () { show(i); });
+      thumbs.appendChild(tb);
+    });
+
+    var index = 0;
+    function show(next) {
+      index = (next + product.photos.length) % product.photos.length;
+      stage.querySelectorAll("img").forEach(function (img) {
+        img.classList.toggle("on", Number(img.dataset.i) === index);
+      });
+      thumbs.querySelectorAll("button").forEach(function (b) {
+        b.classList.toggle("on", Number(b.dataset.i) === index);
+      });
+    }
+
+    /* Loupe: scale the active image and move its origin with the pointer, so
+       the visitor can actually inspect the print and the stitching — the one
+       thing a photo can't do that a fitting room can. Skipped on touch, where
+       the same gesture means "swipe". */
+    stage.addEventListener("mouseenter", function () { stage.classList.add("zoom"); });
+    stage.addEventListener("mouseleave", function () {
+      stage.classList.remove("zoom");
+      stage.querySelectorAll("img").forEach(function (img) { img.style.transformOrigin = "center"; });
+    });
+    stage.addEventListener("mousemove", function (e) {
+      var r = stage.getBoundingClientRect();
+      var x = ((e.clientX - r.left) / r.width) * 100;
+      var y = ((e.clientY - r.top) / r.height) * 100;
+      var on = stage.querySelector("img.on");
+      if (on) on.style.transformOrigin = x + "% " + y + "%";
+    });
+
+    var startX = null;
+    stage.addEventListener("touchstart", function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener("touchend", function (e) {
+      if (startX === null) return;
+      var dx = e.changedTouches[0].clientX - startX;
+      startX = null;
+      if (Math.abs(dx) > 40) show(index + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+
+    col.appendChild(stage);
+    if (product.photos.length > 1) col.appendChild(thumbs);
+
+    var note = el("div", "zoom-note");
+    note.setAttribute("data-i18n", "shop.swipeHint");
+    col.appendChild(note);
+
+    return col;
+  }
+
+  /* ---------- buy column ---------- */
+
+  function buildInfo() {
+    var lang = LVCK.getLang() || "es";
+    var col = el("div", "info");
+
+    var h1 = el("h1", null, product.name);
+    col.appendChild(h1);
+
+    var tag = el("div", "tagline", product.tagline[lang] || product.tagline.es);
+    tag.id = "tagline";
+    col.appendChild(tag);
+
+    var price = el("div", "price", LVCK.money(product.priceCOP, lang));
+    price.id = "price";
+    col.appendChild(price);
+
+    var head = el("div", "size-head");
+    var label = el("span", "label");
+    label.setAttribute("data-i18n", "p.choose");
+    var guide = el("button", null);
+    guide.type = "button";
+    guide.setAttribute("data-i18n", "p.guide");
+    guide.addEventListener("click", openGuide);
+    head.appendChild(label);
+    head.appendChild(guide);
+    col.appendChild(head);
+
+    var sizes = el("div", "sizes");
+    sizes.id = "sizes";
+    product.sizes.forEach(function (s) {
+      var b = el("button", "size pending", s.size);
+      b.type = "button";
+      b.dataset.slug = s.slug;
+      b.addEventListener("click", function () { choose(s); });
+      sizes.appendChild(b);
+    });
+    col.appendChild(sizes);
+
+    var buy = el("a", "btn btn-block buy is-disabled");
+    buy.id = "buy";
+    buy.rel = "noopener";
+    buy.textContent = LVCK.t("p.pickFirst", lang);
+    col.appendChild(buy);
+
+    var secure = el("div", "secure");
+    secure.setAttribute("data-i18n", "p.secure");
+    col.appendChild(secure);
+
+    col.appendChild(buildFacts());
+    return col;
+  }
+
+  function choose(size) {
+    if (stock && stock[size.slug] === false) return;
+    chosen = size;
+    document.querySelectorAll("#sizes .size").forEach(function (b) {
+      b.classList.toggle("on", b.dataset.slug === size.slug);
+    });
+    var buy = document.getElementById("buy");
+    buy.classList.remove("is-disabled");
+    buy.href = size.url;
+    buy.textContent = LVCK.t("p.buySize").replace("{s}", size.size);
+  }
+
+  /* Everything here is copy the brand still owes us. Rather than invent
+     shipping times or a returns window — the two things a customer is most
+     likely to hold us to — each panel says plainly that it is pending. */
+  var FACT_KEYS = ["p.desc", "p.materials", "p.shipping", "p.returns"];
+  var FACT_TODO = {
+    "p.desc": { es: "PENDIENTE · describir la prenda, el corte y el fit",
+                en: "PENDING · describe the piece, the cut and the fit",
+                pt: "PENDENTE · descrever a peça, o corte e o caimento" },
+    "p.materials": { es: "PENDIENTE · composición de la tela y cómo lavarla",
+                     en: "PENDING · fabric composition and how to wash it",
+                     pt: "PENDENTE · composição do tecido e como lavar" },
+    "p.shipping": { es: "PENDIENTE · a qué países, cuánto cuesta y en cuántos días llega",
+                    en: "PENDING · which countries, what it costs, how many days",
+                    pt: "PENDENTE · para quais países, quanto custa e em quantos dias" },
+    "p.returns": { es: "PENDIENTE · si aceptas cambios y dentro de cuántos días",
+                   en: "PENDING · whether exchanges are accepted, and the window",
+                   pt: "PENDENTE · se aceita trocas e em quantos dias" }
+  };
+
+  function buildFacts() {
+    var facts = el("div", "facts");
+    FACT_KEYS.forEach(function (key) {
+      var item = el("div", "fact");
+      var btn = el("button");
+      btn.type = "button";
+      var t = el("span");
+      t.setAttribute("data-i18n", key);
+      btn.appendChild(t);
+      btn.appendChild(el("span", "sign", "+"));
+      btn.addEventListener("click", function () { item.classList.toggle("open"); });
+
+      var body = el("div", "body");
+      var inner = el("div");
+      var p = el("p", "todo");
+      p.dataset.todo = key;
+      p.appendChild(function () {
+        var s = el("span", "pending", FACT_TODO[key][LVCK.getLang() || "es"]);
+        return s;
+      }());
+      inner.appendChild(p);
+      body.appendChild(inner);
+
+      item.appendChild(btn);
+      item.appendChild(body);
+      facts.appendChild(item);
+    });
+    return facts;
+  }
+
+  /* ---------- size guide ---------- */
+
+  function openGuide() { document.getElementById("guide").classList.add("open"); }
+  function closeGuide() { document.getElementById("guide").classList.remove("open"); }
+
+  function buildGuide() {
+    var sheet = el("div", "sheet");
+    sheet.id = "guide";
+    var panel = el("div", "panel");
+
+    var h3 = el("h3");
+    h3.setAttribute("data-i18n", "p.guide");
+    panel.appendChild(h3);
+
+    var intro = el("p");
+    intro.setAttribute("data-i18n", "p.guideIntro");
+    panel.appendChild(intro);
+
+    var table = el("table");
+    var thead = el("thead");
+    var hr = el("tr");
+    ["", "A", "B", "C"].forEach(function (h) { hr.appendChild(el("th", null, h)); });
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    var tbody = el("tbody");
+    product.sizes.forEach(function (s) {
+      var tr = el("tr");
+      tr.appendChild(el("td", null, s.size));
+      for (var i = 0; i < 3; i++) tr.appendChild(el("td", "todo", "—"));
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    panel.appendChild(table);
+
+    var todo = el("div", null);
+    var span = el("span", "pending");
+    span.dataset.guideTodo = "1";
+    todo.style.marginTop = "18px";
+    todo.appendChild(span);
+    panel.appendChild(todo);
+
+    var close = el("button", "btn btn-ghost close");
+    close.type = "button";
+    close.setAttribute("data-i18n", "p.close");
+    close.addEventListener("click", closeGuide);
+    panel.appendChild(close);
+
+    sheet.appendChild(panel);
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) closeGuide(); });
+    return sheet;
+  }
+
+  /* ---------- stock ---------- */
+
+  function applyStock() {
+    document.querySelectorAll("#sizes .size").forEach(function (b) {
+      b.classList.remove("pending");
+      if (!stock) return;
+      if (stock[b.dataset.slug] === false) {
+        b.classList.add("sold");
+        b.textContent = b.textContent.split(" ")[0] + " · " + LVCK.t("p.soldOut");
+        if (chosen && chosen.slug === b.dataset.slug) resetBuy();
+      }
+    });
+  }
+
+  function resetBuy() {
+    chosen = null;
+    var buy = document.getElementById("buy");
+    buy.classList.add("is-disabled");
+    buy.removeAttribute("href");
+    buy.textContent = LVCK.t("p.pickFirst");
+  }
+
+  /* ---------- cross-sell ---------- */
+
+  function buildAlso() {
+    var other = allProducts.filter(function (p) { return p.slug !== product.slug; })[0];
+    if (!other) return;
+    var lang = LVCK.getLang() || "es";
+
+    alsoEl.hidden = false;
+    alsoEl.innerHTML = "";
+    var h2 = el("h2");
+    h2.setAttribute("data-i18n", "p.also");
+    alsoEl.appendChild(h2);
+
+    var a = el("a");
+    a.href = "producto.html?p=" + encodeURIComponent(other.slug);
+    a.setAttribute("data-reveal", "up");
+    var img = new Image();
+    img.src = other.photos[0].src;
+    img.alt = other.photos[0].alt[lang] || other.photos[0].alt.es;
+    img.loading = "lazy";
+    a.appendChild(img);
+    var txt = el("div");
+    txt.appendChild(el("div", "n", other.name));
+    txt.appendChild(el("div", "p", LVCK.money(other.priceCOP, lang)));
+    a.appendChild(txt);
+    alsoEl.appendChild(a);
+  }
+
+  /* ---------- language ---------- */
+
+  // names, taglines, alts and prices come from shop-config.json, so they sit
+  // outside the data-i18n sweep and are refreshed by hand
+  function refreshDynamicCopy() {
+    if (!product) return;
+    var lang = LVCK.getLang() || "es";
+    document.title = product.name + " — SouthSide x LVCK";
+
+    var tag = document.getElementById("tagline");
+    if (tag) tag.textContent = product.tagline[lang] || product.tagline.es;
+    var price = document.getElementById("price");
+    if (price) price.textContent = LVCK.money(product.priceCOP, lang);
+
+    document.querySelectorAll(".stage img").forEach(function (img) {
+      var photo = product.photos[Number(img.dataset.i)];
+      if (photo) img.alt = photo.alt[lang] || photo.alt.es;
+    });
+
+    document.querySelectorAll("[data-todo]").forEach(function (p) {
+      var span = p.querySelector(".pending");
+      if (span) span.textContent = FACT_TODO[p.dataset.todo][lang];
+    });
+    var gt = document.querySelector("[data-guide-todo]");
+    if (gt) {
+      gt.textContent = lang === "en" ? "PENDING · real measurements in cm"
+        : lang === "pt" ? "PENDENTE · medidas reais em cm"
+        : "PENDIENTE · medidas reales en cm";
+    }
+
+    var buy = document.getElementById("buy");
+    if (buy) {
+      buy.textContent = chosen
+        ? LVCK.t("p.buySize", lang).replace("{s}", chosen.size)
+        : LVCK.t("p.pickFirst", lang);
+    }
+
+    document.querySelectorAll("#sizes .size.sold").forEach(function (b) {
+      b.textContent = b.textContent.split(" ")[0] + " · " + LVCK.t("p.soldOut", lang);
+    });
+
+    buildAlso();
+    LVCK.applyI18n(alsoEl);
+  }
+
+  /* ---------- boot ---------- */
+
+  function renderMissing() {
+    var box = el("div", "missing");
+    var p = el("p");
+    p.setAttribute("data-i18n", "p.notFound");
+    box.appendChild(p);
+    var back = el("a", "btn");
+    back.href = "shop.html";
+    back.setAttribute("data-i18n", "nav.back");
+    back.style.marginTop = "24px";
+    box.appendChild(back);
+    wrap.appendChild(box);
+    LVCK.applyI18n(wrap);
+  }
+
+  fetch("shop-config.json")
+    .then(function (r) { return r.json(); })
+    .then(function (config) {
+      allProducts = config.products || [];
+      var slug = param("p");
+      product = allProducts.filter(function (p) { return p.slug === slug; })[0] || null;
+
+      if (!product) return renderMissing();
+
+      var crumb = el("a", "crumb");
+      crumb.href = "shop.html";
+      crumb.setAttribute("data-i18n", "nav.back");
+      wrap.appendChild(crumb);
+
+      var row = el("div", "product");
+      row.appendChild(buildGallery());
+      row.appendChild(buildInfo());
+      wrap.appendChild(row);
+      document.body.appendChild(buildGuide());
+
+      buildAlso();
+      LVCK.applyI18n();
+      refreshDynamicCopy();
+      LVCK.initReveal();
+
+      return fetch("/api/stock")
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (data) { stock = data; applyStock(); })
+        .catch(function () { applyStock(); });   // unknown stock: leave sizes buyable
+    })
+    .catch(renderMissing);
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeGuide();
+  });
+
+  window.addEventListener("lvck:lang", refreshDynamicCopy);
+  LVCK.boot();
+})();
+</script>
+</body>
+</html>

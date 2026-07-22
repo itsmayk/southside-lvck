@@ -1,0 +1,247 @@
+/* SouthSide storefront — the light half of the brand.
+   The home page is near-black; this is its negative. Bone rather than pure
+   white because the product photography was shot on a warm light backdrop:
+   #FFFFFF makes those photos look grey and cut-out, bone lets them sit in the
+   page. Every product here is black, so contrast comes from the garment. */
+
+:root {
+  --bone: #F5F5F0;
+  --bone-deep: #EBEBE4;   /* recessed panels, image beds */
+  --ink: #0A0A0A;
+  --muted: #6B6B66;
+  --hairline: #D6D6CD;
+  --pending: #B03A2E;     /* copy the brand still has to write */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bone);
+  color: var(--ink);
+  font-family: 'Playfair Display', Georgia, serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+img { display: block; max-width: 100%; }
+
+/* ---------- shared chrome ---------- */
+
+.site-head {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px clamp(16px, 4vw, 48px);
+  background: rgba(245, 245, 240, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.site-head .mark {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+/* logo-w.png is white on transparent — invert it rather than ship a second
+   asset, so the brand only ever maintains one logo file */
+.site-head .mark img {
+  width: 34px;
+  filter: invert(1);
+}
+
+.site-head .mark span {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+}
+
+.head-links {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 3vw, 28px);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.head-links a,
+.head-links button {
+  color: var(--muted);
+  background: none;
+  border: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.25s var(--ease);
+}
+
+.head-links a:hover,
+.head-links button:hover { color: var(--ink); }
+
+.site-foot {
+  border-top: 1px solid var(--hairline);
+  margin-top: clamp(60px, 12vh, 120px);
+  padding: 40px clamp(16px, 4vw, 48px) 60px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- type ---------- */
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+h1.display {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: clamp(34px, 7vw, 68px);
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+}
+
+/* placeholders the brand still has to fill in — deliberately loud so they
+   cannot ship to customers unnoticed */
+.pending {
+  color: var(--pending);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px dashed var(--pending);
+  border-radius: 2px;
+  padding: 8px 12px;
+  display: inline-block;
+}
+
+/* ---------- buttons ---------- */
+
+/* The home page's lancet button, inverted. It is FILLED rather than outlined:
+   clip-path cuts the pointed ends off a border, leaving two floating lines
+   where the silhouette should be. A solid fill keeps the shape intact and
+   gives the primary action the weight it needs on a pale page. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 17px 38px;
+  border: none;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  clip-path: polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0 50%);
+  transition: background 0.3s var(--ease), transform 0.3s var(--ease), letter-spacing 0.3s var(--ease);
+}
+
+.btn:hover { background: #2A2A26; transform: translateY(-1px); letter-spacing: 0.28em; }
+
+.btn[disabled],
+.btn.is-disabled {
+  background: var(--hairline);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* secondary action: a plain rectangle, because an outline and a clip-path
+   cannot coexist */
+.btn-ghost {
+  clip-path: none;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  padding: 14px 30px;
+}
+.btn-ghost:hover { background: var(--ink); color: var(--bone); letter-spacing: 0.24em; }
+
+.btn-block { width: 100%; }
+
+/* ---------- scroll reveal ---------- */
+
+/* elements start displaced and settle as they enter the viewport; the class is
+   added by an IntersectionObserver in shop-common.js. Anything with [data-reveal]
+   must be readable without JS, so the hidden state is applied by that script
+   too, never in this file. */
+[data-reveal].revealed {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ---------- language modal ---------- */
+
+.lang-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 245, 240, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease);
+}
+
+.lang-modal.open { opacity: 1; pointer-events: auto; }
+
+.lang-modal .panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(320px, 86vw);
+  text-align: center;
+}
+
+.lang-modal .panel > .eyebrow { margin-bottom: 8px; }
+
+.lang-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 15px 20px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.lang-btn:hover { background: var(--ink); color: var(--bone); }
