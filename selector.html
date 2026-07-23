@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>South Side · Selector (prototipo)</title>
 <meta name="robots" content="noindex">
 
@@ -52,13 +52,20 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; }
-  html { color-scheme: light dark; }
+  html { color-scheme: light dark; height: 100%; }
+  /* Locked one-screen "app": the whole thing fits the viewport and neither
+     scrolls nor zooms, so dragging a garment never drags the page. */
   body {
     background: var(--bone);
     color: var(--ink);
     font-family: 'Playfair Display', Georgia, serif;
-    min-height: 100vh;
-    overflow-x: hidden;
+    height: 100vh;
+    height: 100dvh;            /* tracks the mobile URL bar */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    overscroll-behavior: none; /* no rubber-band */
+    touch-action: manipulation;/* kill double-tap zoom */
     -webkit-tap-highlight-color: transparent;
     transition: background 0.4s var(--ease), color 0.4s var(--ease);
   }
@@ -67,7 +74,8 @@
   /* ---- title, same chrome family as the shop ---- */
   .head {
     text-align: center;
-    padding: 40px 20px 4px;
+    padding: clamp(16px, 4vh, 40px) 20px 4px;
+    flex: 0 0 auto;
   }
   .head .eyebrow {
     font-family: 'Cinzel', serif;
@@ -103,8 +111,11 @@
   /* ================= the character selector ================= */
   .selector {
     position: relative;
-    height: min(74vh, 640px);
+    flex: 1 1 auto;   /* eats whatever height the fixed rows leave */
+    min-height: 0;
     margin-top: 6px;
+    /* the drag is ours — stop the browser panning/zooming on the rack */
+    touch-action: none;
     /* the whole rack fades up from below on entry */
     perspective: 1400px;
   }
@@ -189,7 +200,8 @@
   .readout {
     text-align: center;
     padding: 6px 20px 4px;
-    min-height: 74px;
+    min-height: 64px;
+    flex: 0 0 auto;
   }
   .readout .name {
     font-family: 'Cinzel', serif;
@@ -261,8 +273,10 @@
   .foot {
     text-align: center; color: var(--muted);
     font-size: 12px; letter-spacing: 0.06em;
-    padding: 30px 20px 40px;
+    padding: 14px 20px clamp(14px, 3vh, 30px);
+    flex: 0 0 auto;
   }
+  .dots, .cue { flex: 0 0 auto; }
 
   /* ---- theme switch, bottom-right (same as the shop) ---- */
   .theme-switch {
@@ -294,8 +308,11 @@
   }
 
   @media (max-width: 560px) {
-    .selector { height: min(64vh, 520px); }
     .arrow { width: 44px; height: 44px; margin-top: -22px; }
+    .arrow.left  { left: 6px; }
+    .arrow.right { right: 6px; }
+    .slot { width: min(56vw, 320px); margin-left: calc(min(56vw, 320px) / -2); }
+    .foot { display: none; }   /* one screen, no room to spare */
   }
 </style>
 </head>
@@ -490,6 +507,20 @@
   requestAnimationFrame(function () {
     requestAnimationFrame(function () { selector.classList.add("in"); });
   });
+
+  // hard-lock the viewport on mobile: iOS Safari ignores user-scalable=no, so
+  // block pinch (gesture* / 2-finger touchmove) and double-tap zoom by hand.
+  document.addEventListener("gesturestart", function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener("gesturechange", function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener("touchmove", function (e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+  var lastTap = 0;
+  document.addEventListener("touchend", function (e) {
+    var now = Date.now();
+    if (now - lastTap < 320) e.preventDefault();  // double-tap
+    lastTap = now;
+  }, { passive: false });
 
   // theme toggle
   document.getElementById("themeBtn").addEventListener("click", function () {
