@@ -50,6 +50,9 @@ module.exports = async function handler(req, res) {
   if (bold.env() === "test") {
     console.log("[bold webhook] headers:", JSON.stringify(Object.keys(req.headers)));
     console.log("[bold webhook] raw:", raw.slice(0, 600));
+    // survives the log window so the real shape can be read back from the store
+    try { await store.recordDelivery({ at: Date.now(), headers: req.headers, body: raw }); }
+    catch (e) { /* debug only, never block the webhook */ }
   }
 
   const check = bold.verifySignature(raw, req.headers);
