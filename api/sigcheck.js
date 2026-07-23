@@ -19,16 +19,20 @@ module.exports = async function handler(req, res) {
   const body = d.body;
   const sig = (d.headers || {})["x-bold-signature"] || null;
 
-  const hmacHex = (secret, msg) => crypto.createHmac("sha256", secret).update(msg, "utf8").digest("hex");
-  const hmacB64 = (secret, msg) => crypto.createHmac("sha256", secret).update(msg, "utf8").digest("base64");
-  const sha = (msg) => crypto.createHash("sha256").update(msg, "utf8").digest("hex");
+  const hex = (secret, msg) => crypto.createHmac("sha256", secret).update(msg, "utf8").digest("hex");
+  const b64body = Buffer.from(body, "utf8").toString("base64");
+  const keyHex = (() => { try { return Buffer.from(key, "hex"); } catch (e) { return null; } })();
+  const keyB64 = (() => { try { return Buffer.from(key, "base64"); } catch (e) { return null; } })();
 
   const candidates = {
-    "hmac(body, key) hex": hmacHex(key, body),
-    "hmac(body, key) base64": hmacB64(key, body),
-    "sha256(body + key)": sha(body + key),
-    "sha256(key + body)": sha(key + body),
-    "hmac(key, body) hex (swapped)": hmacHex(body, key),
+    "hmac(body, key)": hex(key, body),
+    "hmac(base64(body), key)": hex(key, b64body),
+    "hmac(body, key-as-hex-bytes)": keyHex ? hex(keyHex, body) : "-",
+    "hmac(body, key-as-b64-bytes)": keyB64 ? hex(keyB64, body) : "-",
+    "hmac(base64(body), key-as-hex-bytes)": keyHex ? hex(keyHex, b64body) : "-",
+    "hmac(base64(body), key-as-b64-bytes)": keyB64 ? hex(keyB64, b64body) : "-",
+    "hmac(body.trim(), key)": hex(key, body.trim()),
+    "sha256(body) no key": crypto.createHash("sha256").update(body, "utf8").digest("hex"),
   };
 
   const match = Object.entries(candidates).find(function (e) { return e[1] === sig; });
