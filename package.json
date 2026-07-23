@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "dependencies": {
+    "@upstash/redis": "^1.34.3",
     "stripe": "^16.12.0"
   }
 }

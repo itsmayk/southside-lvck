@@ -1,25 +1,30 @@
-const Stripe = require("stripe");
+// Reports which sizes are still buyable, keyed by slug, exactly as before —
+// the storefront's sold-out logic doesn't change. Only the source moved: from
+// Stripe payment-link "active" flags to the real Upstash counts. While the
+// store isn't provisioned (or during the Stripe→Bold switch) it reports
+// everything available rather than wrongly blanking the drop.
+
 const config = require("../shop-config.json");
+const store = require("../lib/store.js");
 
-// the catalog is grouped by product; stock is reported per size, keyed by the
-// same slug the storefront puts on each size button
-const variants = config.products.flatMap((p) => p.sizes);
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const sizes = (config.products || []).flatMap((p) => p.sizes || []);
 
 module.exports = async function handler(req, res) {
-  res.setHeader("Cache-Control", "s-maxage=15, stale-while-revalidate=30");
+  res.setHeader("Cache-Control", "s-maxage=10, stale-while-revalidate=30");
   res.setHeader("Access-Control-Allow-Origin", "*");
 
   try {
-    const entries = await Promise.all(
-      variants.map(async (item) => {
-        const link = await stripe.paymentLinks.retrieve(item.paymentLinkId);
-        return [item.slug, link.active];
-      })
-    );
-    res.status(200).json(Object.fromEntries(entries));
+    const avail = await store.availability(sizes);
+    // no store yet: leave every size buyable
+    if (!avail) {
+      return res.status(200).json(Object.fromEntries(sizes.map((s) => [s.slug, true])));
+    }
+    // the client only cares true/false; a size is "in stock" if any remain
+    const out = {};
+    for (const s of sizes) out[s.slug] = (avail[s.slug] || 0) > 0;
+    return res.status(200).json(out);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    // storefront must never break over stock: default to available
+    return res.status(200).json(Object.fromEntries(sizes.map((s) => [s.slug, true])));
   }
 };

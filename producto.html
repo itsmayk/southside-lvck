@@ -436,6 +436,7 @@
     buy.id = "buy";
     buy.rel = "noopener";
     LVCK.btnLabel(buy).textContent = LVCK.t("p.pickFirst", lang);
+    buy.addEventListener("click", startCheckout);
     col.appendChild(buy);
 
     var secure = el("div", "secure");
@@ -454,9 +455,59 @@
     });
     var buy = document.getElementById("buy");
     buy.classList.remove("is-disabled");
-    buy.href = size.url;
+    buy.href = size.url; // Stripe fallback, used only if Bold isn't configured
     // the label stays one word: the chosen size is already lit up right above
     LVCK.btnLabel(buy).textContent = LVCK.t("p.buy");
+  }
+
+  /* Buy click. Asks our own /api/checkout to mint a Bold link and sends the
+     shopper there. If Bold isn't configured yet the endpoint answers 503 and we
+     fall through to the button's plain href (the old Stripe link), so the shop
+     never stops working mid-switch. A sold-out size (409) is surfaced, not
+     followed. */
+  var checkingOut = false;
+  function startCheckout(e) {
+    if (!chosen) return;
+    e.preventDefault();
+    if (checkingOut) return;
+    var buy = document.getElementById("buy");
+    var stripeFallback = buy.getAttribute("href");
+
+    checkingOut = true;
+    buy.classList.add("is-disabled");
+
+    fetch("/api/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product: product.slug, size: chosen.slug })
+    }).then(function (r) {
+      return r.json().then(function (j) { return { status: r.status, body: j }; });
+    }).then(function (res) {
+      if (res.status === 200 && res.body.url) {
+        window.location.href = res.body.url; // to Bold's checkout
+        return;
+      }
+      if (res.status === 503 && stripeFallback) {
+        window.location.href = stripeFallback; // Bold not live yet → Stripe
+        return;
+      }
+      checkingOut = false;
+      buy.classList.remove("is-disabled");
+      if (res.status === 409) {
+        // mark the just-chosen size sold out
+        var b = document.querySelector('#sizes .size[data-slug="' + chosen.slug + '"]');
+        if (b && !b.classList.contains("sold")) {
+          b.classList.add("sold");
+          b.textContent = b.textContent.split(" ")[0] + " · " + LVCK.t("p.soldOut");
+        }
+        resetBuy();
+      }
+    }).catch(function () {
+      // network error: fall back to Stripe rather than dead-end the sale
+      if (stripeFallback) { window.location.href = stripeFallback; return; }
+      checkingOut = false;
+      buy.classList.remove("is-disabled");
+    });
   }
 
   /* Everything here is copy the brand still owes us. Rather than invent
