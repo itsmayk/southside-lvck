@@ -20,22 +20,23 @@ function readRaw(req) {
   });
 }
 
-// Bold's event vocabulary — the exact strings are confirmed against the first
-// sandbox delivery; both spellings are accepted so a naming difference doesn't
-// silently drop a sale.
-const APPROVED = ["SALE_APPROVED", "APPROVED", "PAYMENT_APPROVED"];
-const FAILED = ["SALE_REJECTED", "REJECTED", "VOIDED", "SALE_EXPIRED", "EXPIRED"];
+// Bold's event vocabulary, confirmed from a real sandbox delivery: the event
+// is in `type`, e.g. "SALE_APPROVED" / "SALE_REJECTED".
+const APPROVED = ["SALE_APPROVED"];
+const FAILED = ["SALE_REJECTED", "VOIDED", "SALE_EXPIRED"];
 
 function classify(payload) {
-  const type = String(payload.type || payload.event || payload.status || "").toUpperCase();
-  if (APPROVED.some((t) => type.includes(t.replace(/^SALE_/, "")))) return "approved";
-  if (FAILED.some((t) => type.includes(t.replace(/^SALE_/, "")))) return "failed";
+  const type = String(payload.type || "").toUpperCase();
+  if (APPROVED.includes(type)) return "approved";
+  if (FAILED.includes(type)) return "failed";
   return "other";
 }
 
+// Confirmed shape: our reference rides in data.metadata.reference. The others
+// are kept as defensive fallbacks in case Bold nests it differently elsewhere.
 function extractReference(payload) {
-  const d = payload.data || payload;
-  return d.reference || d.metadata_reference || payload.reference || null;
+  const d = payload.data || {};
+  return (d.metadata && d.metadata.reference) || d.reference || payload.reference || null;
 }
 
 module.exports = async function handler(req, res) {
@@ -61,22 +62,9 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true, note: "empty body acknowledged" });
   }
 
-  /* First sandbox delivery reveals the real signature format. In test we log
-     the header names and the payload shape once so we can lock verifySignature
-     to exactly what Bold sends — then this logging comes out. Never logs in
-     production. */
-  if (bold.env() === "test") {
-    console.log("[bold webhook] headers:", JSON.stringify(Object.keys(req.headers)));
-    console.log("[bold webhook] raw:", raw.slice(0, 600));
-    // survives the log window so the real shape can be read back from the store
-    try { await store.recordDelivery({ at: Date.now(), headers: req.headers, body: raw }); }
-    catch (e) { /* debug only, never block the webhook */ }
-  }
-
   const check = bold.verifySignature(raw, req.headers);
   if (!check.ok) {
-    // fail closed once a secret exists / in production; open only while we are
-    // still reading the first sandbox payload
+    // fails closed: a request we can't prove came from Bold never touches stock
     console.warn("[bold webhook] rejected:", check.reason);
     return res.status(401).json({ error: "bad signature", reason: check.reason });
   }
