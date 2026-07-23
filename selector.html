@@ -107,8 +107,9 @@
     position: relative;
     height: min(74vh, 640px);
     margin-top: 6px;
-    /* the drag is ours — stop the browser panning/zooming on the rack */
-    touch-action: none;
+    /* horizontal drag is ours (changes garment); vertical still scrolls the
+       page, so you can slide down to the Instagram button below */
+    touch-action: pan-y;
     /* the whole rack fades up from below on entry */
     perspective: 1400px;
   }
@@ -263,10 +264,29 @@
   }
 
   .foot {
-    text-align: center; color: var(--muted);
-    font-size: 12px; letter-spacing: 0.06em;
-    padding: 30px 20px 40px;
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    text-align: center;
+    padding: 24px 20px calc(44px + env(safe-area-inset-bottom));
   }
+  .foot-note { color: var(--muted); font-size: 12px; letter-spacing: 0.06em; }
+
+  /* Instagram button — routes through the site's language picker (@lvck.us/es/br) */
+  .ig-btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 22px;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: var(--bone-deep);
+    color: var(--ink);
+    text-decoration: none;
+    font-family: 'Cinzel', serif;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 13px;
+    transition: transform 0.25s var(--ease), border-color 0.25s var(--ease);
+  }
+  .ig-btn:hover { transform: translateY(-2px); border-color: var(--pearl); }
+  .ig-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 
   /* ---- theme switch, bottom-right (same as the shop) ---- */
   .theme-switch {
@@ -298,19 +318,8 @@
   }
 
   @media (max-width: 560px) {
-    /* Anchor on phones: pin the page to the viewport so a swipe moves the
-       garment, never the page. Same LOOK as the first version — only
-       scrolling/zoom are disabled, the sizes/spacing don't change. */
-    html, body {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100dvh;
-      overflow: hidden;
-    }
     .selector { height: min(64vh, 520px); }
     .arrow { width: 44px; height: 44px; margin-top: -22px; }
-    .foot { display: none; }   /* pinned screen — no room for it */
   }
 </style>
 </head>
@@ -342,7 +351,17 @@
 <div class="dots" id="dots"></div>
 <div class="cue">Desliza</div>
 
-<footer class="foot">LVCK · South Side — prototipo, imágenes provisionales</footer>
+<footer class="foot">
+  <a class="ig-btn" href="social-instagram.html">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/>
+      <circle cx="12" cy="12" r="4.2"/>
+      <circle cx="17.4" cy="6.6" r="1.15" fill="currentColor" stroke="none"/>
+    </svg>
+    <span>Instagram</span>
+  </a>
+  <div class="foot-note">LVCK · South Side — prototipo, imágenes provisionales</div>
+</footer>
 
 <button type="button" class="theme-switch" id="themeBtn" aria-label="Cambiar tema" title="Cambiar tema">
   <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true">

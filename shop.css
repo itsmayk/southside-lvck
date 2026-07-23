@@ -219,7 +219,25 @@ img { display: block; max-width: 100%; }
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--muted);
+  align-items: center;
 }
+
+/* Instagram button — routes through the site's language picker (@lvck.us/es/br) */
+.ig-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 11px 20px;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--bone-deep);
+  color: var(--ink);
+  text-decoration: none;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.16em;
+  font-size: 12px;
+  transition: transform 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+.ig-btn:hover { transform: translateY(-2px); border-color: var(--pearl); }
+.ig-btn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 
 /* ---------- type ---------- */
 
