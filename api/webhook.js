@@ -39,9 +39,27 @@ function extractReference(payload) {
 }
 
 module.exports = async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+
+  // When a webhook URL is saved, Bold pings it to check it's reachable. That
+  // ping may be a GET or carry no transaction body — answer it 200 so the save
+  // succeeds instead of looking like a dead endpoint.
+  if (req.method === "GET" || req.method === "HEAD") {
+    return res.status(200).json({ ok: true, endpoint: "bold-webhook" });
+  }
+  if (req.method === "OPTIONS") {
+    res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "*");
+    return res.status(204).end();
+  }
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   const raw = await readRaw(req);
+
+  // an empty verification POST is not a real event — acknowledge and move on
+  if (!raw || !raw.trim()) {
+    return res.status(200).json({ ok: true, note: "empty body acknowledged" });
+  }
 
   /* First sandbox delivery reveals the real signature format. In test we log
      the header names and the payload shape once so we can lock verifySignature
@@ -64,8 +82,10 @@ module.exports = async function handler(req, res) {
   }
 
   let payload;
-  try { payload = JSON.parse(raw || "{}"); }
-  catch (e) { return res.status(400).json({ error: "bad json" }); }
+  // a body we can't parse isn't a real sale — acknowledge (200) rather than
+  // 400, so a probe with an odd payload doesn't read as a broken endpoint
+  try { payload = JSON.parse(raw); }
+  catch (e) { return res.status(200).json({ ok: true, note: "unparseable body ignored" }); }
 
   const reference = extractReference(payload);
   const kind = classify(payload);
