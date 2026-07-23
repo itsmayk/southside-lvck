@@ -311,7 +311,7 @@
     .arrow { width: 44px; height: 44px; margin-top: -22px; }
     .arrow.left  { left: 6px; }
     .arrow.right { right: 6px; }
-    .slot { width: min(56vw, 320px); margin-left: calc(min(56vw, 320px) / -2); }
+    .slot { width: min(48vw, 300px); margin-left: calc(min(48vw, 300px) / -2); }
     .foot { display: none; }   /* one screen, no room to spare */
   }
 </style>
@@ -423,6 +423,16 @@
   }
 
   function layout() {
+    // Narrow phones have no room for the center piece AND two full neighbours,
+    // so the neighbours must sit closer and peek from behind. Wide screens can
+    // spread them out. Offsets are in vw so they track the viewport.
+    var narrow = window.innerWidth <= 560;
+    var nearT = narrow ? 39 : 30;   // how far the side pieces sit from center
+    var farT  = narrow ? 62 : 52;   // where the hidden ones park
+    var nearS = narrow ? 0.62 : 0.6;
+    var nearO = narrow ? 0.58 : 0.5;
+    var nearB = narrow ? 4 : 5;
+
     items.forEach(function (item, i) {
       var off = ringOffset(i, current);
       var abs = Math.abs(off);
@@ -431,10 +441,10 @@
       if (off === 0) {
         t = 0; scale = 1; opacity = 1; blur = 0; z = 30;
       } else if (abs === 1) {
-        t = off * 34; scale = 0.6; opacity = 0.5; blur = 5; z = 20;
+        t = off * nearT; scale = nearS; opacity = nearO; blur = nearB; z = 20;
       } else {
         // parked further out and invisible; still on its side for a smooth exit
-        t = (off > 0 ? 1 : -1) * 62; scale = 0.42; opacity = 0; blur = 8; z = 10;
+        t = (off > 0 ? 1 : -1) * farT; scale = 0.42; opacity = 0; blur = 8; z = 10;
       }
 
       item.style.transform = "translateX(" + t + "vw) scale(" + scale + ")";
@@ -465,6 +475,13 @@
 
   document.getElementById("prev").addEventListener("click", function () { step(-1); });
   document.getElementById("next").addEventListener("click", function () { step(1); });
+
+  // recompute spacing when the width/orientation changes (phone rotate, URL bar)
+  var reflow;
+  window.addEventListener("resize", function () {
+    clearTimeout(reflow);
+    reflow = setTimeout(layout, 120);
+  });
 
   // keyboard
   window.addEventListener("keydown", function (e) {
