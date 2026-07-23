@@ -52,20 +52,15 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; }
-  html { color-scheme: light dark; height: 100%; }
-  /* Locked one-screen "app": the whole thing fits the viewport and neither
-     scrolls nor zooms, so dragging a garment never drags the page. */
+  html { color-scheme: light dark; }
   body {
     background: var(--bone);
     color: var(--ink);
     font-family: 'Playfair Display', Georgia, serif;
-    height: 100vh;
-    height: 100dvh;            /* tracks the mobile URL bar */
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    overscroll-behavior: none; /* no rubber-band */
-    touch-action: manipulation;/* kill double-tap zoom */
+    min-height: 100vh;
+    overflow-x: hidden;
+    overscroll-behavior: none;   /* no rubber-band */
+    touch-action: manipulation;  /* kill double-tap zoom, doesn't affect layout */
     -webkit-tap-highlight-color: transparent;
     transition: background 0.4s var(--ease), color 0.4s var(--ease);
   }
@@ -74,8 +69,7 @@
   /* ---- title, same chrome family as the shop ---- */
   .head {
     text-align: center;
-    padding: clamp(16px, 4vh, 40px) 20px 4px;
-    flex: 0 0 auto;
+    padding: 40px 20px 4px;
   }
   .head .eyebrow {
     font-family: 'Cinzel', serif;
@@ -111,8 +105,7 @@
   /* ================= the character selector ================= */
   .selector {
     position: relative;
-    flex: 1 1 auto;   /* eats whatever height the fixed rows leave */
-    min-height: 0;
+    height: min(74vh, 640px);
     margin-top: 6px;
     /* the drag is ours — stop the browser panning/zooming on the rack */
     touch-action: none;
@@ -200,8 +193,7 @@
   .readout {
     text-align: center;
     padding: 6px 20px 4px;
-    min-height: 64px;
-    flex: 0 0 auto;
+    min-height: 74px;
   }
   .readout .name {
     font-family: 'Cinzel', serif;
@@ -273,10 +265,8 @@
   .foot {
     text-align: center; color: var(--muted);
     font-size: 12px; letter-spacing: 0.06em;
-    padding: 14px 20px clamp(14px, 3vh, 30px);
-    flex: 0 0 auto;
+    padding: 30px 20px 40px;
   }
-  .dots, .cue { flex: 0 0 auto; }
 
   /* ---- theme switch, bottom-right (same as the shop) ---- */
   .theme-switch {
@@ -308,11 +298,19 @@
   }
 
   @media (max-width: 560px) {
+    /* Anchor on phones: pin the page to the viewport so a swipe moves the
+       garment, never the page. Same LOOK as the first version — only
+       scrolling/zoom are disabled, the sizes/spacing don't change. */
+    html, body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    .selector { height: min(64vh, 520px); }
     .arrow { width: 44px; height: 44px; margin-top: -22px; }
-    .arrow.left  { left: 6px; }
-    .arrow.right { right: 6px; }
-    .slot { width: min(48vw, 300px); margin-left: calc(min(48vw, 300px) / -2); }
-    .foot { display: none; }   /* one screen, no room to spare */
+    .foot { display: none; }   /* pinned screen — no room for it */
   }
 </style>
 </head>
@@ -423,16 +421,6 @@
   }
 
   function layout() {
-    // Narrow phones have no room for the center piece AND two full neighbours,
-    // so the neighbours must sit closer and peek from behind. Wide screens can
-    // spread them out. Offsets are in vw so they track the viewport.
-    var narrow = window.innerWidth <= 560;
-    var nearT = narrow ? 39 : 30;   // how far the side pieces sit from center
-    var farT  = narrow ? 62 : 52;   // where the hidden ones park
-    var nearS = narrow ? 0.62 : 0.6;
-    var nearO = narrow ? 0.58 : 0.5;
-    var nearB = narrow ? 4 : 5;
-
     items.forEach(function (item, i) {
       var off = ringOffset(i, current);
       var abs = Math.abs(off);
@@ -441,10 +429,10 @@
       if (off === 0) {
         t = 0; scale = 1; opacity = 1; blur = 0; z = 30;
       } else if (abs === 1) {
-        t = off * nearT; scale = nearS; opacity = nearO; blur = nearB; z = 20;
+        t = off * 34; scale = 0.6; opacity = 0.5; blur = 5; z = 20;
       } else {
         // parked further out and invisible; still on its side for a smooth exit
-        t = (off > 0 ? 1 : -1) * farT; scale = 0.42; opacity = 0; blur = 8; z = 10;
+        t = (off > 0 ? 1 : -1) * 62; scale = 0.42; opacity = 0; blur = 8; z = 10;
       }
 
       item.style.transform = "translateX(" + t + "vw) scale(" + scale + ")";
