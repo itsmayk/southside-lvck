@@ -873,5 +873,83 @@ document.addEventListener('DOMContentLoaded', async function() {
       }, 500);
     })();
   </script>
+
+  <!-- Instagram picker popup. Decoupled from the bundle (same approach as the
+       language/phrase scripts): a document-level click interceptor catches the
+       Instagram link the bundle renders and opens this in-page modal instead of
+       navigating to social-instagram.html. Styled for the dark register page. -->
+  <style>
+    .ssig-backdrop {
+      position: fixed; inset: 0; z-index: 9999;
+      display: none; align-items: center; justify-content: center;
+      padding: 20px;
+      background: rgba(10, 10, 10, 0.72);
+      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+      opacity: 0; transition: opacity 0.3s ease;
+    }
+    .ssig-panel {
+      display: flex; flex-direction: column; gap: 13px;
+      width: min(330px, 86vw); text-align: center;
+    }
+    .ssig-eyebrow {
+      font-family: 'Playfair Display', serif;
+      font-size: 12px; letter-spacing: 0.34em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5); margin-bottom: 6px;
+    }
+    .ssig-btn {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      padding: 15px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: transparent; color: #f5f5f0;
+      font-family: 'Playfair Display', Georgia, serif; font-size: 15px;
+      text-decoration: none; border-radius: 2px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .ssig-btn .flag { font-size: 18px; }
+    .ssig-btn:hover { background: rgba(255, 255, 255, 0.92); color: #0A0A0A; }
+    .ssig-close {
+      margin-top: 6px; background: none; border: none;
+      color: rgba(255, 255, 255, 0.5);
+      font-family: 'Playfair Display', serif; font-size: 12px;
+      letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer;
+      transition: color 0.2s;
+    }
+    .ssig-close:hover { color: #fff; }
+  </style>
+  <div id="ss-ig-modal" class="ssig-backdrop" role="dialog" aria-modal="true" aria-label="Instagram">
+    <div class="ssig-panel">
+      <div class="ssig-eyebrow">Instagram</div>
+      <a class="ssig-btn" href="https://instagram.com/lvck.us" target="_blank" rel="noopener"><span class="flag">🇺🇸</span><span>@lvck.us</span></a>
+      <a class="ssig-btn" href="https://instagram.com/lvck.es" target="_blank" rel="noopener"><span class="flag">🇪🇸</span><span>@lvck.es</span></a>
+      <a class="ssig-btn" href="https://instagram.com/lvck.br" target="_blank" rel="noopener"><span class="flag">🇧🇷</span><span>@lvck.br</span></a>
+      <a class="ssig-btn" href="https://instagram.com/lvckcreationz" target="_blank" rel="noopener"><span class="flag">✦</span><span>@lvckcreationz</span></a>
+      <button type="button" class="ssig-close" data-ig-close>Cerrar</button>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var modal = document.getElementById("ss-ig-modal");
+      if (!modal) return;
+      var CLOSE = { es: "Cerrar", en: "Close", pt: "Fechar" };
+      function lang() { try { return localStorage.getItem("ss-lang") || "en"; } catch (e) { return "en"; } }
+      function open() {
+        var c = modal.querySelector("[data-ig-close]");
+        if (c) c.textContent = CLOSE[lang()] || "Close";
+        modal.style.display = "flex";
+        requestAnimationFrame(function () { modal.style.opacity = "1"; });
+      }
+      function close() {
+        modal.style.opacity = "0";
+        setTimeout(function () { modal.style.display = "none"; }, 300);
+      }
+      document.addEventListener("click", function (e) {
+        var link = e.target.closest && e.target.closest('a[href="social-instagram.html"]');
+        if (link) { e.preventDefault(); open(); return; }
+        if (e.target.closest && e.target.closest("[data-ig-close]")) { close(); return; }
+        if (e.target === modal) close();   // click on the backdrop
+      });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+    })();
+  </script>
 </body>
 </html>
