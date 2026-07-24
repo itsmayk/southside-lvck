@@ -778,3 +778,20 @@ h1.display {
 }
 
 .lang-btn:hover { background: var(--ink); color: var(--bone); }
+
+/* Instagram picker — reuses the .lang-modal shell, a few tweaks on top */
+.ig-modal .lang-btn { text-decoration: none; gap: 12px; }
+.ig-modal .flag { font-size: 18px; }
+.ig-close {
+  margin-top: 4px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 0.2s var(--ease);
+}
+.ig-close:hover { color: var(--ink); }
