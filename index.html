@@ -874,80 +874,87 @@ document.addEventListener('DOMContentLoaded', async function() {
     })();
   </script>
 
-  <!-- Instagram picker popup. Decoupled from the bundle (same approach as the
-       language/phrase scripts): a document-level click interceptor catches the
-       Instagram link the bundle renders and opens this in-page modal instead of
-       navigating to social-instagram.html. Styled for the dark register page. -->
-  <style>
-    .ssig-backdrop {
-      position: fixed; inset: 0; z-index: 9999;
-      display: none; align-items: center; justify-content: center;
-      padding: 20px;
-      background: rgba(10, 10, 10, 0.72);
-      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-      opacity: 0; transition: opacity 0.3s ease;
-    }
-    .ssig-panel {
-      display: flex; flex-direction: column; gap: 13px;
-      width: min(330px, 86vw); text-align: center;
-    }
-    .ssig-eyebrow {
-      font-family: 'Playfair Display', serif;
-      font-size: 12px; letter-spacing: 0.34em; text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.5); margin-bottom: 6px;
-    }
-    .ssig-btn {
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-      padding: 15px 20px;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      background: transparent; color: #f5f5f0;
-      font-family: 'Playfair Display', Georgia, serif; font-size: 15px;
-      text-decoration: none; border-radius: 2px;
-      transition: background 0.2s, color 0.2s;
-    }
-    .ssig-btn .flag { font-size: 18px; }
-    .ssig-btn:hover { background: rgba(255, 255, 255, 0.92); color: #0A0A0A; }
-    .ssig-close {
-      margin-top: 6px; background: none; border: none;
-      color: rgba(255, 255, 255, 0.5);
-      font-family: 'Playfair Display', serif; font-size: 12px;
-      letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer;
-      transition: color 0.2s;
-    }
-    .ssig-close:hover { color: #fff; }
-  </style>
-  <div id="ss-ig-modal" class="ssig-backdrop" role="dialog" aria-modal="true" aria-label="Instagram">
-    <div class="ssig-panel">
-      <div class="ssig-eyebrow">Instagram</div>
-      <a class="ssig-btn" href="https://instagram.com/lvck.us" target="_blank" rel="noopener"><span class="flag">🇺🇸</span><span>@lvck.us</span></a>
-      <a class="ssig-btn" href="https://instagram.com/lvck.es" target="_blank" rel="noopener"><span class="flag">🇪🇸</span><span>@lvck.es</span></a>
-      <a class="ssig-btn" href="https://instagram.com/lvck.br" target="_blank" rel="noopener"><span class="flag">🇧🇷</span><span>@lvck.br</span></a>
-      <a class="ssig-btn" href="https://instagram.com/lvckcreationz" target="_blank" rel="noopener"><span class="flag">✦</span><span>@lvckcreationz</span></a>
-      <button type="button" class="ssig-close" data-ig-close>Cerrar</button>
-    </div>
-  </div>
+  <!-- Instagram picker popup, built entirely in JS and re-attached on demand.
+       index.html's bundle re-renders and can wipe injected nodes (the same
+       reason the language/phrase scripts re-query instead of caching), so
+       nothing here is authored statically: the styles live in <head> (which the
+       body-mounted bundle never rebuilds) and the modal is (re)created on each
+       open. A capture-phase document click interceptor catches the
+       bundle-rendered Instagram link and opens this modal instead of navigating
+       to social-instagram.html. -->
   <script>
     (function () {
-      var modal = document.getElementById("ss-ig-modal");
-      if (!modal) return;
+      var ACCOUNTS = [
+        { flag: "🇺🇸", handle: "@lvck.us", url: "https://instagram.com/lvck.us" },
+        { flag: "🇪🇸", handle: "@lvck.es", url: "https://instagram.com/lvck.es" },
+        { flag: "🇧🇷", handle: "@lvck.br", url: "https://instagram.com/lvck.br" },
+        { flag: "✦",  handle: "@lvckcreationz", url: "https://instagram.com/lvckcreationz" }
+      ];
       var CLOSE = { es: "Cerrar", en: "Close", pt: "Fechar" };
       function lang() { try { return localStorage.getItem("ss-lang") || "en"; } catch (e) { return "en"; } }
+
+      function ensureStyles() {
+        if (document.getElementById("ssig-styles")) return;
+        var s = document.createElement("style");
+        s.id = "ssig-styles";
+        s.textContent =
+          ".ssig-backdrop{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(10,10,10,0.72);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);opacity:0;transition:opacity .3s ease;}" +
+          ".ssig-backdrop.open{opacity:1;}" +
+          ".ssig-panel{display:flex;flex-direction:column;gap:13px;width:min(330px,86vw);text-align:center;}" +
+          ".ssig-eyebrow{font-family:'Playfair Display',serif;font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,255,255,0.5);margin-bottom:6px;}" +
+          ".ssig-btn{display:flex;align-items:center;justify-content:center;gap:12px;padding:15px 20px;border:1px solid rgba(255,255,255,0.35);background:transparent;color:#f5f5f0;font-family:'Playfair Display',Georgia,serif;font-size:15px;text-decoration:none;border-radius:2px;transition:background .2s,color .2s;}" +
+          ".ssig-btn .flag{font-size:18px;}" +
+          ".ssig-btn:hover{background:rgba(255,255,255,0.92);color:#0A0A0A;}" +
+          ".ssig-close{margin-top:6px;background:none;border:none;color:rgba(255,255,255,0.5);font-family:'Playfair Display',serif;font-size:12px;letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:color .2s;}" +
+          ".ssig-close:hover{color:#fff;}";
+        (document.head || document.documentElement).appendChild(s);
+      }
+
+      // (re)build the modal if a bundle render has removed it
+      function ensureModal() {
+        var m = document.getElementById("ss-ig-modal");
+        if (m) return m;
+        ensureStyles();
+        m = document.createElement("div");
+        m.id = "ss-ig-modal";
+        m.className = "ssig-backdrop";
+        m.setAttribute("role", "dialog");
+        m.setAttribute("aria-modal", "true");
+        m.setAttribute("aria-label", "Instagram");
+        var html = '<div class="ssig-panel"><div class="ssig-eyebrow">Instagram</div>';
+        ACCOUNTS.forEach(function (a) {
+          html += '<a class="ssig-btn" href="' + a.url + '" target="_blank" rel="noopener">' +
+                  '<span class="flag">' + a.flag + '</span><span>' + a.handle + '</span></a>';
+        });
+        html += '<button type="button" class="ssig-close" data-ig-close>' + (CLOSE[lang()] || "Close") + '</button></div>';
+        m.innerHTML = html;
+        document.body.appendChild(m);
+        return m;
+      }
+
       function open() {
-        var c = modal.querySelector("[data-ig-close]");
+        var m = ensureModal();
+        var c = m.querySelector("[data-ig-close]");
         if (c) c.textContent = CLOSE[lang()] || "Close";
-        modal.style.display = "flex";
-        requestAnimationFrame(function () { modal.style.opacity = "1"; });
+        m.style.display = "flex";
+        requestAnimationFrame(function () { m.classList.add("open"); });
       }
       function close() {
-        modal.style.opacity = "0";
-        setTimeout(function () { modal.style.display = "none"; }, 300);
+        var m = document.getElementById("ss-ig-modal");
+        if (!m) return;
+        m.classList.remove("open");
+        setTimeout(function () { if (m) m.style.display = "none"; }, 300);
       }
+
+      // capture phase + document level, so it fires even if the bundle stops
+      // propagation or replaces the register block after mount
       document.addEventListener("click", function (e) {
-        var link = e.target.closest && e.target.closest('a[href="social-instagram.html"]');
-        if (link) { e.preventDefault(); open(); return; }
-        if (e.target.closest && e.target.closest("[data-ig-close]")) { close(); return; }
-        if (e.target === modal) close();   // click on the backdrop
-      });
+        if (!e.target || !e.target.closest) return;
+        if (e.target.closest('a[href*="social-instagram"]')) { e.preventDefault(); open(); return; }
+        if (e.target.closest("[data-ig-close]")) { close(); return; }
+        var m = document.getElementById("ss-ig-modal");
+        if (m && e.target === m) close();   // click on the backdrop
+      }, true);
       document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
     })();
   </script>
