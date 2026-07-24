@@ -169,6 +169,14 @@ img { display: block; max-width: 100%; }
     padding-left: 12px;
     padding-right: 12px;
   }
+  /* space-between wraps the city under the other two on a phone and reads as
+     lopsided; stack all three centred and evenly spaced instead */
+  .site-foot {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+  }
 }
 
 @media (max-width: 400px) {

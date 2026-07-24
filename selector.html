@@ -107,6 +107,10 @@
     position: relative;
     height: min(74vh, 640px);
     margin-top: 6px;
+    /* the parked (opacity:0) far item sits at +62vw and was widening the whole
+       page, which pushed the fixed Instagram modal off-centre. Clip it: the
+       visible neighbours stay within bounds, only the hidden ones get cut. */
+    overflow-x: clip;
     /* horizontal drag is ours (changes garment); vertical still scrolls the
        page, so you can slide down to the Instagram button below */
     touch-action: pan-y;
@@ -268,7 +272,9 @@
     text-align: center;
     padding: 24px 20px calc(44px + env(safe-area-inset-bottom));
   }
-  .foot-note { color: var(--muted); font-size: 12px; letter-spacing: 0.06em; }
+  /* max-width so the long note wraps instead of overflowing the viewport — the
+     overflow was widening the page and pushing the fixed modal off-centre */
+  .foot-note { color: var(--muted); font-size: 12px; letter-spacing: 0.06em; max-width: 100%; }
 
   /* Instagram — plain text, routes through the language picker (@lvck.us/es/br) */
   .foot-ig {
@@ -281,6 +287,46 @@
     transition: color 0.25s var(--ease);
   }
   .foot-ig:hover { color: var(--ink); }
+
+  /* Instagram picker modal — adapts to light/dark via tokens */
+  .ig-modal {
+    position: fixed; inset: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    background: color-mix(in srgb, var(--bone) 80%, transparent);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.35s var(--ease);
+  }
+  .ig-modal.open { opacity: 1; pointer-events: auto; }
+  .ig-modal .panel {
+    display: flex; flex-direction: column; gap: 13px;
+    width: min(330px, 86vw); text-align: center;
+  }
+  .ig-modal .eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 12px; letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .ig-modal .acct {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 15px 20px;
+    border: 1px solid var(--ink);
+    background: transparent; color: var(--ink);
+    font-family: 'Playfair Display', serif; font-size: 15px;
+    text-decoration: none;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .ig-modal .acct .flag { font-size: 18px; }
+  .ig-modal .acct:hover { background: var(--ink); color: var(--bone); }
+  .ig-close {
+    margin-top: 4px; background: none; border: none;
+    color: var(--muted);
+    font-family: 'Cinzel', serif; text-transform: uppercase;
+    letter-spacing: 0.2em; font-size: 12px; cursor: pointer;
+    transition: color 0.2s var(--ease);
+  }
+  .ig-close:hover { color: var(--ink); }
 
   /* ---- theme switch, bottom-right (same as the shop) ---- */
   .theme-switch {
@@ -346,9 +392,21 @@
 <div class="cue">Desliza</div>
 
 <footer class="foot">
-  <a class="foot-ig" href="social-instagram.html">Instagram</a>
+  <a class="foot-ig" href="social-instagram.html" data-open-ig>Instagram</a>
   <div class="foot-note">LVCK · South Side — prototipo, imágenes provisionales</div>
 </footer>
+
+<!-- Instagram picker — theme-aware, opened from the footer text -->
+<div class="ig-modal" id="ig-modal" role="dialog" aria-modal="true" aria-label="Instagram">
+  <div class="panel">
+    <div class="eyebrow">Instagram</div>
+    <a class="acct" href="https://instagram.com/lvck.us" target="_blank" rel="noopener"><span class="flag">🇺🇸</span><span>@lvck.us</span></a>
+    <a class="acct" href="https://instagram.com/lvck.es" target="_blank" rel="noopener"><span class="flag">🇪🇸</span><span>@lvck.es</span></a>
+    <a class="acct" href="https://instagram.com/lvck.br" target="_blank" rel="noopener"><span class="flag">🇧🇷</span><span>@lvck.br</span></a>
+    <a class="acct" href="https://instagram.com/lvckcreationz" target="_blank" rel="noopener"><span class="flag">✦</span><span>@lvckcreationz</span></a>
+    <button type="button" class="ig-close" data-close-ig>Cerrar</button>
+  </div>
+</div>
 
 <button type="button" class="theme-switch" id="themeBtn" aria-label="Cambiar tema" title="Cambiar tema">
   <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true">
@@ -540,6 +598,16 @@
     root.setAttribute("data-theme", next);
     try { localStorage.setItem("ss-theme", next); } catch (e) {}
   });
+
+  // Instagram picker: open the modal instead of leaving the page
+  var igModal = document.getElementById("ig-modal");
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest) return;
+    if (e.target.closest("[data-open-ig]")) { e.preventDefault(); igModal.classList.add("open"); return; }
+    if (e.target.closest("[data-close-ig]")) { igModal.classList.remove("open"); return; }
+    if (e.target === igModal) igModal.classList.remove("open");   // backdrop
+  });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") igModal.classList.remove("open"); });
 })();
 </script>
 </body>
