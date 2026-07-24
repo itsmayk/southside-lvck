@@ -270,23 +270,17 @@
   }
   .foot-note { color: var(--muted); font-size: 12px; letter-spacing: 0.06em; }
 
-  /* Instagram button — routes through the site's language picker (@lvck.us/es/br) */
-  .ig-btn {
-    display: inline-flex; align-items: center; gap: 10px;
-    padding: 12px 22px;
-    border: 1px solid var(--hairline);
-    border-radius: 999px;
-    background: var(--bone-deep);
-    color: var(--ink);
+  /* Instagram — plain text, routes through the language picker (@lvck.us/es/br) */
+  .foot-ig {
+    color: var(--muted);
     text-decoration: none;
     font-family: 'Cinzel', serif;
     text-transform: uppercase;
-    letter-spacing: 0.16em;
-    font-size: 13px;
-    transition: transform 0.25s var(--ease), border-color 0.25s var(--ease);
+    letter-spacing: 0.2em;
+    font-size: 12px;
+    transition: color 0.25s var(--ease);
   }
-  .ig-btn:hover { transform: translateY(-2px); border-color: var(--pearl); }
-  .ig-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+  .foot-ig:hover { color: var(--ink); }
 
   /* ---- theme switch, bottom-right (same as the shop) ---- */
   .theme-switch {
@@ -352,14 +346,7 @@
 <div class="cue">Desliza</div>
 
 <footer class="foot">
-  <a class="ig-btn" href="social-instagram.html">
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"/>
-      <circle cx="12" cy="12" r="4.2"/>
-      <circle cx="17.4" cy="6.6" r="1.15" fill="currentColor" stroke="none"/>
-    </svg>
-    <span>Instagram</span>
-  </a>
+  <a class="foot-ig" href="social-instagram.html">Instagram</a>
   <div class="foot-note">LVCK · South Side — prototipo, imágenes provisionales</div>
 </footer>
 
