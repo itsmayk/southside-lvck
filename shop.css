@@ -264,17 +264,22 @@ h1.display {
 .chrome {
   font-family: 'AngerStyles', 'Cinzel', serif;
   font-weight: 400;
-  font-size: clamp(40px, 11vw, 104px);
+  /* smaller slope than before (was 11vw) so the wide side swashes clear the
+     screen edges on narrow phones instead of being clipped */
+  font-size: clamp(30px, 9vw, 104px);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 
-  /* AngerStyles hangs long swashes well below the baseline. With
-     background-clip: text the gradient is painted across the element's box, so
-     anything the box doesn't cover is filled with nothing and reads as a
-     chopped-off letter. The tall line-height plus the bottom padding exist to
-     give those tails a box to be painted in — they are not spacing. */
+  /* AngerStyles hangs long swashes well below the baseline AND far out to the
+     sides. With background-clip: text the gradient is painted across the
+     element's box, so anything the box doesn't cover is filled with nothing and
+     reads as a chopped-off letter. The tall line-height + bottom padding give
+     the descenders a box; the left/right padding does the same for the side
+     swashes (the tips that were getting cut). They are not spacing. */
   line-height: 1.34;
   padding-bottom: 0.16em;
+  padding-left: 0.18em;
+  padding-right: 0.18em;
 
   background: linear-gradient(180deg,
     #3E3E3C 6%,
