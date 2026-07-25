@@ -82,6 +82,13 @@
   :root[data-theme="dark"] { --sel-contact: rgba(0, 0, 0, 0.5); }
 
   .shop-selector { margin-top: clamp(40px, 8vh, 88px); }
+  /* where scroll drives the pinned hero, pull the rack up into the empty stretch
+     the wordmark leaves behind (it has faded by 72vh but the stage holds to
+     160vh), so the garments rise in right after it instead of after a screen of
+     nothing. Lives here so document order beats the base margin above. */
+  @supports (animation-timeline: view()) {
+    .shop-selector { position: relative; z-index: 1; margin-top: -89vh; }
+  }
   /* the stage holds the rotating rack; the readout + dots flow BELOW it (the
      rail is absolute, so keeping them out of the stage avoids overlap) */
   .sel-stage {
@@ -96,13 +103,15 @@
   }
   .sel-stage .rail { position: absolute; inset: 0; }
 
-  /* LAYER 1 — entrance from below (translate + opacity only) */
+  /* LAYER 1 — entrance from below. Scroll-driven where supported, so it can't
+     fire early while the rack still overlaps the zooming wordmark; a one-shot
+     class reveal is the fallback for browsers without scroll timelines. */
   .sel-slot {
     position: absolute; top: 0; left: 50%;
     width: min(46vw, 360px); height: 100%;
     margin-left: calc(min(46vw, 360px) / -2);
     opacity: 0; translate: 0 80px;
-    transition: opacity 0.75s var(--ease), translate 0.75s var(--ease);
+    transition: opacity 0.8s var(--ease), translate 0.8s var(--ease);
     will-change: opacity, translate;
   }
   .shop-selector.in .sel-slot { opacity: 1; translate: 0 0; }
@@ -465,16 +474,19 @@
   function select(i) { current = ((i % N) + N) % N; layout(); }
   function step(dir) { select(current + dir); }
 
-  // the rack rises from below the first time it scrolls into view — right after
-  // the "South Side" wordmark has come at you
+  // Reveal the rack once you've scrolled past the wordmark's zoom (it has faded
+  // by ~72vh). Gating on scroll position — not merely "in view" — is what keeps
+  // the garments from flashing in over the still-zooming wordmark, since the
+  // pull-up makes the rack overlap the tail of the pinned hero.
   function reveal() {
-    if (!("IntersectionObserver" in window)) { section.classList.add("in"); return; }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { section.classList.add("in"); io.disconnect(); }
-      });
-    }, { threshold: 0.12 });
-    io.observe(section);
+    function check() {
+      if (window.scrollY > window.innerHeight * 0.66) {
+        section.classList.add("in");
+        window.removeEventListener("scroll", check);
+      }
+    }
+    window.addEventListener("scroll", check, { passive: true });
+    check();
   }
 
   // ---- input ----
