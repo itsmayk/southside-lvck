@@ -224,6 +224,7 @@
     display: grid; place-items: center;
     border: 1px solid var(--hairline);
     border-radius: 50%;
+    background: var(--bone-deep);   /* fallback for browsers without color-mix */
     background: color-mix(in srgb, var(--bone) 70%, transparent);
     backdrop-filter: blur(6px);
     color: var(--muted);
@@ -293,6 +294,7 @@
     position: fixed; inset: 0; z-index: 200;
     display: flex; align-items: center; justify-content: center;
     padding: 20px;
+    background: var(--bone-deep);   /* fallback for browsers without color-mix */
     background: color-mix(in srgb, var(--bone) 80%, transparent);
     -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
     opacity: 0; pointer-events: none;
@@ -349,7 +351,9 @@
     font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.2em;
     text-transform: uppercase; color: var(--muted);
     border: 1px solid var(--hairline); border-radius: 999px;
-    padding: 5px 11px; background: color-mix(in srgb, var(--bone) 70%, transparent);
+    padding: 5px 11px;
+    background: var(--bone-deep);   /* fallback for browsers without color-mix */
+    background: color-mix(in srgb, var(--bone) 70%, transparent);
   }
 
   @media (prefers-reduced-motion: reduce) {

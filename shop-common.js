@@ -42,6 +42,7 @@
       "shop.soldOut": "Agotado",
       "shop.allSoldOut": "Agotado en todas las tallas",
       "shop.swipeHint": "Desliza para ver más fotos",
+      "shop.loadError": "No pudimos cargar el catálogo. Recarga la página o vuelve en un momento.",
 
       "how.title": "Cómo comprar",
       "how.1.t": "Elige tu talla",
@@ -103,6 +104,7 @@
       "shop.soldOut": "Sold out",
       "shop.allSoldOut": "Sold out in every size",
       "shop.swipeHint": "Swipe to see more photos",
+      "shop.loadError": "We couldn't load the catalog. Refresh the page or check back in a moment.",
 
       "how.title": "How to buy",
       "how.1.t": "Pick your size",
@@ -164,6 +166,7 @@
       "shop.soldOut": "Esgotado",
       "shop.allSoldOut": "Esgotado em todos os tamanhos",
       "shop.swipeHint": "Deslize para ver mais fotos",
+      "shop.loadError": "Não conseguimos carregar o catálogo. Atualize a página ou volte em instantes.",
 
       "how.title": "Como comprar",
       "how.1.t": "Escolha seu tamanho",

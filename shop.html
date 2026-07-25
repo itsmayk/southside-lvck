@@ -11,6 +11,7 @@
 <meta property="og:description" content="LVCK returns with SouthSide — the drop that marks our new chapter. 15 AUG 2026.">
 <meta property="og:image" content="https://southside-lvck.vercel.app/og-image.png?v=2">
 <meta property="og:url" content="https://southside-lvck.vercel.app/shop.html">
+<link rel="canonical" href="https://southside-lvck.vercel.app/shop.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="SouthSide — LVCK">
 <meta name="twitter:description" content="LVCK returns with SouthSide — the drop that marks our new chapter. 15 AUG 2026.">
@@ -165,6 +166,7 @@
     position: absolute; top: 50%; margin-top: -27px;
     width: 54px; height: 54px; display: grid; place-items: center;
     border: 1px solid var(--hairline); border-radius: 50%;
+    background: var(--bone-deep);   /* fallback for browsers without color-mix */
     background: color-mix(in srgb, var(--bone) 70%, transparent);
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
     color: var(--muted); cursor: pointer; z-index: 20;
@@ -246,6 +248,13 @@
   }
   .step h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
   .step p { font-size: 14px; line-height: 1.6; color: var(--muted); }
+
+  /* shown in place of the rack if shop-config.json can't load */
+  .missing {
+    max-width: 640px; margin: 0 auto; padding: 0 24px;
+    text-align: center; color: var(--muted);
+    font-size: 15px; line-height: 1.7;
+  }
 </style>
 </head>
 <body>
@@ -533,12 +542,34 @@
   window.addEventListener("pointerup", function () { startX = null; });
   window.addEventListener("resize", function () { clearTimeout(section._rf); section._rf = setTimeout(layout, 120); });
 
+  // If the catalog itself can't load, show a short message instead of a blank
+  // rack (mirrors producto.html's renderMissing). Reset the selector's pinned
+  // height/pull-up so the message sits normally.
+  function renderMissing() {
+    section.style.height = "auto";
+    section.style.marginTop = "14vh";
+    section.style.overflow = "visible";
+    section.innerHTML = "";
+    var box = document.createElement("div");
+    box.className = "missing";
+    var p = document.createElement("p");
+    p.setAttribute("data-i18n", "shop.loadError");
+    p.textContent = LVCK.t("shop.loadError");
+    box.appendChild(p);
+    section.appendChild(box);
+    LVCK.applyI18n(section);
+  }
+
   fetch("shop-config.json")
-    .then(function (r) { return r.json(); })
+    .then(function (r) { if (!r.ok) throw new Error("config " + r.status); return r.json(); })
     .then(function (config) { build(config); LVCK.initReveal(); return fetch("/api/stock"); })
     .then(function (r) { return r && r.ok ? r.json() : null; })
     .then(function (data) { stock = data; if (products.length) updateReadout(); })
-    .catch(function () { /* no stock service: everything stays buyable */ });
+    .catch(function () {
+      // only a failed CATALOG warrants the message; a stock hiccup leaves the
+      // products in place and everything buyable
+      if (!products.length) renderMissing();
+    });
 
   window.addEventListener("lvck:lang", function () { if (products.length) updateReadout(); });
   LVCK.boot();
