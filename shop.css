@@ -278,8 +278,10 @@ h1.display {
      swashes (the tips that were getting cut). They are not spacing. */
   line-height: 1.34;
   padding-bottom: 0.16em;
-  padding-left: 0.18em;
-  padding-right: 0.18em;
+  /* generous side padding: the E and S tails run far enough that a small inset
+     still clipped them at the 104px desktop size */
+  padding-left: 0.5em;
+  padding-right: 0.5em;
 
   background: linear-gradient(180deg,
     #3E3E3C 6%,
