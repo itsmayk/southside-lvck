@@ -2,8 +2,8 @@
   "products": [
     {
       "slug": "boxi-fit",
-      "name": "SS Chaqueta Hueso",
-      "accent": "#CDB994",
+      "name": { "es": "SS Denim Chaqueta Hueso", "en": "SS Denim Bone Jacket", "pt": "SS Denim Jaqueta Osso" },
+      "accent": "#D4D0C6",
       "tagline": {
         "es": "Corte cuadrado, tono hueso",
         "en": "Boxy cut, bone tone",
@@ -25,8 +25,8 @@
     },
     {
       "slug": "jean-lxc",
-      "name": "SS Jean Hueso",
-      "accent": "#C6B58F",
+      "name": { "es": "SS Denim Jean Hueso", "en": "SS Denim Bone Jean", "pt": "SS Denim Jean Osso" },
+      "accent": "#CFCBC1",
       "tagline": {
         "es": "Denim claro, corte holgado",
         "en": "Light denim, relaxed cut",
@@ -47,7 +47,7 @@
     },
     {
       "slug": "chaqueta-negra",
-      "name": "SS Chaqueta Negra",
+      "name": { "es": "SS Denim Chaqueta Negra", "en": "SS Denim Black Jacket", "pt": "SS Denim Jaqueta Preta" },
       "accent": "#5C6675",
       "tagline": {
         "es": "Corte cuadrado, negro",
@@ -69,7 +69,7 @@
     },
     {
       "slug": "jean-negro",
-      "name": "SS Jean Negro",
+      "name": { "es": "SS Denim Jean Negro", "en": "SS Denim Black Jean", "pt": "SS Denim Jean Preto" },
       "accent": "#525C6E",
       "tagline": {
         "es": "Denim negro, corte holgado",

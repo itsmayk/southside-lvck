@@ -414,6 +414,8 @@
   var current = 0, N = 0;
 
   function link(p) { return "producto.html?p=" + encodeURIComponent(p.slug); }
+  // name is per-language ({es,en,pt}); tolerate a plain string too, just in case
+  function nameOf(p, lang) { var n = p.name; return (n && typeof n === "object") ? (n[lang] || n.es) : n; }
   function isSold(p) {
     if (!stock) return false;
     // sold out only when every size is gone
@@ -540,7 +542,7 @@
     setTimeout(function () {
       var lang = LVCK.getLang() || "es";
       var sold = isSold(p);
-      nameEl.textContent = p.name;
+      nameEl.textContent = nameOf(p, lang);
       nameEl.classList.remove("slam"); void nameEl.offsetWidth; nameEl.classList.add("slam");
       priceEl.textContent = sold ? "" : LVCK.money(p.priceCOP, lang);
       readout.classList.toggle("sold", sold);

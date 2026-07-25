@@ -405,13 +405,17 @@
     return col;
   }
 
+  // name is per-language ({es,en,pt}); tolerate a plain string too
+  function nameOf(p, lang) { var n = p.name; return (n && typeof n === "object") ? (n[lang] || n.es) : n; }
+
   /* ---------- buy column ---------- */
 
   function buildInfo() {
     var lang = LVCK.getLang() || "es";
     var col = el("div", "info");
 
-    var h1 = el("h1", null, product.name);
+    var h1 = el("h1", null, nameOf(product, lang));
+    h1.id = "pname";
     col.appendChild(h1);
 
     var tag = el("div", "tagline", product.tagline[lang] || product.tagline.es);
@@ -668,7 +672,7 @@
     img.loading = "lazy";
     a.appendChild(img);
     var txt = el("div");
-    txt.appendChild(el("div", "n", other.name));
+    txt.appendChild(el("div", "n", nameOf(other, lang)));
     txt.appendChild(el("div", "p", LVCK.money(other.priceCOP, lang)));
     a.appendChild(txt);
     alsoEl.appendChild(a);
@@ -681,7 +685,9 @@
   function refreshDynamicCopy() {
     if (!product) return;
     var lang = LVCK.getLang() || "es";
-    document.title = product.name + " — SouthSide x LVCK";
+    document.title = nameOf(product, lang) + " — SouthSide x LVCK";
+    var pn = document.getElementById("pname");
+    if (pn) pn.textContent = nameOf(product, lang);
 
     var tag = document.getElementById("tagline");
     if (tag) tag.textContent = product.tagline[lang] || product.tagline.es;
