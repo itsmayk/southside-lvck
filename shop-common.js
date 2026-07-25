@@ -73,7 +73,15 @@
       "ty.n1": "Revisa tu correo (mira también en spam).",
       "ty.n2": "Preparamos tu pedido y te enviamos el número de guía.",
       "ty.n3": "¿Algo no cuadra? Escríbenos por Instagram.",
-      "ty.next": "Qué sigue"
+      "ty.next": "Qué sigue",
+      "ty.circle.label": "El Círculo",
+      "ty.circle.copy": "Esto no es una lista de correo. Acceso y avisos antes que nadie — solo para quienes ya cayeron en un drop.",
+      "ty.circle.cta": "Entrar al Círculo",
+      "ty.tag.label": "Sal en el feed",
+      "ty.tag.copy": "Súbela con #SouthSide y etiquétanos. Reposteamos a los del drop.",
+      "ty.tag.hash": "Copiar #SouthSide",
+      "ty.tag.copied": "Copiado ✓",
+      "ty.tag.cta": "Etiquétanos"
     },
     en: {
       "nav.shop": "Shop",
@@ -126,7 +134,15 @@
       "ty.n1": "Check your inbox (and your spam folder).",
       "ty.n2": "We prepare your order and send you the tracking number.",
       "ty.n3": "Something off? Message us on Instagram.",
-      "ty.next": "What happens next"
+      "ty.next": "What happens next",
+      "ty.circle.label": "The Circle",
+      "ty.circle.copy": "This isn't a mailing list. Early access and heads-ups before anyone else — only for those who've copped a drop.",
+      "ty.circle.cta": "Enter the Circle",
+      "ty.tag.label": "Get on the feed",
+      "ty.tag.copy": "Post it with #SouthSide and tag us. We repost the drop crew.",
+      "ty.tag.hash": "Copy #SouthSide",
+      "ty.tag.copied": "Copied ✓",
+      "ty.tag.cta": "Tag us"
     },
     pt: {
       "nav.shop": "Loja",
@@ -179,7 +195,15 @@
       "ty.n1": "Confira seu e-mail (e a caixa de spam).",
       "ty.n2": "Preparamos seu pedido e enviamos o código de rastreio.",
       "ty.n3": "Algo errado? Fale com a gente no Instagram.",
-      "ty.next": "O que acontece agora"
+      "ty.next": "O que acontece agora",
+      "ty.circle.label": "O Círculo",
+      "ty.circle.copy": "Isto não é uma lista de e-mails. Acesso e avisos antes de todos — só para quem já pegou um drop.",
+      "ty.circle.cta": "Entrar no Círculo",
+      "ty.tag.label": "Apareça no feed",
+      "ty.tag.copy": "Poste com #SouthSide e marque a gente. Repostamos quem é do drop.",
+      "ty.tag.hash": "Copiar #SouthSide",
+      "ty.tag.copied": "Copiado ✓",
+      "ty.tag.cta": "Marque a gente"
     }
   };
 
