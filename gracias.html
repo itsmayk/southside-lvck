@@ -47,7 +47,14 @@
   /* "Gracias" wears the same chrome wordmark font as the hero "South Side";
      .chrome (from shop.css) brings the AngerStyles face, gradient and float —
      here we only set its size for this page. */
-  .thanks h1.chrome { font-size: clamp(46px, 13vw, 96px); }
+  .thanks h1.chrome {
+    font-size: clamp(46px, 13vw, 96px);
+    /* anchored: keep ONLY the gentle float, never the hero's scroll-zoom
+       (.chrome pulls in chromeApproach on a scrollable page; cancel it here) */
+    animation: chromeFloat 3.4s var(--ease-loop) infinite;
+    animation-timeline: auto;
+    animation-range: normal;
+  }
   .thanks .sub {
     margin-top: 18px;
     font-size: clamp(15px, 1.8vw, 18px);
@@ -161,12 +168,6 @@
   </section>
 
   <section class="join">
-    <div class="eyebrow" data-i18n="ty.circle.label">El Círculo</div>
-    <p class="lead" data-i18n="ty.circle.copy">Esto no es una lista de correo. Acceso y avisos antes que nadie — solo para quienes ya cayeron en un drop.</p>
-    <a class="btn" id="circle-cta" href="#"><span class="lbl" data-i18n="ty.circle.cta">Entrar al Círculo</span></a>
-  </section>
-
-  <section class="join">
     <div class="eyebrow" data-i18n="ty.tag.label">Sal en el feed</div>
     <p class="lead" data-i18n="ty.tag.copy">Súbela con #SouthSide y etiquétanos. Reposteamos a los del drop.</p>
     <div class="join-actions">
@@ -214,21 +215,14 @@
      processor may append its own reference/session id; we don't read or show it. */
   LVCK.boot();
 
-  /* Loyalty CTAs. Circle: paste the invite link below when it exists (WhatsApp /
-     IG broadcast channel / Telegram) and the button goes straight there; until
-     then it opens the Instagram picker so buyers can follow and not miss it. */
+  /* "Sal en el feed" CTAs: copy the #SouthSide hashtag, and open the Instagram
+     picker to tag us. */
   (function () {
-    var CIRCULO_URL = "";   // <-- pega aquí el link del Círculo cuando lo tengas
-
-    var circle = document.getElementById("circle-cta");
-    if (circle && CIRCULO_URL) { circle.href = CIRCULO_URL; circle.target = "_blank"; circle.rel = "noopener"; }
-
     function openIg()  { var m = document.getElementById("ig-modal"); if (m) m.classList.add("open"); }
     function closeIg() { var m = document.getElementById("ig-modal"); if (m) m.classList.remove("open"); }
 
     document.addEventListener("click", function (e) {
       if (!e.target.closest) return;
-      if (!CIRCULO_URL && e.target.closest("#circle-cta")) { e.preventDefault(); openIg(); return; }
       if (e.target.closest("[data-open-ig]")) { e.preventDefault(); openIg(); return; }
       if (e.target.closest("[data-close-ig]")) { closeIg(); return; }
       if (e.target.id === "ig-modal") { closeIg(); return; }
