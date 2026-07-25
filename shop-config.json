@@ -3,6 +3,7 @@
     {
       "slug": "boxi-fit",
       "name": "SS Chaqueta Hueso",
+      "accent": "#CDB994",
       "tagline": {
         "es": "Corte cuadrado, tono hueso",
         "en": "Boxy cut, bone tone",
@@ -25,6 +26,7 @@
     {
       "slug": "jean-lxc",
       "name": "SS Jean Hueso",
+      "accent": "#C6B58F",
       "tagline": {
         "es": "Denim claro, corte holgado",
         "en": "Light denim, relaxed cut",
@@ -46,6 +48,7 @@
     {
       "slug": "chaqueta-negra",
       "name": "SS Chaqueta Negra",
+      "accent": "#5C6675",
       "tagline": {
         "es": "Corte cuadrado, negro",
         "en": "Boxy cut, black",
@@ -67,6 +70,7 @@
     {
       "slug": "jean-negro",
       "name": "SS Jean Negro",
+      "accent": "#525C6E",
       "tagline": {
         "es": "Denim negro, corte holgado",
         "en": "Black denim, relaxed cut",

@@ -115,7 +115,15 @@
     touch-action: pan-y;
     perspective: 1400px;
   }
-  .sel-stage .rail { position: absolute; inset: 0; }
+  .sel-stage .rail { position: absolute; inset: 0; z-index: 1; }
+  /* ambient mood glow behind the centred garment; its colour tracks the piece */
+  .sel-glow {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    color: var(--hairline);
+    background: radial-gradient(closest-side at 50% 46%, currentColor, transparent 68%);
+    opacity: 0.22; filter: blur(22px);
+    transition: color 0.65s var(--ease), opacity 0.65s var(--ease);
+  }
 
   /* LAYER 1 — entrance from below. Scroll-driven where supported, so it can't
      fire early while the rack still overlaps the zooming wordmark; a one-shot
@@ -141,7 +149,11 @@
   }
 
   /* LAYER 3 — the garment; its float loop lives here, clear of the coverflow */
-  .sel-obj { position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .sel-obj {
+    position: relative; height: 100%;
+    display: flex; align-items: flex-end; justify-content: center;
+    transition: transform 0.14s var(--ease);   /* 3D tilt toward the cursor */
+  }
   .sel-obj img {
     height: 100%; width: auto; max-width: 100%; object-fit: contain;
     /* soft edge feather — fakes a cutout until the real transparent PNGs land */
@@ -187,6 +199,25 @@
   .shop-selector.in .sel-readout,
   .shop-selector.in .sel-dots { opacity: 1; }
 
+  /* subtle mute toggle for the slide whoosh, in the stage corner */
+  .sound-switch {
+    position: absolute; top: 10px; right: 12px; z-index: 25;
+    width: 34px; height: 34px; display: grid; place-items: center;
+    border: 1px solid var(--hairline); border-radius: 50%;
+    background: var(--bone-deep);
+    background: color-mix(in srgb, var(--bone) 70%, transparent);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    color: var(--muted); cursor: pointer;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.4s var(--ease), color 0.25s var(--ease);
+  }
+  .shop-selector.in .sound-switch { opacity: 0.5; pointer-events: auto; }
+  .shop-selector.in .sound-switch:hover { opacity: 1; color: var(--ink); }
+  .sound-switch svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+  .sound-switch .slash { display: none; }
+  .sound-switch.muted .slash { display: block; }
+  .sound-switch.muted .wave { display: none; }
+
   /* readout: name + price + buy CTA, cross-fades on change */
   .sel-readout { text-align: center; margin-top: clamp(10px, 2vh, 24px); padding: 0 20px; }
   .sel-readout .name {
@@ -196,7 +227,14 @@
     transition: opacity 0.25s var(--ease);
   }
   .sel-readout .price { color: var(--muted); font-size: 15px; margin-top: 6px; transition: opacity 0.25s var(--ease); }
-  .sel-readout.swap .name, .sel-readout.swap .price { opacity: 0; }
+  .sel-readout.swap .price { opacity: 0; }
+  /* the name lands like a fighting-game character reveal on each change */
+  .sel-readout .name.slam { animation: nameSlam 0.42s var(--ease); }
+  @keyframes nameSlam {
+    0%   { opacity: 0; transform: translateX(-14px) scale(1.16); letter-spacing: 0.34em; }
+    58%  { opacity: 1; transform: translateX(2px) scale(0.985); letter-spacing: 0.07em; }
+    100% { opacity: 1; transform: none; letter-spacing: 0.1em; }
+  }
   .sel-readout.sold .price { color: var(--pending); }
   .sel-readout .btn { margin: 18px auto 0; }
   .sel-readout .btn.is-sold { opacity: 0.4; pointer-events: none; }
@@ -367,7 +405,9 @@
    centred piece or its CTA opens that product's page to pick a size and pay. */
 (function () {
   var section = document.getElementById("shop-selector");
-  var rail, readout, nameEl, priceEl, ctaEl, dotsWrap, ctaLabel;
+  var stage, rail, readout, nameEl, priceEl, ctaEl, dotsWrap, ctaLabel, glowEl, centerObj;
+  var audioCtx = null, soundOff = false;
+  try { soundOff = localStorage.getItem("ss-sound") === "off"; } catch (e) {}
   var products = [];
   var stock = null;                 // size-slug -> boolean, null until /api/stock answers
   var items = [];
@@ -395,9 +435,13 @@
     products = config.products || [];
     N = products.length;
 
-    var stage = document.createElement("div");
+    stage = document.createElement("div");
     stage.className = "sel-stage";
     section.appendChild(stage);
+
+    glowEl = document.createElement("div");
+    glowEl.className = "sel-glow";
+    stage.appendChild(glowEl);
 
     rail = document.createElement("div");
     rail.className = "rail";
@@ -408,6 +452,8 @@
     next.addEventListener("click", function () { step(1); });
     stage.appendChild(prev);
     stage.appendChild(next);
+    stage.appendChild(makeSoundSwitch());
+    wireTilt(stage);
 
     readout = document.createElement("div");
     readout.className = "sel-readout";
@@ -479,7 +525,11 @@
       item.style.zIndex = z;
       item.classList.toggle("center", off === 0);
       item.style.pointerEvents = abs <= 1 ? "auto" : "none";
+      var objEl = item.querySelector(".sel-obj");
+      if (off === 0) centerObj = objEl;
+      else if (objEl) objEl.style.transform = "";   // clear stale tilt off-centre
     });
+    if (glowEl) glowEl.style.color = products[current].accent || "";
     Array.prototype.forEach.call(dotsWrap.children, function (d, i) { d.classList.toggle("on", i === current); });
     updateReadout();
   }
@@ -491,6 +541,7 @@
       var lang = LVCK.getLang() || "es";
       var sold = isSold(p);
       nameEl.textContent = p.name;
+      nameEl.classList.remove("slam"); void nameEl.offsetWidth; nameEl.classList.add("slam");
       priceEl.textContent = sold ? "" : LVCK.money(p.priceCOP, lang);
       readout.classList.toggle("sold", sold);
       ctaEl.href = link(p);
@@ -501,7 +552,7 @@
     }, 160);
   }
 
-  function select(i) { current = ((i % N) + N) % N; layout(); }
+  function select(i) { current = ((i % N) + N) % N; layout(); playWhoosh(); }
   function step(dir) { select(current + dir); }
 
   // Reveal/hide the rack as you cross the wordmark's exit point — BOTH ways and
@@ -541,6 +592,69 @@
   });
   window.addEventListener("pointerup", function () { startX = null; });
   window.addEventListener("resize", function () { clearTimeout(section._rf); section._rf = setTimeout(layout, 120); });
+
+  // ---- 3D tilt (desktop only): the centred garment leans toward the cursor,
+  // so the floating object reads as dimensional. Real drag-to-spin 360° needs a
+  // frame sequence (pending the shoot); this is the single-image stand-in. ----
+  function wireTilt(stg) {
+    if (!window.matchMedia || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    stg.addEventListener("pointermove", function (e) {
+      if (e.pointerType && e.pointerType !== "mouse") return;
+      if (!centerObj) return;
+      var r = stg.getBoundingClientRect();
+      var px = (e.clientX - r.left) / r.width - 0.5;
+      var py = (e.clientY - r.top) / r.height - 0.5;
+      centerObj.style.transform = "rotateY(" + (px * 15).toFixed(2) + "deg) rotateX(" + (-py * 10).toFixed(2) + "deg)";
+    });
+    stg.addEventListener("pointerleave", function () { if (centerObj) centerObj.style.transform = ""; });
+  }
+
+  // ---- subtle slide "whoosh", synthesised on the fly (no audio file) and only
+  // ever from a user's own slide, so it's never autoplay. A corner toggle mutes
+  // it and the choice is remembered. ----
+  function playWhoosh() {
+    if (soundOff) return;
+    try {
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      audioCtx = audioCtx || new Ctx();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      var t = audioCtx.currentTime, dur = 0.16;
+      var buf = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * dur), audioCtx.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+      var src = audioCtx.createBufferSource(); src.buffer = buf;
+      var filt = audioCtx.createBiquadFilter(); filt.type = "bandpass"; filt.Q.value = 0.7;
+      filt.frequency.setValueAtTime(1000, t);
+      filt.frequency.exponentialRampToValueAtTime(260, t + dur);
+      var gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.07, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(filt); filt.connect(gain); gain.connect(audioCtx.destination);
+      src.start(t); src.stop(t + dur);
+    } catch (e) {}
+  }
+
+  function makeSoundSwitch() {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "sound-switch" + (soundOff ? " muted" : "");
+    b.setAttribute("aria-label", "Sonido");
+    b.innerHTML =
+      '<svg viewBox="0 0 24 24">' +
+        '<path d="M4 9v6h4l5 4V5L8 9H4z" stroke-linejoin="round"/>' +
+        '<path class="wave" d="M16.5 9.5a3.6 3.6 0 0 1 0 5" stroke-linecap="round"/>' +
+        '<path class="slash" d="M18.5 5.5 5.5 18.5" stroke-linecap="round"/>' +
+      '</svg>';
+    b.addEventListener("click", function () {
+      soundOff = !soundOff;
+      b.classList.toggle("muted", soundOff);
+      try { localStorage.setItem("ss-sound", soundOff ? "off" : "on"); } catch (e) {}
+      if (!soundOff) playWhoosh();   // a little confirmation when switching on
+    });
+    return b;
+  }
 
   // If the catalog itself can't load, show a short message instead of a blank
   // rack (mirrors producto.html's renderMissing). Reset the selector's pinned
