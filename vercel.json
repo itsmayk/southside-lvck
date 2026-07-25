@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/es", "destination": "/api/share?lang=es&to=home" },
+    { "source": "/en", "destination": "/api/share?lang=en&to=home" },
+    { "source": "/pt", "destination": "/api/share?lang=pt&to=home" },
+    { "source": "/es/shop", "destination": "/api/share?lang=es&to=shop" },
+    { "source": "/en/shop", "destination": "/api/share?lang=en&to=shop" },
+    { "source": "/pt/shop", "destination": "/api/share?lang=pt&to=shop" }
+  ]
+}
