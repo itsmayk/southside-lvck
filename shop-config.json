@@ -1,17 +1,39 @@
 {
   "products": [
     {
-      "slug": "jean-lxc",
-      "name": "Jean LXC",
+      "slug": "boxi-fit",
+      "name": "SS Chaqueta Hueso",
       "tagline": {
-        "es": "Denim negro, corte holgado",
-        "en": "Black denim, relaxed cut",
-        "pt": "Denim preto, corte solto"
+        "es": "Corte cuadrado, tono hueso",
+        "en": "Boxy cut, bone tone",
+        "pt": "Corte quadrado, tom osso"
+      },
+      "priceCOP": 300000,
+      "photos": [
+        { "src": "photos/boxi-fit-01.jpg", "alt": { "es": "SS Chaqueta Hueso de pie, cuerpo completo", "en": "SS Chaqueta Hueso standing, full body", "pt": "SS Chaqueta Hueso em pé, corpo inteiro" } },
+        { "src": "photos/boxi-fit-02.jpg", "alt": { "es": "SS Chaqueta Hueso sentado, se ve la caída", "en": "SS Chaqueta Hueso seated, showing the drape", "pt": "SS Chaqueta Hueso sentado, mostrando o caimento" } },
+        { "src": "photos/boxi-fit-03.jpg", "alt": { "es": "Tercera vista de la SS Chaqueta Hueso", "en": "Third view of the SS Chaqueta Hueso", "pt": "Terceira vista da SS Chaqueta Hueso" } }
+      ],
+      "sizes": [
+        { "size": "XS", "slug": "chaqueta-xs", "stock": 3, "paymentLinkId": "plink_1Tsubh4GA47N8MPIj88Eb0dw", "url": "https://buy.stripe.com/test_00wdR20yT8DX1ArbTi3AY00" },
+        { "size": "S",  "slug": "chaqueta-s",  "stock": 5, "paymentLinkId": "plink_1Tsubi4GA47N8MPIVYTgMsoS", "url": "https://buy.stripe.com/test_cNi28kdlFcUdbb19La3AY01" },
+        { "size": "M",  "slug": "chaqueta-m",  "stock": 8, "paymentLinkId": "plink_1Tsubi4GA47N8MPIY5vATzO5", "url": "https://buy.stripe.com/test_4gM9AMbdx3jDdj9f5u3AY02" },
+        { "size": "L",  "slug": "chaqueta-l",  "stock": 5, "paymentLinkId": "plink_1Tsubj4GA47N8MPIEcMwTUQI", "url": "https://buy.stripe.com/test_3cI14gepJdYhend2iI3AY03" },
+        { "size": "XL", "slug": "chaqueta-xl", "stock": 3, "paymentLinkId": "plink_1Tsubk4GA47N8MPIwDr8OodT", "url": "https://buy.stripe.com/test_aFa14g5Td07r2Evf5u3AY04" }
+      ]
+    },
+    {
+      "slug": "jean-lxc",
+      "name": "SS Jean Hueso",
+      "tagline": {
+        "es": "Denim claro, corte holgado",
+        "en": "Light denim, relaxed cut",
+        "pt": "Denim claro, corte solto"
       },
       "priceCOP": 269000,
       "photos": [
-        { "src": "photos/jean-lxc-01.jpg", "alt": { "es": "Jean LXC visto de lado, cuerpo completo", "en": "Jean LXC side view, full body", "pt": "Jean LXC de lado, corpo inteiro" } },
-        { "src": "photos/jean-lxc-02.jpg", "alt": { "es": "Detalle del logo LXC sobre la pierna", "en": "Close-up of the LXC logo on the leg", "pt": "Detalhe do logo LXC na perna" } }
+        { "src": "photos/jean-lxc-01.jpg", "alt": { "es": "SS Jean Hueso visto de lado, cuerpo completo", "en": "SS Jean Hueso side view, full body", "pt": "SS Jean Hueso de lado, corpo inteiro" } },
+        { "src": "photos/jean-lxc-02.jpg", "alt": { "es": "Detalle de la SS Jean Hueso sobre la pierna", "en": "Close-up of the SS Jean Hueso on the leg", "pt": "Detalhe da SS Jean Hueso na perna" } }
       ],
       "sizes": [
         { "size": "XS", "slug": "jean-xs", "stock": 3, "paymentLinkId": "plink_1Tsubk4GA47N8MPIVwkZNg59", "url": "https://buy.stripe.com/test_cNiaEQa9t2fzdj9f5u3AY05" },
@@ -22,25 +44,45 @@
       ]
     },
     {
-      "slug": "boxi-fit",
-      "name": "LVCK Boxi Fit",
+      "slug": "chaqueta-negra",
+      "name": "SS Chaqueta Negra",
       "tagline": {
-        "es": "Camiseta oversize, corte cuadrado",
-        "en": "Oversized tee, boxy cut",
-        "pt": "Camiseta oversized, corte quadrado"
+        "es": "Corte cuadrado, negro",
+        "en": "Boxy cut, black",
+        "pt": "Corte quadrado, preto"
       },
       "priceCOP": 300000,
       "photos": [
-        { "src": "photos/boxi-fit-01.jpg", "alt": { "es": "LVCK Boxi Fit de pie, cuerpo completo", "en": "LVCK Boxi Fit standing, full body", "pt": "LVCK Boxi Fit em pé, corpo inteiro" } },
-        { "src": "photos/boxi-fit-02.jpg", "alt": { "es": "LVCK Boxi Fit sentado, se ve la caída", "en": "LVCK Boxi Fit seated, showing the drape", "pt": "LVCK Boxi Fit sentado, mostrando o caimento" } },
-        { "src": "photos/boxi-fit-03.jpg", "alt": { "es": "Tercera vista del LVCK Boxi Fit", "en": "Third view of the LVCK Boxi Fit", "pt": "Terceira vista do LVCK Boxi Fit" } }
+        { "src": "photos/boxi-fit-01.jpg", "alt": { "es": "SS Chaqueta Negra de pie, cuerpo completo", "en": "SS Chaqueta Negra standing, full body", "pt": "SS Chaqueta Negra em pé, corpo inteiro" } },
+        { "src": "photos/boxi-fit-02.jpg", "alt": { "es": "SS Chaqueta Negra sentado, se ve la caída", "en": "SS Chaqueta Negra seated, showing the drape", "pt": "SS Chaqueta Negra sentado, mostrando o caimento" } }
       ],
       "sizes": [
-        { "size": "XS", "slug": "chaqueta-xs", "stock": 3, "paymentLinkId": "plink_1Tsubh4GA47N8MPIj88Eb0dw", "url": "https://buy.stripe.com/test_00wdR20yT8DX1ArbTi3AY00" },
-        { "size": "S",  "slug": "chaqueta-s",  "stock": 5, "paymentLinkId": "plink_1Tsubi4GA47N8MPIVYTgMsoS", "url": "https://buy.stripe.com/test_cNi28kdlFcUdbb19La3AY01" },
-        { "size": "M",  "slug": "chaqueta-m",  "stock": 8, "paymentLinkId": "plink_1Tsubi4GA47N8MPIY5vATzO5", "url": "https://buy.stripe.com/test_4gM9AMbdx3jDdj9f5u3AY02" },
-        { "size": "L",  "slug": "chaqueta-l",  "stock": 5, "paymentLinkId": "plink_1Tsubj4GA47N8MPIEcMwTUQI", "url": "https://buy.stripe.com/test_3cI14gepJdYhend2iI3AY03" },
-        { "size": "XL", "slug": "chaqueta-xl", "stock": 3, "paymentLinkId": "plink_1Tsubk4GA47N8MPIwDr8OodT", "url": "https://buy.stripe.com/test_aFa14g5Td07r2Evf5u3AY04" }
+        { "size": "XS", "slug": "chaqueta-negra-xs", "stock": 3, "paymentLinkId": "plink_1Tsubh4GA47N8MPIj88Eb0dw", "url": "https://buy.stripe.com/test_00wdR20yT8DX1ArbTi3AY00" },
+        { "size": "S",  "slug": "chaqueta-negra-s",  "stock": 5, "paymentLinkId": "plink_1Tsubi4GA47N8MPIVYTgMsoS", "url": "https://buy.stripe.com/test_cNi28kdlFcUdbb19La3AY01" },
+        { "size": "M",  "slug": "chaqueta-negra-m",  "stock": 8, "paymentLinkId": "plink_1Tsubi4GA47N8MPIY5vATzO5", "url": "https://buy.stripe.com/test_4gM9AMbdx3jDdj9f5u3AY02" },
+        { "size": "L",  "slug": "chaqueta-negra-l",  "stock": 5, "paymentLinkId": "plink_1Tsubj4GA47N8MPIEcMwTUQI", "url": "https://buy.stripe.com/test_3cI14gepJdYhend2iI3AY03" },
+        { "size": "XL", "slug": "chaqueta-negra-xl", "stock": 3, "paymentLinkId": "plink_1Tsubk4GA47N8MPIwDr8OodT", "url": "https://buy.stripe.com/test_aFa14g5Td07r2Evf5u3AY04" }
+      ]
+    },
+    {
+      "slug": "jean-negro",
+      "name": "SS Jean Negro",
+      "tagline": {
+        "es": "Denim negro, corte holgado",
+        "en": "Black denim, relaxed cut",
+        "pt": "Denim preto, corte solto"
+      },
+      "priceCOP": 269000,
+      "photos": [
+        { "src": "photos/jean-lxc-01.jpg", "alt": { "es": "SS Jean Negro visto de lado, cuerpo completo", "en": "SS Jean Negro side view, full body", "pt": "SS Jean Negro de lado, corpo inteiro" } },
+        { "src": "photos/jean-lxc-02.jpg", "alt": { "es": "Detalle de la SS Jean Negro sobre la pierna", "en": "Close-up of the SS Jean Negro on the leg", "pt": "Detalhe da SS Jean Negro na perna" } }
+      ],
+      "sizes": [
+        { "size": "XS", "slug": "jean-negro-xs", "stock": 3, "paymentLinkId": "plink_1Tsubk4GA47N8MPIVwkZNg59", "url": "https://buy.stripe.com/test_cNiaEQa9t2fzdj9f5u3AY05" },
+        { "size": "S",  "slug": "jean-negro-s",  "stock": 5, "paymentLinkId": "plink_1Tsubl4GA47N8MPIKdwmoXQK", "url": "https://buy.stripe.com/test_7sY4gsftN5rL0wn4qQ3AY06" },
+        { "size": "M",  "slug": "jean-negro-m",  "stock": 8, "paymentLinkId": "plink_1Tsubl4GA47N8MPIfCuRfOw9", "url": "https://buy.stripe.com/test_fZu14ga9tg6pbb1aPe3AY07" },
+        { "size": "L",  "slug": "jean-negro-l",  "stock": 5, "paymentLinkId": "plink_1Tsubm4GA47N8MPITxpD2NHs", "url": "https://buy.stripe.com/test_6oU14g3L57zTgvlbTi3AY08" },
+        { "size": "XL", "slug": "jean-negro-xl", "stock": 3, "paymentLinkId": "plink_1Tsubm4GA47N8MPI8g8TTNRJ", "url": "https://buy.stripe.com/test_14AbIUchB2fz0wn8H63AY09" }
       ]
     }
   ]

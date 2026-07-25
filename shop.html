@@ -74,116 +74,118 @@
     padding: 7px 12px;
   }
 
-  .grid {
-    max-width: 1180px;
-    margin: clamp(40px, 8vh, 88px) auto 0;
-    padding: 0 clamp(16px, 4vw, 48px);
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: clamp(32px, 5vw, 72px);
-  }
+  /* ---------- product selector (character-select carousel) ----------
+     Replaces the old grid: after the "South Side" slide, this rack rises from
+     below and you slide between the four garments. Nested in three layers so
+     entrance / coverflow / float never fight over the same property. */
+  :root { --sel-contact: rgba(10, 10, 10, 0.18); }
+  :root[data-theme="dark"] { --sel-contact: rgba(0, 0, 0, 0.5); }
 
-  /* Once the pinned hero lets go it is still a screen-tall block with nothing
-     left in it, and scrolling that away left a stretch of empty page before the
-     first photo. Pulling the grid up over it means the products rise into view
-     while the spent hero is still leaving. It has to live here rather than in
-     shop.css: the margin shorthand above would otherwise win on document order. */
-  @supports (animation-timeline: view()) {
-    .grid {
-      position: relative;
-      z-index: 1;
-      margin-top: -62vh;
-    }
-  }
-
-  .card { display: flex; flex-direction: column; }
-
-  /* stacked cross-fading photos: the frame keeps its aspect ratio so the grid
-     never reflows as images load or swap */
-  .frame {
+  .shop-selector { margin-top: clamp(40px, 8vh, 88px); }
+  /* the stage holds the rotating rack; the readout + dots flow BELOW it (the
+     rail is absolute, so keeping them out of the stage avoids overlap) */
+  .sel-stage {
     position: relative;
-    aspect-ratio: 4 / 5;
-    background: var(--bone-deep);
-    overflow: hidden;
-    cursor: pointer;
+    height: min(74vh, 640px);
+    /* the parked (opacity:0) far item sits at +62vw; clip it so it can't widen
+       the page (which would shove fixed overlays off-centre) */
+    overflow-x: clip;
+    /* horizontal drag changes garment; vertical still scrolls the page */
     touch-action: pan-y;
+    perspective: 1400px;
   }
-  .frame img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    transform: scale(1.015);
-    transition: opacity 0.85s var(--ease), transform 1.4s var(--ease);
-  }
-  .frame img.on { opacity: 1; }
-  .frame:hover img.on { transform: scale(1.055); }
+  .sel-stage .rail { position: absolute; inset: 0; }
 
-  .frame .dots {
-    position: absolute;
-    left: 0; right: 0; bottom: 14px;
-    display: flex;
-    justify-content: center;
-    gap: 7px;
-    z-index: 2;
+  /* LAYER 1 — entrance from below (translate + opacity only) */
+  .sel-slot {
+    position: absolute; top: 0; left: 50%;
+    width: min(46vw, 360px); height: 100%;
+    margin-left: calc(min(46vw, 360px) / -2);
+    opacity: 0; translate: 0 80px;
+    transition: opacity 0.75s var(--ease), translate 0.75s var(--ease);
+    will-change: opacity, translate;
   }
-  .frame .dots i {
-    width: 22px;
-    height: 2px;
-    background: rgba(10, 10, 10, 0.22);
-    transition: background 0.4s var(--ease);
-  }
-  .frame .dots i.on { background: var(--ink); }
+  .shop-selector.in .sel-slot { opacity: 1; translate: 0 0; }
 
-  .frame .hint {
-    position: absolute;
-    left: 0; right: 0; bottom: 26px;
-    text-align: center;
-    font-size: 9px;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: var(--muted);
-    opacity: 0;
-    transition: opacity 0.5s var(--ease);
-    pointer-events: none;
-  }
-  @media (hover: none) {
-    .frame .hint { opacity: 0.75; }
+  /* LAYER 2 — coverflow (transform only, set from JS) */
+  .sel-item {
+    position: absolute; inset: 0;
+    display: flex; align-items: flex-end; justify-content: center;
+    transform-origin: center bottom;
+    transition: transform 0.55s var(--ease), opacity 0.55s var(--ease), filter 0.55s var(--ease);
+    cursor: pointer;
+    will-change: transform, opacity, filter;
   }
 
-  .card .meta {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
-    margin-top: 22px;
+  /* LAYER 3 — the garment; its float loop lives here, clear of the coverflow */
+  .sel-obj { position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .sel-obj img {
+    height: 100%; width: auto; max-width: 100%; object-fit: contain;
+    /* soft edge feather — fakes a cutout until the real transparent PNGs land */
+    -webkit-mask: radial-gradient(120% 92% at 50% 42%, #000 62%, transparent 100%);
+            mask: radial-gradient(120% 92% at 50% 42%, #000 62%, transparent 100%);
+    filter: drop-shadow(0 24px 28px var(--sel-contact));
   }
-  .card h2 {
-    font-family: 'Cinzel', serif;
-    font-weight: 600;
-    font-size: clamp(19px, 2.2vw, 25px);
-    letter-spacing: 0.03em;
-  }
-  .card .price { font-size: 15px; color: var(--muted); white-space: nowrap; }
-  .card .tagline { margin-top: 6px; font-size: 14px; color: var(--muted); }
-  .card .btn { margin-top: 22px; align-self: center; }
+  .sel-item.center .sel-obj { animation: selBob 3.6s var(--ease-loop) infinite; }
+  @keyframes selBob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -14px; } }
 
-  .card.sold-out .frame img { filter: grayscale(1) contrast(0.9); }
-  .card .sold-flag {
-    position: absolute;
-    top: 14px; left: 14px;
-    z-index: 2;
-    background: var(--ink);
-    color: var(--bone);
-    font-size: 9px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    padding: 6px 10px;
-    display: none;
+  .sel-item::after {
+    content: ""; position: absolute; bottom: 2%;
+    width: 46%; height: 22px; border-radius: 50%;
+    background: radial-gradient(ellipse at center, var(--sel-contact) 0%, transparent 72%);
+    opacity: 0; transition: opacity 0.55s var(--ease);
   }
-  .card.sold-out .sold-flag { display: block; }
+  .sel-item.center::after { opacity: 1; animation: selShadow 3.6s var(--ease-loop) infinite; }
+  @keyframes selShadow { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(0.82); opacity: 0.7; } }
+
+  /* arrows */
+  .sel-arrow {
+    position: absolute; top: 50%; margin-top: -27px;
+    width: 54px; height: 54px; display: grid; place-items: center;
+    border: 1px solid var(--hairline); border-radius: 50%;
+    background: color-mix(in srgb, var(--bone) 70%, transparent);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    color: var(--muted); cursor: pointer; z-index: 20; opacity: 0.6;
+    transition: opacity 0.3s var(--ease), transform 0.3s var(--ease), color 0.3s var(--ease);
+  }
+  .sel-arrow:hover { opacity: 1; color: var(--ink); transform: scale(1.08); }
+  .sel-arrow.left { left: clamp(8px, 4vw, 48px); animation: selNudgeL 2.6s var(--ease-loop) infinite; }
+  .sel-arrow.right { right: clamp(8px, 4vw, 48px); animation: selNudgeR 2.6s var(--ease-loop) infinite; }
+  .sel-arrow svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
+  @keyframes selNudgeL { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-5px); } }
+  @keyframes selNudgeR { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+
+  /* readout: name + price + buy CTA, cross-fades on change */
+  .sel-readout { text-align: center; margin-top: clamp(10px, 2vh, 24px); padding: 0 20px; }
+  .sel-readout .name {
+    font-family: 'Cinzel', serif; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    font-size: clamp(17px, 2.4vw, 24px); margin: 0;
+    transition: opacity 0.25s var(--ease);
+  }
+  .sel-readout .price { color: var(--muted); font-size: 15px; margin-top: 6px; transition: opacity 0.25s var(--ease); }
+  .sel-readout.swap .name, .sel-readout.swap .price { opacity: 0; }
+  .sel-readout.sold .price { color: var(--pending); }
+  .sel-readout .btn { margin: 18px auto 0; }
+  .sel-readout .btn.is-sold { opacity: 0.4; pointer-events: none; }
+
+  /* dots */
+  .sel-dots { display: flex; gap: 9px; justify-content: center; margin-top: 16px; }
+  .sel-dots i {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--hairline); cursor: pointer;
+    transition: background 0.3s var(--ease), transform 0.3s var(--ease);
+  }
+  .sel-dots i.on { background: var(--pearl); transform: scale(1.35); }
+
+  @media (max-width: 560px) {
+    .sel-stage { height: min(62vh, 520px); }
+    .sel-arrow { width: 44px; height: 44px; margin-top: -22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sel-item.center .sel-obj, .sel-item.center::after, .sel-arrow { animation: none !important; }
+    .shop-selector.in .sel-slot { transition: none; }
+  }
 
   /* ---------- how to buy ---------- */
   .how {
@@ -250,7 +252,7 @@
   </div>
 </section>
 
-<main class="grid" id="grid"></main>
+<main class="shop-selector" id="shop-selector" aria-roledescription="carrusel de prendas"></main>
 
 <section class="how">
   <h2 data-i18n="how.title">Cómo comprar</h2>
@@ -320,184 +322,194 @@
 })();
 </script>
 <script>
+/* The product selector: a character-select carousel. The centred garment is
+   sharp and floats; its neighbours peek blurred at the sides; sliding (arrows,
+   keyboard, horizontal wheel, drag/swipe, dots) rotates the ring. Tapping the
+   centred piece or its CTA opens that product's page to pick a size and pay. */
 (function () {
-  var grid = document.getElementById("grid");
+  var section = document.getElementById("shop-selector");
+  var rail, readout, nameEl, priceEl, ctaEl, dotsWrap, ctaLabel;
   var products = [];
-  var stock = null;               // slug -> boolean, null until /api/stock answers
+  var stock = null;                 // size-slug -> boolean, null until /api/stock answers
+  var items = [];
+  var current = 0, N = 0;
 
-  function photoStack(product) {
-    var frame = document.createElement("div");
-    frame.className = "frame";
+  function link(p) { return "producto.html?p=" + encodeURIComponent(p.slug); }
+  function isSold(p) {
+    if (!stock) return false;
+    // sold out only when every size is gone
+    return p.sizes.every(function (s) { return stock[s.slug] === false; });
+  }
 
-    var flag = document.createElement("div");
-    flag.className = "sold-flag";
-    flag.setAttribute("data-i18n", "shop.soldOut");
-    frame.appendChild(flag);
+  function arrow(side) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "sel-arrow " + side;
+    b.setAttribute("aria-label", side === "left" ? "Prenda anterior" : "Prenda siguiente");
+    b.innerHTML = side === "left"
+      ? '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      : '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    return b;
+  }
 
-    product.photos.forEach(function (photo, i) {
+  function build(config) {
+    products = config.products || [];
+    N = products.length;
+
+    var stage = document.createElement("div");
+    stage.className = "sel-stage";
+    section.appendChild(stage);
+
+    rail = document.createElement("div");
+    rail.className = "rail";
+    stage.appendChild(rail);
+
+    var prev = arrow("left"), next = arrow("right");
+    prev.addEventListener("click", function () { step(-1); });
+    next.addEventListener("click", function () { step(1); });
+    stage.appendChild(prev);
+    stage.appendChild(next);
+
+    readout = document.createElement("div");
+    readout.className = "sel-readout";
+    nameEl = document.createElement("h2"); nameEl.className = "name";
+    priceEl = document.createElement("div"); priceEl.className = "price";
+    ctaEl = document.createElement("a"); ctaEl.className = "btn";
+    ctaLabel = LVCK.btnLabel(ctaEl);
+    ctaLabel.setAttribute("data-i18n", "shop.view");
+    readout.appendChild(nameEl);
+    readout.appendChild(priceEl);
+    readout.appendChild(ctaEl);
+    section.appendChild(readout);
+
+    dotsWrap = document.createElement("div");
+    dotsWrap.className = "sel-dots";
+    section.appendChild(dotsWrap);
+
+    products.forEach(function (p, i) {
+      var slot = document.createElement("div");
+      slot.className = "sel-slot";
+      slot.style.transitionDelay = (0.06 * i) + "s";
+
+      var item = document.createElement("div");
+      item.className = "sel-item";
+      item.addEventListener("click", function () {
+        if (i === current) location.href = link(products[i]);   // tap the centred piece = open it
+        else select(i);                                          // tap a side piece = bring it in
+      });
+
+      var obj = document.createElement("div");
+      obj.className = "sel-obj";
       var img = document.createElement("img");
-      img.src = photo.src;
-      img.alt = photo.alt[LVCK.getLang() || "es"] || photo.alt.es;
-      img.dataset.altKey = product.slug + ":" + i;
-      // the first photo of the first card is what the visitor waits on
+      img.src = p.photos[0].src;
+      img.alt = p.photos[0].alt[LVCK.getLang() || "es"] || p.photos[0].alt.es;
       img.loading = i === 0 ? "eager" : "lazy";
-      if (i === 0) img.classList.add("on");
-      frame.appendChild(img);
+      img.draggable = false;
+      obj.appendChild(img);
+      item.appendChild(obj);
+      slot.appendChild(item);
+      rail.appendChild(slot);
+      items.push(item);
+
+      var d = document.createElement("i");
+      d.addEventListener("click", function () { select(i); });
+      dotsWrap.appendChild(d);
     });
 
-    if (product.photos.length > 1) {
-      var dots = document.createElement("div");
-      dots.className = "dots";
-      product.photos.forEach(function (_, i) {
-        var d = document.createElement("i");
-        if (i === 0) d.classList.add("on");
-        dots.appendChild(d);
+    layout();
+    reveal();
+    LVCK.applyI18n(section);
+  }
+
+  // shortest signed distance around the ring, so a slide always takes the near way
+  function ringOffset(i, c) { var d = i - c; if (d > N / 2) d -= N; if (d < -N / 2) d += N; return d; }
+
+  function layout() {
+    var narrow = window.innerWidth <= 560;
+    var nearT = narrow ? 39 : 30, farT = narrow ? 62 : 52;
+    var nearS = narrow ? 0.62 : 0.6, nearO = narrow ? 0.58 : 0.5, nearB = narrow ? 4 : 5;
+
+    items.forEach(function (item, i) {
+      var off = ringOffset(i, current), abs = Math.abs(off), t, scale, opacity, blur, z;
+      if (off === 0) { t = 0; scale = 1; opacity = 1; blur = 0; z = 30; }
+      else if (abs === 1) { t = off * nearT; scale = nearS; opacity = nearO; blur = nearB; z = 20; }
+      else { t = (off > 0 ? 1 : -1) * farT; scale = 0.42; opacity = 0; blur = 8; z = 10; }
+      item.style.transform = "translateX(" + t + "vw) scale(" + scale + ")";
+      item.style.opacity = opacity;
+      item.style.filter = blur ? "blur(" + blur + "px)" : "none";
+      item.style.zIndex = z;
+      item.classList.toggle("center", off === 0);
+      item.style.pointerEvents = abs <= 1 ? "auto" : "none";
+    });
+    Array.prototype.forEach.call(dotsWrap.children, function (d, i) { d.classList.toggle("on", i === current); });
+    updateReadout();
+  }
+
+  function updateReadout() {
+    var p = products[current];
+    readout.classList.add("swap");
+    setTimeout(function () {
+      var lang = LVCK.getLang() || "es";
+      var sold = isSold(p);
+      nameEl.textContent = p.name;
+      priceEl.textContent = sold ? "" : LVCK.money(p.priceCOP, lang);
+      readout.classList.toggle("sold", sold);
+      ctaEl.href = link(p);
+      ctaEl.classList.toggle("is-sold", sold);
+      ctaLabel.setAttribute("data-i18n", sold ? "shop.soldOut" : "shop.view");
+      LVCK.applyI18n(readout);
+      readout.classList.remove("swap");
+    }, 160);
+  }
+
+  function select(i) { current = ((i % N) + N) % N; layout(); }
+  function step(dir) { select(current + dir); }
+
+  // the rack rises from below the first time it scrolls into view — right after
+  // the "South Side" wordmark has come at you
+  function reveal() {
+    if (!("IntersectionObserver" in window)) { section.classList.add("in"); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { section.classList.add("in"); io.disconnect(); }
       });
-      frame.appendChild(dots);
-
-      var hint = document.createElement("div");
-      hint.className = "hint";
-      hint.setAttribute("data-i18n", "shop.swipeHint");
-      frame.appendChild(hint);
-    }
-
-    return frame;
+    }, { threshold: 0.12 });
+    io.observe(section);
   }
 
-  /* One gallery per card. Desktop cycles while the pointer is over the frame;
-     touch advances on a horizontal swipe. Both funnel through show(), so the
-     dots can never disagree with what is on screen. */
-  function wireGallery(frame) {
-    var imgs = Array.prototype.slice.call(frame.querySelectorAll("img"));
-    var dots = Array.prototype.slice.call(frame.querySelectorAll(".dots i"));
-    if (imgs.length < 2) return;
+  // ---- input ----
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft") step(-1);
+    else if (e.key === "ArrowRight") step(1);
+  });
 
-    var index = 0, timer = null;
+  var wheelLock = false;
+  section.addEventListener("wheel", function (e) {
+    // only a horizontal wheel changes the garment; a vertical wheel scrolls the page
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || wheelLock) return;
+    e.preventDefault();
+    wheelLock = true;
+    step(e.deltaX > 0 ? 1 : -1);
+    setTimeout(function () { wheelLock = false; }, 380);
+  }, { passive: false });
 
-    function show(next) {
-      index = (next + imgs.length) % imgs.length;
-      imgs.forEach(function (img, i) { img.classList.toggle("on", i === index); });
-      dots.forEach(function (d, i) { d.classList.toggle("on", i === index); });
-    }
-
-    frame.addEventListener("mouseenter", function () {
-      if (timer) return;
-      show(index + 1);
-      timer = setInterval(function () { show(index + 1); }, 1600);
-    });
-    frame.addEventListener("mouseleave", function () {
-      clearInterval(timer); timer = null;
-      show(0);
-    });
-
-    var startX = null;
-    frame.addEventListener("touchstart", function (e) { startX = e.touches[0].clientX; }, { passive: true });
-    frame.addEventListener("touchend", function (e) {
-      if (startX === null) return;
-      var dx = e.changedTouches[0].clientX - startX;
-      startX = null;
-      if (Math.abs(dx) > 40) show(index + (dx < 0 ? 1 : -1));
-    }, { passive: true });
-  }
-
-  function buildCard(product) {
-    var card = document.createElement("article");
-    card.className = "card";
-    card.dataset.slug = product.slug;
-
-    var link = "producto.html?p=" + encodeURIComponent(product.slug);
-
-    var frame = photoStack(product);
-    frame.addEventListener("click", function () { location.href = link; });
-    card.appendChild(frame);
-
-    var meta = document.createElement("div");
-    meta.className = "meta";
-    var h2 = document.createElement("h2");
-    h2.textContent = product.name;
-    var price = document.createElement("div");
-    price.className = "price";
-    price.dataset.priceCop = product.priceCOP;
-    price.textContent = LVCK.money(product.priceCOP, LVCK.getLang());
-    meta.appendChild(h2);
-    meta.appendChild(price);
-    card.appendChild(meta);
-
-    var tag = document.createElement("div");
-    tag.className = "tagline";
-    tag.dataset.tagline = product.slug;
-    tag.textContent = product.tagline[LVCK.getLang() || "es"] || product.tagline.es;
-    card.appendChild(tag);
-
-    var btn = document.createElement("a");
-    btn.className = "btn";
-    btn.href = link;
-    LVCK.btnLabel(btn).setAttribute("data-i18n", "shop.view");
-    card.appendChild(btn);
-
-    return card;
-  }
-
-  // text that lives in shop-config.json (names, taglines, alts, prices) isn't
-  // covered by data-i18n, so it is re-rendered whenever the language changes
-  function refreshDynamicCopy() {
-    var lang = LVCK.getLang() || "es";
-    products.forEach(function (p) {
-      var tag = grid.querySelector('[data-tagline="' + p.slug + '"]');
-      if (tag) tag.textContent = p.tagline[lang] || p.tagline.es;
-      var card = grid.querySelector('.card[data-slug="' + p.slug + '"]');
-      if (!card) return;
-      card.querySelectorAll("img").forEach(function (img) {
-        var i = Number((img.dataset.altKey || "").split(":")[1]);
-        var photo = p.photos[i];
-        if (photo) img.alt = photo.alt[lang] || photo.alt.es;
-      });
-      var price = card.querySelector(".price");
-      if (price) price.textContent = LVCK.money(p.priceCOP, lang);
-    });
-  }
-
-  function applyStock() {
-    if (!stock) return;
-    products.forEach(function (p) {
-      var card = grid.querySelector('.card[data-slug="' + p.slug + '"]');
-      if (!card) return;
-      // a product only reads as sold out when every one of its sizes is gone
-      var anyLeft = p.sizes.some(function (s) { return stock[s.slug] !== false; });
-      card.classList.toggle("sold-out", !anyLeft);
-    });
-  }
+  var startX = null, moved = false;
+  section.addEventListener("pointerdown", function (e) { startX = e.clientX; moved = false; });
+  section.addEventListener("pointermove", function (e) {
+    if (startX === null) return;
+    if (Math.abs(e.clientX - startX) > 46 && !moved) { moved = true; step(e.clientX < startX ? 1 : -1); }
+  });
+  window.addEventListener("pointerup", function () { startX = null; });
+  window.addEventListener("resize", function () { clearTimeout(section._rf); section._rf = setTimeout(layout, 120); });
 
   fetch("shop-config.json")
     .then(function (r) { return r.json(); })
-    .then(function (config) {
-      products = config.products || [];
-      // where the browser can drive animation from scroll position, the cards'
-      // entrance lives in CSS; the observer is only the fallback, and running
-      // both would have them fighting over the same opacity
-      var scrollDriven = window.CSS && CSS.supports && CSS.supports("animation-timeline: view()");
+    .then(function (config) { build(config); LVCK.initReveal(); return fetch("/api/stock"); })
+    .then(function (r) { return r && r.ok ? r.json() : null; })
+    .then(function (data) { stock = data; if (products.length) updateReadout(); })
+    .catch(function () { /* no stock service: everything stays buyable */ });
 
-      products.forEach(function (p, i) {
-        var card = buildCard(p);
-        if (!scrollDriven) {
-          card.setAttribute("data-reveal", "up");
-          card.setAttribute("data-reveal-delay", String(i * 0.1));
-        }
-        grid.appendChild(card);
-        wireGallery(card.querySelector(".frame"));
-      });
-      LVCK.applyI18n(grid);
-      LVCK.initReveal();
-      return fetch("/api/stock");
-    })
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (data) { stock = data; applyStock(); })
-    .catch(function () {
-      /* No stock service (local file, GitHub Pages, Stripe down): leave every
-         size buyable rather than wrongly marking the drop as sold out. */
-    });
-
-  window.addEventListener("lvck:lang", refreshDynamicCopy);
+  window.addEventListener("lvck:lang", function () { if (products.length) updateReadout(); });
   LVCK.boot();
 })();
 </script>
