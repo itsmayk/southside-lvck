@@ -43,29 +43,16 @@
     padding: clamp(60px, 16vh, 150px) clamp(20px, 5vw, 40px) 0;
     text-align: center;
   }
-  .thanks .eyebrow { margin-bottom: 20px; }
-  .thanks h1 {
-    font-family: 'Cinzel', serif;
-    font-weight: 600;
-    font-size: clamp(40px, 9vw, 78px);
-    letter-spacing: 0.05em;
-  }
+  .thanks .eyebrow { margin-bottom: 18px; }
+  /* "Gracias" wears the same chrome wordmark font as the hero "South Side";
+     .chrome (from shop.css) brings the AngerStyles face, gradient and float —
+     here we only set its size for this page. */
+  .thanks h1.chrome { font-size: clamp(46px, 13vw, 96px); }
   .thanks .sub {
-    margin-top: 22px;
+    margin-top: 18px;
     font-size: clamp(15px, 1.8vw, 18px);
     line-height: 1.65;
     color: var(--muted);
-  }
-
-  .arch {
-    width: clamp(70px, 14vw, 104px);
-    margin: 0 auto clamp(28px, 5vh, 48px);
-    filter: invert(var(--logo-invert));
-    animation: rise 1.4s var(--ease) both;
-  }
-  @keyframes rise {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: none; }
   }
 
   .next {
@@ -122,9 +109,8 @@
 </div>
 
 <main class="thanks">
-  <img class="arch" src="logo-w.png" alt="">
   <div class="eyebrow" data-i18n="ty.eyebrow">Pedido confirmado</div>
-  <h1 data-i18n="ty.title">Gracias</h1>
+  <h1 class="chrome" data-i18n="ty.title">Gracias</h1>
   <p class="sub" data-i18n="ty.sub">Tu pedido entró.</p>
 
   <section class="next">
