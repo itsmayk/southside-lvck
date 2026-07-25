@@ -88,6 +88,9 @@
      nothing. Lives here so document order beats the base margin above. */
   @supports (animation-timeline: view()) {
     .shop-selector { position: relative; z-index: 1; margin-top: -89vh; }
+    /* the mobile stage is shorter (62vh vs 74vh), so it lands ~8% too high with
+       the desktop pull — ease it up a touch less to centre the garment there */
+    @media (max-width: 560px) { .shop-selector { margin-top: -81vh; } }
   }
   /* the stage holds the rotating rack; the readout + dots flow BELOW it (the
      rail is absolute, so keeping them out of the stage avoids overlap) */
@@ -154,8 +157,9 @@
     border: 1px solid var(--hairline); border-radius: 50%;
     background: color-mix(in srgb, var(--bone) 70%, transparent);
     -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-    color: var(--muted); cursor: pointer; z-index: 20; opacity: 0.6;
-    transition: opacity 0.3s var(--ease), transform 0.3s var(--ease), color 0.3s var(--ease);
+    color: var(--muted); cursor: pointer; z-index: 20;
+    opacity: 0; pointer-events: none;   /* revealed with the garments, not before */
+    transition: opacity 0.5s var(--ease), transform 0.3s var(--ease), color 0.3s var(--ease);
   }
   .sel-arrow:hover { opacity: 1; color: var(--ink); transform: scale(1.08); }
   .sel-arrow.left { left: clamp(8px, 4vw, 48px); animation: selNudgeL 2.6s var(--ease-loop) infinite; }
@@ -163,6 +167,13 @@
   .sel-arrow svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
   @keyframes selNudgeL { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-5px); } }
   @keyframes selNudgeR { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
+
+  /* The whole rack — garments (.sel-slot), arrows, dots and readout — fades in
+     together with .in, so you never see the controls floating without photos. */
+  .sel-readout, .sel-dots { opacity: 0; transition: opacity 0.6s var(--ease); }
+  .shop-selector.in .sel-arrow { opacity: 0.6; pointer-events: auto; }
+  .shop-selector.in .sel-readout,
+  .shop-selector.in .sel-dots { opacity: 1; }
 
   /* readout: name + price + buy CTA, cross-fades on change */
   .sel-readout { text-align: center; margin-top: clamp(10px, 2vh, 24px); padding: 0 20px; }
@@ -412,7 +423,7 @@
       var img = document.createElement("img");
       img.src = p.photos[0].src;
       img.alt = p.photos[0].alt[LVCK.getLang() || "es"] || p.photos[0].alt.es;
-      img.loading = i === 0 ? "eager" : "lazy";
+      img.loading = "eager";   // only four; load them all up front so none lags in
       img.draggable = false;
       obj.appendChild(img);
       item.appendChild(obj);
