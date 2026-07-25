@@ -474,16 +474,14 @@
   function select(i) { current = ((i % N) + N) % N; layout(); }
   function step(dir) { select(current + dir); }
 
-  // Reveal the rack once you've scrolled past the wordmark's zoom (it has faded
-  // by ~72vh). Gating on scroll position — not merely "in view" — is what keeps
-  // the garments from flashing in over the still-zooming wordmark, since the
-  // pull-up makes the rack overlap the tail of the pinned hero.
+  // Reveal/hide the rack as you cross the wordmark's exit point — BOTH ways and
+  // every time. Scroll down past the faded wordmark and the garments rise in;
+  // scroll back up and they fall + fade out again, so they never sit anchored
+  // over the "South Side" text. Toggling (not a one-shot) is what makes the FX
+  // repeat up and down; the 0.8s slot transition animates each direction.
   function reveal() {
     function check() {
-      if (window.scrollY > window.innerHeight * 0.66) {
-        section.classList.add("in");
-        window.removeEventListener("scroll", check);
-      }
+      section.classList.toggle("in", window.scrollY > window.innerHeight * 0.72);
     }
     window.addEventListener("scroll", check, { passive: true });
     check();
