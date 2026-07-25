@@ -157,9 +157,9 @@
 
 <script src="shop-common.js"></script>
 <script>
-  /* Reached only after Stripe redirects here, so there is nothing to fetch and
-     nothing to get wrong — the one job is to reassure. Stripe appends its own
-     session id when configured to; we deliberately don't read or display it. */
+  /* Reached only after Bold (or the Stripe fallback) redirects here, so there is
+     nothing to fetch and nothing to get wrong — the one job is to reassure. The
+     processor may append its own reference/session id; we don't read or show it. */
   LVCK.boot();
 </script>
 </body>
