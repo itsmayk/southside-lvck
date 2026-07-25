@@ -504,6 +504,7 @@
     });
 
     layout();
+    updateReadout(false);   // first paint: set the name/price without the slam
     reveal();
     LVCK.applyI18n(section);
   }
@@ -533,28 +534,35 @@
     });
     if (glowEl) glowEl.style.color = products[current].accent || "";
     Array.prototype.forEach.call(dotsWrap.children, function (d, i) { d.classList.toggle("on", i === current); });
-    updateReadout();
   }
 
-  function updateReadout() {
+  // animate=true only on a real garment change (swap fade + name slam); a plain
+  // text refresh (language change, first paint, resize re-layouts) passes false
+  // so the title never re-animates and flickers on mobile URL-bar resizes.
+  function updateReadout(animate) {
     var p = products[current];
-    readout.classList.add("swap");
-    setTimeout(function () {
+    function render() {
       var lang = LVCK.getLang() || "es";
       var sold = isSold(p);
       nameEl.textContent = nameOf(p, lang);
-      nameEl.classList.remove("slam"); void nameEl.offsetWidth; nameEl.classList.add("slam");
+      if (animate) { nameEl.classList.remove("slam"); void nameEl.offsetWidth; nameEl.classList.add("slam"); }
       priceEl.textContent = sold ? "" : LVCK.money(p.priceCOP, lang);
       readout.classList.toggle("sold", sold);
       ctaEl.href = link(p);
       ctaEl.classList.toggle("is-sold", sold);
       ctaLabel.setAttribute("data-i18n", sold ? "shop.soldOut" : "shop.view");
       LVCK.applyI18n(readout);
+    }
+    if (animate) {
+      readout.classList.add("swap");
+      setTimeout(function () { render(); readout.classList.remove("swap"); }, 160);
+    } else {
       readout.classList.remove("swap");
-    }, 160);
+      render();
+    }
   }
 
-  function select(i) { current = ((i % N) + N) % N; layout(); playWhoosh(); }
+  function select(i) { current = ((i % N) + N) % N; layout(); updateReadout(true); playWhoosh(); }
   function step(dir) { select(current + dir); }
 
   // Reveal/hide the rack as you cross the wordmark's exit point — BOTH ways and
@@ -563,8 +571,13 @@
   // over the "South Side" text. Toggling (not a one-shot) is what makes the FX
   // repeat up and down; the 0.8s slot transition animates each direction.
   function reveal() {
+    var shown = false;
     function check() {
-      section.classList.toggle("in", window.scrollY > window.innerHeight * 0.72);
+      var y = window.scrollY, h = window.innerHeight;
+      // hysteresis: enter at 0.72, leave at 0.55 — so a mobile URL bar nudging
+      // innerHeight near a single threshold can't flip .in on and off (flicker)
+      if (!shown && y > h * 0.72) { shown = true; section.classList.add("in"); }
+      else if (shown && y < h * 0.55) { shown = false; section.classList.remove("in"); }
     }
     window.addEventListener("scroll", check, { passive: true });
     check();
@@ -687,7 +700,7 @@
       if (!products.length) renderMissing();
     });
 
-  window.addEventListener("lvck:lang", function () { if (products.length) updateReadout(); });
+  window.addEventListener("lvck:lang", function () { if (products.length) updateReadout(false); });
   LVCK.boot();
 })();
 </script>
