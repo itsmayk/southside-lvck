@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Galería — SouthSide x LVCK</title>
+<meta name="description" content="El archivo visual de LVCK — prendas, identidad y proceso." />
+<meta property="og:type" content="website">
+<meta property="og:title" content="SouthSide — LVCK">
+<meta property="og:description" content="LVCK returns with SouthSide — the drop that marks our new chapter. 15 AUG 2026.">
+<meta property="og:image" content="https://southside-lvck.vercel.app/og-image.png?v=2">
+<meta property="og:url" content="https://southside-lvck.vercel.app/gallery.html">
+<link rel="canonical" href="https://southside-lvck.vercel.app/gallery.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SouthSide — LVCK">
+<meta name="twitter:description" content="LVCK returns with SouthSide — the drop that marks our new chapter. 15 AUG 2026.">
+<meta name="twitter:image" content="https://southside-lvck.vercel.app/og-image.png?v=2">
+<link rel="icon" type="image/png" href="favicon.png?v=3">
+<link rel="apple-touch-icon" href="favicon.png?v=3">
+<script>
+  (function () {
+    if (location.hostname.indexOf("github.io") === -1) return;
+    var rest = location.pathname.replace(/^\/[^/]+/, "") || "/";
+    location.replace("https://southside-lvck.vercel.app" + rest + location.search + location.hash);
+  })();
+</script>
+<meta name="theme-color" content="#F5F5F0">
+<script>
+  (function () {
+    try {
+      var t = localStorage.getItem("ss-theme");
+      if (t !== "light" && t !== "dark") {
+        t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      document.documentElement.setAttribute("data-theme", t);
+      var m = document.querySelector('meta[name="theme-color"]');
+      if (m) m.setAttribute("content", t === "dark" ? "#232320" : "#F5F5F0");
+    } catch (e) {}
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shop.css">
+<script defer src="/_vercel/insights/script.js"></script>
+<style>
+  .gallery {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: clamp(40px, 9vh, 110px) clamp(16px, 4vw, 48px) 0;
+  }
+  .gallery-hero { text-align: center; margin-bottom: clamp(40px, 7vh, 72px); }
+  .gallery-hero .eyebrow { margin-bottom: 16px; }
+  .gallery h1.chrome {
+    font-size: clamp(38px, 10vw, 82px);
+    animation: chromeFloat 3.4s var(--ease-loop) infinite;
+    animation-timeline: auto;
+    animation-range: normal;
+  }
+  .gallery .lead {
+    margin: 22px auto 0; max-width: 46ch;
+    font-size: clamp(16px, 1.9vw, 19px); line-height: 1.7; color: var(--muted);
+  }
+  .gallery .soon {
+    margin-top: 18px; font-size: 11px; letter-spacing: 0.28em;
+    text-transform: uppercase; color: var(--pending);
+  }
+  .gcat { margin-top: clamp(40px, 7vh, 72px); }
+  .gcat h2 {
+    font-family: 'Cinzel', serif; font-weight: 600;
+    font-size: 13px; letter-spacing: 0.24em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 20px;
+  }
+  .ggrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: clamp(12px, 2vw, 20px);
+  }
+  /* empty archive slots — drop images in later */
+  .gtile {
+    aspect-ratio: 4 / 5;
+    background: var(--bone-deep);
+    border: 1px dashed var(--hairline);
+    border-radius: 2px;
+    display: grid; place-items: center;
+    color: var(--hairline);
+    transition: border-color 0.25s var(--ease), color 0.25s var(--ease);
+  }
+  .gtile::after { content: "+"; font-size: clamp(20px, 3vw, 30px); font-weight: 300; }
+  .gtile:hover { border-color: var(--muted); color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <header class="site-head">
+    <nav class="head-links head-nav">
+      <a href="shop.html" data-i18n="nav.shop">Tienda</a>
+      <a href="gallery.html" data-i18n="nav.gallery">Galería</a>
+      <a href="about.html" data-i18n="nav.about">Nosotros</a>
+    </nav>
+    <a class="mark" href="shop.html" aria-label="LVCK">
+      <img src="logo-w.png" alt="LVCK">
+    </a>
+    <nav class="head-links">
+      <button type="button" data-open-lang data-i18n="nav.lang">Idioma</button>
+    </nav>
+  </header>
+  <div class="countdown-bar">
+    <span class="label" data-i18n="drop.label">Lanzamiento</span>
+    <span class="clock"></span>
+    <span class="date" data-i18n="drop.date">15 AGO 2026</span>
+  </div>
+</div>
+
+<main class="gallery">
+  <section class="gallery-hero">
+    <div class="eyebrow" data-i18n="gallery.eyebrow">Galería</div>
+    <h1 class="chrome" data-i18n="gallery.title">El archivo</h1>
+    <p class="lead" data-i18n="gallery.lead">Un vistazo a lo que hemos creado — prendas, identidad, proceso.</p>
+    <div class="soon" data-i18n="gallery.soon">Archivo en construcción</div>
+  </section>
+
+  <section class="gcat">
+    <h2 data-i18n="gallery.cat1">Prendas</h2>
+    <div class="ggrid">
+      <div class="gtile"></div><div class="gtile"></div><div class="gtile"></div>
+      <div class="gtile"></div><div class="gtile"></div><div class="gtile"></div>
+    </div>
+  </section>
+
+  <section class="gcat">
+    <h2 data-i18n="gallery.cat2">Identidad</h2>
+    <div class="ggrid">
+      <div class="gtile"></div><div class="gtile"></div><div class="gtile"></div>
+    </div>
+  </section>
+
+  <section class="gcat">
+    <h2 data-i18n="gallery.cat3">Proceso</h2>
+    <div class="ggrid">
+      <div class="gtile"></div><div class="gtile"></div><div class="gtile"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div data-i18n="foot.brand">LVCK · South Side</div>
+  <a href="social-instagram.html" data-open-ig>Instagram</a>
+  <div data-i18n="foot.note">Bogotá, Colombia</div>
+</footer>
+
+<div class="lang-modal ig-modal" id="ig-modal" role="dialog" aria-modal="true" aria-label="Instagram">
+  <div class="panel">
+    <div class="eyebrow">Instagram</div>
+    <a class="lang-btn" href="https://instagram.com/lvck.us" target="_blank" rel="noopener"><span class="flag">🇺🇸</span><span>@lvck.us</span></a>
+    <a class="lang-btn" href="https://instagram.com/lvck.es" target="_blank" rel="noopener"><span class="flag">🇪🇸</span><span>@lvck.es</span></a>
+    <a class="lang-btn" href="https://instagram.com/lvck.br" target="_blank" rel="noopener"><span class="flag">🇧🇷</span><span>@lvck.br</span></a>
+    <a class="lang-btn" href="https://instagram.com/lvckcreationz" target="_blank" rel="noopener"><span class="flag">✦</span><span>@lvckcreationz</span></a>
+    <button type="button" class="ig-close" data-close-ig data-i18n="p.close">Cerrar</button>
+  </div>
+</div>
+
+<button type="button" class="theme-switch" id="ss-theme-btn" data-toggle-theme
+        aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">
+  <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="4.2"/>
+    <path d="M12 2.4v2.6M12 19v2.6M4.4 12H1.8M22.2 12h-2.6M6.4 6.4 4.6 4.6M19.4 19.4l-1.8-1.8M17.6 6.4l1.8-1.8M4.6 19.4l1.8-1.8"/>
+  </svg>
+  <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z"/>
+  </svg>
+</button>
+
+<script src="shop-common.js"></script>
+<script>
+  (function () {
+    function openIg()  { var m = document.getElementById("ig-modal"); if (m) m.classList.add("open"); }
+    function closeIg() { var m = document.getElementById("ig-modal"); if (m) m.classList.remove("open"); }
+    document.addEventListener("click", function (e) {
+      if (e.target.closest && e.target.closest("[data-open-ig]")) { e.preventDefault(); openIg(); return; }
+      if (e.target.closest && e.target.closest("[data-close-ig]")) { closeIg(); return; }
+      if (e.target.id === "ig-modal") closeIg();
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeIg(); });
+  })();
+  LVCK.boot();
+</script>
+<script src="music.js"></script>
+</body>
+</html>
