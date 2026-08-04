@@ -658,6 +658,7 @@ h1.display {
 :root[data-theme="dark"] .btn.is-disabled,
 :root[data-theme="dark"] .btn[disabled] {
   background: #C4C4BC;
+  opacity: 0.5;            /* faded/see-through until a size is picked */
 }
 :root[data-theme="dark"] .btn.is-disabled .lbl,
 :root[data-theme="dark"] .btn[disabled] .lbl {
