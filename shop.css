@@ -712,16 +712,21 @@ h1.display {
   display: grid;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--hairline);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 50%;
-  background: var(--topbar);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: rgba(245, 245, 240, 0.34);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
   color: var(--ink);
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 6px 20px -8px rgba(10, 10, 10, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.16);
   transition: border-color 0.3s var(--ease), transform 0.3s var(--ease),
               box-shadow 0.3s var(--ease);
+}
+:root[data-theme="dark"] .theme-switch {
+  background: rgba(35, 35, 32, 0.34);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .theme-switch:hover {
@@ -766,13 +771,14 @@ h1.display {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--topbar);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(245, 245, 240, 0.55);
+  backdrop-filter: blur(34px) saturate(1.4);
+  -webkit-backdrop-filter: blur(34px) saturate(1.4);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.4s var(--ease);
 }
+:root[data-theme="dark"] .lang-modal { background: rgba(35, 35, 32, 0.5); }
 
 .lang-modal.open { opacity: 1; pointer-events: auto; }
 
@@ -891,46 +897,56 @@ h1.display {
 .menu-open .menu-btn span:nth-child(2) { opacity: 0; transform: scaleX(0); }
 .menu-open .menu-btn span:nth-child(3) { transform: translateY(-7.6px) rotate(-45deg); }
 
-/* ---- full-screen nav overlay; sits UNDER the sticky header so the X stays live ---- */
+/* ---- full-screen liquid-glass nav overlay; sits UNDER the sticky header so the X stays live ---- */
 .nav-overlay {
   position: fixed; inset: 0; z-index: 30;
-  display: flex; flex-direction: column; justify-content: center;
-  gap: clamp(28px, 6vh, 56px);
-  padding: clamp(104px, 22vh, 210px) clamp(28px, 9vw, 140px) clamp(48px, 10vh, 96px);
-  background: var(--topbar);
-  backdrop-filter: blur(24px) saturate(1.25);
-  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  gap: clamp(30px, 7vh, 66px);
+  padding: clamp(104px, 20vh, 200px) clamp(24px, 8vw, 120px) clamp(48px, 9vh, 92px);
+  background: rgba(245, 245, 240, 0.55);
+  backdrop-filter: blur(34px) saturate(1.4);
+  -webkit-backdrop-filter: blur(34px) saturate(1.4);
   opacity: 0; pointer-events: none;
   transition: opacity .5s var(--ease);
 }
+:root[data-theme="dark"] .nav-overlay { background: rgba(35, 35, 32, 0.5); }
 .nav-overlay.open { opacity: 1; pointer-events: auto; }
 /* faint scanlines — the futuristic read */
 .nav-overlay::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: repeating-linear-gradient(to bottom, transparent 0 3px, rgba(127,127,120,0.045) 3px 4px);
+  background: repeating-linear-gradient(to bottom, transparent 0 3px, rgba(127,127,120,0.04) 3px 4px);
 }
-.nav-list { display: flex; flex-direction: column; gap: clamp(4px, 1.4vh, 14px); position: relative; z-index: 1; }
+
+/* triangle: Tienda on top, Galería bottom-left, Nosotros bottom-right — no numbers */
+.nav-list {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas:
+    "top   top"
+    "left  right";
+  justify-content: center; justify-items: center; align-items: center;
+  column-gap: clamp(24px, 9vw, 150px);
+  row-gap: clamp(12px, 4vh, 40px);
+}
+.nav-list a:nth-child(1) { grid-area: top; }     /* Tienda */
+.nav-list a:nth-child(2) { grid-area: left; }    /* Galería */
+.nav-list a:nth-child(3) { grid-area: right; }   /* Nosotros */
 .nav-list a {
-  position: relative; width: max-content; max-width: 100%;
-  display: flex; align-items: baseline; gap: clamp(12px, 2vw, 26px);
+  position: relative;
   font-family: 'Cinzel', serif; font-weight: 600;
-  font-size: clamp(40px, 9vw, 104px); line-height: 1.04;
-  letter-spacing: 0.01em; text-transform: uppercase;
+  font-size: clamp(30px, 7vw, 82px); line-height: 1;
+  letter-spacing: 0.02em; text-transform: uppercase;
   color: var(--ink); text-decoration: none;
-  opacity: 0; transform: translateX(-26px);
+  opacity: 0; transform: translateY(16px);
 }
-.nav-overlay.open .nav-list a { animation: navItemIn .6s var(--ease) forwards; }
-.nav-overlay.open .nav-list a:nth-child(1) { animation-delay: .05s; }
-.nav-overlay.open .nav-list a:nth-child(2) { animation-delay: .12s; }
-.nav-overlay.open .nav-list a:nth-child(3) { animation-delay: .19s; }
+.nav-overlay.open .nav-list a { animation: navItemIn .55s var(--ease) forwards; }
+.nav-overlay.open .nav-list a:nth-child(1) { animation-delay: .06s; }
+.nav-overlay.open .nav-list a:nth-child(2) { animation-delay: .14s; }
+.nav-overlay.open .nav-list a:nth-child(3) { animation-delay: .2s; }
 @keyframes navItemIn { to { opacity: 1; transform: none; } }
-.nav-list .idx {
-  font-family: 'Cinzel', serif; font-weight: 600;
-  font-size: clamp(12px, 1.3vw, 15px); letter-spacing: 0.2em;
-  color: var(--muted); align-self: flex-start; margin-top: 0.15em;
-}
 .nav-list a::after {
-  content: ""; position: absolute; left: 0; right: 100%; bottom: 0.02em;
+  content: ""; position: absolute; left: 0; right: 100%; bottom: -0.06em;
   height: 2px; background: currentColor; transition: right .45s var(--ease);
 }
 .nav-list a:hover::after, .nav-list a:focus-visible::after { right: 0; }
@@ -938,9 +954,9 @@ h1.display {
 .nav-list a[aria-current="page"]::after { right: 0; background: var(--muted); }
 .nav-meta {
   position: relative; z-index: 1;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px;
   font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.24em;
-  text-transform: uppercase; color: var(--muted);
+  text-transform: uppercase; color: var(--muted); text-align: center;
   opacity: 0; transition: opacity .5s var(--ease) .3s;
 }
 .nav-overlay.open .nav-meta { opacity: 1; }

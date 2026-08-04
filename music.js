@@ -113,8 +113,9 @@
     s.textContent =
       "#" + BTN_ID + "{position:fixed;right:20px;bottom:74px;z-index:120;width:46px;height:46px;" +
       "border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#9a9a9a;" +
-      "border:1px solid rgba(128,128,128,.35);background:rgba(128,128,128,.14);" +
-      "-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:.62;" +
+      "border:1px solid rgba(255,255,255,.14);background:rgba(150,150,150,.12);" +
+      "-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2);opacity:.62;" +
+      "box-shadow:0 6px 20px -8px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.14);" +
       "transition:opacity .25s ease,transform .25s ease,color .25s ease;}" +
       "#" + BTN_ID + ":hover{opacity:1;color:#d8d8d8;transform:scale(1.06);}" +
       "#" + BTN_ID + ".off{opacity:.5;}" +

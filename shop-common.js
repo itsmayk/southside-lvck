@@ -470,9 +470,9 @@
     o.id = "nav-overlay";
     o.innerHTML =
       '<nav class="nav-list" aria-label="Menu">' +
-        '<a href="shop.html"><span class="idx">01</span><span data-i18n="nav.shop">Tienda</span></a>' +
-        '<a href="gallery.html"><span class="idx">02</span><span data-i18n="nav.gallery">Galería</span></a>' +
-        '<a href="about.html"><span class="idx">03</span><span data-i18n="nav.about">Nosotros</span></a>' +
+        '<a href="shop.html" data-i18n="nav.shop">Tienda</a>' +
+        '<a href="gallery.html" data-i18n="nav.gallery">Galería</a>' +
+        '<a href="about.html" data-i18n="nav.about">Nosotros</a>' +
       '</nav>' +
       '<div class="nav-meta">' +
         '<span data-i18n="foot.brand">LVCK · South Side</span>' +
