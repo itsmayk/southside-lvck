@@ -839,6 +839,40 @@ h1.display {
 }
 :root[data-theme="dark"] .tex-noise { opacity: 0.4; mix-blend-mode: screen; }
 
+/* on the textured spaces the grain is pinned to the viewport, so the glass
+   topbar (below) always has texture to sample — even at scroll 0 */
+.about .tex-noise, .gallery .tex-noise { position: fixed; }
+
+/* ---- liquid-glass topbar (opt-in via .topbar.glass; used on About + Gallery) ----
+   floats over the page grain: rounded, heavily blurred and translucent so the
+   background texture reads straight through it and the whole bar feels liquid. */
+.topbar.glass {
+  top: clamp(8px, 1.4vh, 15px);
+  margin: 0 clamp(10px, 2.5vw, 24px);
+  border-radius: clamp(16px, 2.2vw, 28px);
+  background: rgba(245, 245, 240, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(30px) saturate(1.7);
+  -webkit-backdrop-filter: blur(30px) saturate(1.7);
+  box-shadow:
+    0 16px 44px -18px rgba(10, 10, 10, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;                 /* clip contents to the rounded glass */
+}
+:root[data-theme="dark"] .topbar.glass {
+  background: rgba(35, 35, 32, 0.40);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 16px 44px -18px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+/* soften the internal rules so the bar reads as one pane of glass */
+.topbar.glass .site-head { border-bottom: 1px solid rgba(10, 10, 10, 0.06); }
+:root[data-theme="dark"] .topbar.glass .site-head { border-bottom-color: rgba(255, 255, 255, 0.07); }
+.topbar.glass .countdown-bar { border-bottom: none; }
+
 /* ---- hamburger button (replaces the left-hand word nav on every page) ---- */
 .site-head .menu-btn { grid-column: 1; justify-self: start; }
 .menu-btn {
