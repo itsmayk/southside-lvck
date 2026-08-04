@@ -651,18 +651,18 @@ h1.display {
   background-clip: text;
 }
 
-/* Keep the disabled button FLAT pearl-off in dark mode too. Without this the
-   light flame gradient out-specifies it, so "Elige" looked bright/active; the
-   muted grey reads as inactive (like light mode) and the light label sits on it
-   legibly. This is why the label runs var(--ink) (light) here. */
+/* In dark mode the disabled button stays LIGHT grey but flat/matte (not the
+   shiny active metal) so it reads as inactive/dimmed; the label runs dark so
+   "Elige" is legible on the light grey. (The light flame gradient would
+   out-specify a plain background, hence these explicit rules.) */
 :root[data-theme="dark"] .btn.is-disabled,
 :root[data-theme="dark"] .btn[disabled] {
-  background: var(--pearl-off);
+  background: #C4C4BC;
 }
 :root[data-theme="dark"] .btn.is-disabled .lbl,
 :root[data-theme="dark"] .btn[disabled] .lbl {
-  -webkit-text-fill-color: var(--ink);
-  color: var(--ink);
+  -webkit-text-fill-color: #1C1C18;
+  color: #1C1C18;
 }
 
 @keyframes btnShine {
