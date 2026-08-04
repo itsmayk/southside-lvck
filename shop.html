@@ -134,6 +134,10 @@
     width: min(46vw, 360px); height: 100%;
     margin-left: calc(min(46vw, 360px) / -2);
     opacity: 0; translate: 0 80px;
+    /* shrink the whole rack ~30% (proportional, all screens) without disturbing
+       the scroll-pull math: the slot's layout box stays, only its content scales.
+       `transform` is free here — the entrance uses `translate`, not `transform`. */
+    transform: scale(0.7); transform-origin: center bottom;
     transition: opacity 0.8s var(--ease), translate 0.8s var(--ease);
     will-change: opacity, translate;
   }

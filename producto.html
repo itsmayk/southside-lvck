@@ -67,12 +67,15 @@
 
   .product {
     display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    /* image column trimmed ~30% (was 1.25fr) so the photo reads compact */
+    grid-template-columns: minmax(0, 0.64fr) minmax(0, 1fr);
     gap: clamp(28px, 5vw, 72px);
     align-items: start;
   }
   @media (max-width: 860px) {
     .product { grid-template-columns: 1fr; }
+    /* single column: cap the image so it's ~30% smaller and centred */
+    .product .gallery { max-width: 72%; margin-inline: auto; }
   }
 
   /* ---------- gallery ---------- */
