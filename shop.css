@@ -819,3 +819,118 @@ h1.display {
   transition: color 0.2s var(--ease);
 }
 .ig-close:hover { color: var(--ink); }
+
+
+/* ==================================================================
+   Futuristic nav + cross-page transitions  (added 2026-08-03)
+   ================================================================== */
+
+/* ---- shared film-grain / granite texture (theme-aware, no asset) ---- */
+.tex-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'300'%20height%3D'300'%3E%3Cfilter%20id%3D'n'%3E%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.55'%20numOctaves%3D'5'%20stitchTiles%3D'stitch'%2F%3E%3CfeColorMatrix%20type%3D'saturate'%20values%3D'0'%2F%3E%3CfeComponentTransfer%3E%3CfeFuncR%20type%3D'linear'%20slope%3D'2.4'%20intercept%3D'-0.7'%2F%3E%3CfeFuncG%20type%3D'linear'%20slope%3D'2.4'%20intercept%3D'-0.7'%2F%3E%3CfeFuncB%20type%3D'linear'%20slope%3D'2.4'%20intercept%3D'-0.7'%2F%3E%3C%2FfeComponentTransfer%3E%3C%2Ffilter%3E%3Crect%20width%3D'100%25'%20height%3D'100%25'%20filter%3D'url(%23n)'%2F%3E%3C%2Fsvg%3E");
+  background-size: 280px 280px;
+  background-repeat: repeat;
+  opacity: 0.42;
+  mix-blend-mode: multiply;   /* dark grain over the bone page */
+}
+:root[data-theme="dark"] .tex-noise { opacity: 0.4; mix-blend-mode: screen; }
+
+/* ---- hamburger button (replaces the left-hand word nav on every page) ---- */
+.site-head .menu-btn { grid-column: 1; justify-self: start; }
+.menu-btn {
+  --mw: 26px;
+  display: inline-flex; flex-direction: column; justify-content: center;
+  gap: 6px; width: 42px; height: 42px; padding: 0; margin-left: -8px;
+  background: none; border: none; cursor: pointer;
+}
+.menu-btn span {
+  display: block; height: 1.6px; width: var(--mw);
+  background: var(--ink); border-radius: 2px;
+  transition: transform .38s var(--ease), opacity .2s var(--ease), width .38s var(--ease);
+}
+.menu-btn span:nth-child(2) { width: calc(var(--mw) - 7px); }
+.menu-btn:hover span { width: var(--mw); }
+.menu-open .menu-btn span:nth-child(1) { transform: translateY(7.6px) rotate(45deg); }
+.menu-open .menu-btn span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.menu-open .menu-btn span:nth-child(3) { transform: translateY(-7.6px) rotate(-45deg); }
+
+/* ---- full-screen nav overlay; sits UNDER the sticky header so the X stays live ---- */
+.nav-overlay {
+  position: fixed; inset: 0; z-index: 30;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: clamp(28px, 6vh, 56px);
+  padding: clamp(104px, 22vh, 210px) clamp(28px, 9vw, 140px) clamp(48px, 10vh, 96px);
+  background: var(--topbar);
+  backdrop-filter: blur(24px) saturate(1.25);
+  -webkit-backdrop-filter: blur(24px) saturate(1.25);
+  opacity: 0; pointer-events: none;
+  transition: opacity .5s var(--ease);
+}
+.nav-overlay.open { opacity: 1; pointer-events: auto; }
+/* faint scanlines — the futuristic read */
+.nav-overlay::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(to bottom, transparent 0 3px, rgba(127,127,120,0.045) 3px 4px);
+}
+.nav-list { display: flex; flex-direction: column; gap: clamp(4px, 1.4vh, 14px); position: relative; z-index: 1; }
+.nav-list a {
+  position: relative; width: max-content; max-width: 100%;
+  display: flex; align-items: baseline; gap: clamp(12px, 2vw, 26px);
+  font-family: 'Cinzel', serif; font-weight: 600;
+  font-size: clamp(40px, 9vw, 104px); line-height: 1.04;
+  letter-spacing: 0.01em; text-transform: uppercase;
+  color: var(--ink); text-decoration: none;
+  opacity: 0; transform: translateX(-26px);
+}
+.nav-overlay.open .nav-list a { animation: navItemIn .6s var(--ease) forwards; }
+.nav-overlay.open .nav-list a:nth-child(1) { animation-delay: .05s; }
+.nav-overlay.open .nav-list a:nth-child(2) { animation-delay: .12s; }
+.nav-overlay.open .nav-list a:nth-child(3) { animation-delay: .19s; }
+@keyframes navItemIn { to { opacity: 1; transform: none; } }
+.nav-list .idx {
+  font-family: 'Cinzel', serif; font-weight: 600;
+  font-size: clamp(12px, 1.3vw, 15px); letter-spacing: 0.2em;
+  color: var(--muted); align-self: flex-start; margin-top: 0.15em;
+}
+.nav-list a::after {
+  content: ""; position: absolute; left: 0; right: 100%; bottom: 0.02em;
+  height: 2px; background: currentColor; transition: right .45s var(--ease);
+}
+.nav-list a:hover::after, .nav-list a:focus-visible::after { right: 0; }
+.nav-list a[aria-current="page"] { color: var(--muted); }
+.nav-list a[aria-current="page"]::after { right: 0; background: var(--muted); }
+.nav-meta {
+  position: relative; z-index: 1;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.24em;
+  text-transform: uppercase; color: var(--muted);
+  opacity: 0; transition: opacity .5s var(--ease) .3s;
+}
+.nav-overlay.open .nav-meta { opacity: 1; }
+.nav-meta a { color: var(--muted); text-decoration: none; transition: color .25s var(--ease); }
+.nav-meta a:hover { color: var(--ink); }
+.nav-meta .dot { opacity: 0.5; }
+
+/* ---- cross-document view transitions (Chromium; degrades to normal load) ---- */
+@view-transition { navigation: auto; }
+/* the header + theme toggle stay continuous; only the body content reveals */
+.topbar { view-transition-name: ss-topbar; }
+.theme-switch { view-transition-name: ss-theme-switch; }
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) { animation: ssPageOut .40s var(--ease) both; }
+  ::view-transition-new(root) { animation: ssPageIn .62s var(--ease) both; }
+}
+@keyframes ssPageOut {
+  to { opacity: 0; transform: translateY(-8px) scale(1.015); filter: blur(5px); }
+}
+@keyframes ssPageIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.99); filter: blur(7px); clip-path: inset(28% 0 0 0); }
+  to   { opacity: 1; transform: none; filter: none; clip-path: inset(0 0 0 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-overlay.open .nav-list a { animation: none; opacity: 1; transform: none; }
+}

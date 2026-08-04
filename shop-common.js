@@ -458,6 +458,63 @@
     if (e.target.id === "lang-modal") closeLangModal();
   });
 
+  /* ---------- futuristic nav overlay (hamburger) ----------
+     The left-hand word nav moved into a full-screen overlay built once here and
+     reused on every storefront page. It sits UNDER the sticky header (z-index),
+     so the hamburger — which morphs into an X — stays clickable to close it. */
+  function buildNavOverlay() {
+    var existing = document.getElementById("nav-overlay");
+    if (existing) return existing;
+    var o = document.createElement("div");
+    o.className = "nav-overlay";
+    o.id = "nav-overlay";
+    o.innerHTML =
+      '<nav class="nav-list" aria-label="Menu">' +
+        '<a href="shop.html"><span class="idx">01</span><span data-i18n="nav.shop">Tienda</span></a>' +
+        '<a href="gallery.html"><span class="idx">02</span><span data-i18n="nav.gallery">Galería</span></a>' +
+        '<a href="about.html"><span class="idx">03</span><span data-i18n="nav.about">Nosotros</span></a>' +
+      '</nav>' +
+      '<div class="nav-meta">' +
+        '<span data-i18n="foot.brand">LVCK · South Side</span>' +
+        '<span class="dot">/</span>' +
+        '<a href="social-instagram.html">Instagram</a>' +
+        '<span class="dot">/</span>' +
+        '<span>Est. Bogotá · CO</span>' +
+      '</div>';
+    document.body.appendChild(o);
+    var here = (location.pathname.split("/").pop() || "shop.html").toLowerCase();
+    o.querySelectorAll(".nav-list a").forEach(function (a) {
+      var href = (a.getAttribute("href") || "").toLowerCase();
+      if (href === here || (here === "" && href === "shop.html")) a.setAttribute("aria-current", "page");
+    });
+    applyI18n(o);
+    return o;
+  }
+  function menuBtn() { return document.querySelector("[data-open-menu]"); }
+  function openMenu() {
+    var o = buildNavOverlay();
+    document.documentElement.classList.add("menu-open");
+    void o.offsetWidth;                 // restart the staggered entrance each open
+    o.classList.add("open");
+    var b = menuBtn(); if (b) b.setAttribute("aria-expanded", "true");
+  }
+  function closeMenu() {
+    var o = document.getElementById("nav-overlay");
+    if (o) o.classList.remove("open");
+    document.documentElement.classList.remove("menu-open");
+    var b = menuBtn(); if (b) b.setAttribute("aria-expanded", "false");
+  }
+  function toggleMenu() {
+    if (document.documentElement.classList.contains("menu-open")) closeMenu(); else openMenu();
+  }
+  document.addEventListener("click", function (e) {
+    if (e.target.closest && e.target.closest("[data-open-menu]")) { e.preventDefault(); toggleMenu(); return; }
+    if (e.target.closest && e.target.closest(".nav-list a")) { closeMenu(); return; }
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { closeMenu(); closeLangModal(); }
+  });
+
   /* Scroll reveal. The displaced starting state is set from JS so that a
      visitor without JS (or with it broken) still sees every product rather
      than a page of invisible elements. */
@@ -550,6 +607,7 @@
     t: t, money: money, getLang: getLang, setLang: setLang,
     applyI18n: applyI18n, initReveal: initReveal, boot: boot,
     openLangModal: openLangModal, btnLabel: btnLabel,
+    openMenu: openMenu, closeMenu: closeMenu,
     getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme
   };
 })(window);

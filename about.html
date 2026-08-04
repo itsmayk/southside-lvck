@@ -44,107 +44,107 @@
 <link rel="stylesheet" href="shop.css">
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
-  /* full-viewport-width clip stage (safe: main is a sibling of the sticky
-     topbar, not its ancestor) so the giant title can hang off the screen edge */
+  /* ===== About — an editorial / manifesto space ===== */
   .about {
     position: relative;
-    padding: clamp(40px, 9vh, 100px) 0 0;
-    overflow: hidden;            /* clips the oversized title's bleed + the flame */
+    overflow: hidden;                 /* holds the grain layer */
+    padding: clamp(34px, 7vh, 82px) 0 clamp(64px, 11vh, 120px);
   }
-  /* the readable content column, centred; the title escapes it to the left */
   .about-inner {
     position: relative;
     z-index: 1;
-    max-width: 860px;
+    max-width: 940px;
     margin: 0 auto;
-    padding: 0 clamp(20px, 5vw, 40px);
+    padding: 0 clamp(20px, 5vw, 44px);
   }
 
-  /* ---- smoke / granite / film-noise texture (theme-aware, no asset) ---- */
-  .about-noise {
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20width%3D'300'%20height%3D'300'%3E%3Cfilter%20id%3D'n'%3E%3CfeTurbulence%20type%3D'fractalNoise'%20baseFrequency%3D'0.55'%20numOctaves%3D'5'%20stitchTiles%3D'stitch'%2F%3E%3CfeColorMatrix%20type%3D'saturate'%20values%3D'0'%2F%3E%3CfeComponentTransfer%3E%3CfeFuncR%20type%3D'linear'%20slope%3D'2.4'%20intercept%3D'-0.7'%2F%3E%3CfeFuncG%20type%3D'linear'%20slope%3D'2.4'%20intercept%3D'-0.7'%2F%3E%3CfeFuncB%20type%3D'linear'%20slope%3D'2.4'%20intercept%3D'-0.7'%2F%3E%3C%2FfeComponentTransfer%3E%3C%2Ffilter%3E%3Crect%20width%3D'100%25'%20height%3D'100%25'%20filter%3D'url(%23n)'%2F%3E%3C%2Fsvg%3E");
-    background-size: 280px 280px;
-    background-repeat: repeat;
-    opacity: 0.42;
-    mix-blend-mode: multiply;   /* dark grain over the bone background */
-    pointer-events: none;
-    z-index: 0;
+  /* --- hero --- */
+  .about-hero { margin-bottom: clamp(28px, 5vh, 50px); }
+  .hero-meta {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin-bottom: 12px;
   }
-  /* on the dark theme, screen it so the grain reads as light speckle instead */
-  :root[data-theme="dark"] .about-noise { opacity: 0.4; mix-blend-mode: screen; }
-
-  /* ---- oversized left-bleeding hero title ---- */
-  .about-hero { text-align: left; margin-bottom: clamp(42px, 7vh, 74px); }
-  .about-hero .eyebrow { margin-bottom: 14px; }
-  .about h1.chrome {
-    font-size: clamp(58px, 19vw, 190px);
-    line-height: 0.9;
-    opacity: 0.7;                /* softer, so the noise reads through it */
-    /* wraps to two lines ("El" / "origen") so the whole word stays readable */
-    margin: 0.06em 0 0;
-    /* pull the word fully out of the column so the INK touches / bleeds the
-       screen's left edge: cancel the centering offset, eat the whole gutter,
-       then add ~0.4em to compensate the font's left side-bearing (scales with size) */
-    margin-left: calc(-1 * max(0px, 50vw - 430px) - clamp(20px, 5vw, 40px) - 0.4em);
-    /* idle float (uses `translate`) + one-shot slide-in (uses `transform`) — no clash */
+  .hero-meta .meta-tick {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted); opacity: 0.75;
+  }
+  /* faint monumental headline — fits fully (never clipped), 25% opacity */
+  .about h1.chrome.ghost {
+    font-size: clamp(34px, 9vw, 150px);
+    line-height: 0.92;
+    opacity: 0.25;
+    margin: 0.04em 0 0;
     animation: chromeFloat 3.4s var(--ease-loop) infinite,
-               aboutSlideIn 1s var(--ease) both;
+               aboutSlideIn 0.95s var(--ease) both;
     animation-timeline: auto;
     animation-range: normal;
     will-change: transform, translate;
   }
   @keyframes aboutSlideIn {
-    from { transform: translateX(-120%); opacity: 0; }
-    55%  { opacity: 0.7; }
-    to   { transform: translateX(0);     opacity: 0.7; }
+    from { transform: translateX(-42px); opacity: 0; }
+    to   { transform: translateX(0);     opacity: 0.25; }
   }
   .about .lead {
-    margin: 22px 0 0;
-    max-width: 46ch;
-    font-size: clamp(16px, 1.9vw, 19px);
-    line-height: 1.7;
-    color: var(--muted);
+    margin: clamp(8px, 2vh, 20px) 0 0;
+    max-width: 34ch;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(19px, 2.6vw, 30px);
+    line-height: 1.4;
+    color: var(--ink);
   }
-  .about-body {
-    margin-top: clamp(48px, 9vh, 92px);
-    display: grid;
-    gap: clamp(34px, 6vh, 58px);
-  }
-  .about .blk h2 {
-    font-family: 'Cinzel', serif; font-weight: 600;
-    font-size: clamp(18px, 2.4vw, 24px);
-    letter-spacing: 0.06em; text-transform: uppercase;
-    margin-bottom: 12px;
-    padding-bottom: 12px;
+
+  /* --- coordinates strip (futuristic meta) --- */
+  .about-coords {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.26em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 16px 0; margin-top: clamp(24px, 4vh, 40px);
+    border-top: 1px solid var(--hairline);
     border-bottom: 1px solid var(--hairline);
   }
-  .about .blk p {
-    font-size: clamp(15px, 1.7vw, 17px);
-    line-height: 1.75; color: var(--muted); max-width: 62ch;
+  .about-coords .sep { opacity: 0.4; }
+
+  /* --- numbered chapters --- */
+  .chapters { margin-top: clamp(40px, 7vh, 72px); display: grid; gap: clamp(30px, 5vh, 54px); }
+  .chap {
+    display: grid;
+    grid-template-columns: clamp(66px, 10vw, 120px) 1fr;
+    gap: clamp(16px, 3vw, 44px);
+    align-items: start;
   }
-  .about-close {
-    margin: clamp(48px, 9vh, 92px) auto 0;
-    text-align: center;
-    font-family: 'Cinzel', serif;
-    font-size: clamp(17px, 2.4vw, 23px);
-    letter-spacing: 0.04em;
-    line-height: 1.4;
-    max-width: 26ch;
+  @media (max-width: 620px) { .chap { grid-template-columns: 1fr; gap: 10px; } }
+  .chap-n {
+    font-family: 'Cinzel', serif; font-weight: 700;
+    font-size: clamp(40px, 7vw, 88px); line-height: 0.85;
+    color: transparent;
+    -webkit-text-stroke: 1px var(--pearl);
+    letter-spacing: 0.01em;
   }
-  .about .btn { margin: clamp(34px, 6vh, 54px) auto 0; }
+  .chap-body h2 {
+    font-family: 'Cinzel', serif; font-weight: 600;
+    font-size: clamp(17px, 2.2vw, 23px); letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 12px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .chap-body p { font-size: clamp(15px, 1.6vw, 17px); line-height: 1.75; color: var(--muted); max-width: 60ch; }
+
+  /* --- closing statement --- */
+  .statement {
+    margin: clamp(50px, 9vh, 96px) 0 0;
+    font-family: 'Cinzel', serif; font-weight: 600;
+    font-size: clamp(23px, 4.2vw, 48px); line-height: 1.22; letter-spacing: 0.01em;
+    max-width: 18ch;
+  }
+  .about .btn { margin: clamp(34px, 6vh, 54px) 0 0; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <header class="site-head">
-    <nav class="head-links head-nav">
-      <a href="shop.html" data-i18n="nav.shop">Tienda</a>
-      <a href="gallery.html" data-i18n="nav.gallery">Galería</a>
-      <a href="about.html" data-i18n="nav.about">Nosotros</a>
-    </nav>
+    <button type="button" class="menu-btn" data-open-menu aria-label="Menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
     <a class="mark" href="shop.html" aria-label="LVCK">
       <img src="logo-w.png" alt="LVCK">
     </a>
@@ -160,32 +160,52 @@
 </div>
 
 <main class="about">
-  <div class="about-noise" aria-hidden="true"></div>
+  <div class="tex-noise" aria-hidden="true"></div>
   <div class="about-inner">
-  <section class="about-hero">
-    <div class="eyebrow" data-i18n="about.eyebrow">Nosotros</div>
-    <h1 class="chrome" data-i18n="about.title">El origen</h1>
-    <p class="lead" data-i18n="about.lead">LVCK no nació en una tienda. Nació en la calle, en el sur, donde la ropa dice más que las palabras.</p>
-  </section>
 
-  <section class="about-body">
-    <div class="blk">
-      <h2 data-i18n="about.s1.t">Cómo empezó</h2>
-      <p data-i18n="about.s1.p">Empezó en [año], en [ciudad], con una idea simple y terca: hacer piezas cortas, honestas, que se sientan tuyas.</p>
-    </div>
-    <div class="blk">
-      <h2 data-i18n="about.s2.t">El desarrollo</h2>
-      <p data-i18n="about.s2.p">De los primeros bocetos a los primeros drops, cada colección fue un experimento.</p>
-    </div>
-    <div class="blk">
-      <h2 data-i18n="about.s3.t">Hacia dónde vamos</h2>
-      <p data-i18n="about.s3.p">South Side es el próximo capítulo — de Colombia para el mundo.</p>
-    </div>
-  </section>
+    <header class="about-hero">
+      <div class="hero-meta">
+        <span class="eyebrow" data-i18n="about.eyebrow">Nosotros</span>
+        <span class="meta-tick">// LVCK — Manifiesto</span>
+      </div>
+      <h1 class="chrome ghost" data-i18n="about.title">El origen</h1>
+      <p class="lead" data-i18n="about.lead">LVCK no nació en una tienda. Nació en la calle, en el sur, donde la ropa dice más que las palabras.</p>
+    </header>
 
-  <div class="about-close" data-i18n="about.close">Esto no es solo ropa. Es de dónde venimos.</div>
+    <div class="about-coords" data-reveal="up">
+      <span>Est. [año]</span><span class="sep">—</span>
+      <span>[ciudad]</span><span class="sep">—</span>
+      <span>Colombia</span>
+    </div>
 
-  <a class="btn" href="shop.html"><span class="lbl" data-i18n="nav.shop">Tienda</span></a>
+    <section class="chapters">
+      <article class="chap" data-reveal="up">
+        <div class="chap-n">01</div>
+        <div class="chap-body">
+          <h2 data-i18n="about.s1.t">Cómo empezó</h2>
+          <p data-i18n="about.s1.p">Empezó en [año], en [ciudad], con una idea simple y terca: hacer piezas cortas, honestas, que se sientan tuyas.</p>
+        </div>
+      </article>
+      <article class="chap" data-reveal="up" data-reveal-delay="0.08">
+        <div class="chap-n">02</div>
+        <div class="chap-body">
+          <h2 data-i18n="about.s2.t">El desarrollo</h2>
+          <p data-i18n="about.s2.p">De los primeros bocetos a los primeros drops, cada colección fue un experimento.</p>
+        </div>
+      </article>
+      <article class="chap" data-reveal="up" data-reveal-delay="0.16">
+        <div class="chap-n">03</div>
+        <div class="chap-body">
+          <h2 data-i18n="about.s3.t">Hacia dónde vamos</h2>
+          <p data-i18n="about.s3.p">South Side es el próximo capítulo — de Colombia para el mundo.</p>
+        </div>
+      </article>
+    </section>
+
+    <p class="statement" data-reveal="up" data-i18n="about.close">Esto no es solo ropa. Es de dónde venimos.</p>
+
+    <a class="btn" href="shop.html"><span class="lbl" data-i18n="nav.shop">Tienda</span></a>
+
   </div>
 </main>
 
@@ -219,7 +239,6 @@
 
 <script src="shop-common.js"></script>
 <script>
-  /* Instagram picker: open the little modal instead of leaving the page. */
   (function () {
     function openIg()  { var m = document.getElementById("ig-modal"); if (m) m.classList.add("open"); }
     function closeIg() { var m = document.getElementById("ig-modal"); if (m) m.classList.remove("open"); }
@@ -231,6 +250,7 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeIg(); });
   })();
   LVCK.boot();
+  LVCK.initReveal();
 </script>
 <script src="music.js"></script>
 </body>

@@ -44,61 +44,116 @@
 <link rel="stylesheet" href="shop.css">
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
+  /* ===== Gallery — an archive / database space ===== */
   .gallery {
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: clamp(40px, 9vh, 110px) clamp(16px, 4vw, 48px) 0;
+    position: relative;
+    overflow: hidden;
+    padding: clamp(34px, 7vh, 82px) 0 clamp(64px, 11vh, 120px);
   }
-  .gallery-hero { text-align: center; margin-bottom: clamp(40px, 7vh, 72px); }
-  .gallery-hero .eyebrow { margin-bottom: 16px; }
+  .gallery-inner {
+    position: relative; z-index: 1;
+    max-width: 1200px; margin: 0 auto;
+    padding: 0 clamp(20px, 5vw, 44px);
+  }
+
+  /* --- hero --- */
+  .gallery-hero { margin-bottom: clamp(26px, 4vh, 44px); }
+  .hero-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+  .hero-meta .meta-tick {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted); opacity: 0.75;
+  }
   .gallery h1.chrome {
-    font-size: clamp(38px, 10vw, 82px);
-    animation: chromeFloat 3.4s var(--ease-loop) infinite;
-    animation-timeline: auto;
-    animation-range: normal;
+    font-size: clamp(34px, 8vw, 132px);
+    line-height: 0.94; margin: 0.04em 0 0;
+    animation: chromeFloat 3.4s var(--ease-loop) infinite,
+               galIn 0.9s var(--ease) both;
+    animation-timeline: auto; animation-range: normal;
+    will-change: transform, translate;
   }
+  @keyframes galIn { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
   .gallery .lead {
-    margin: 22px auto 0; max-width: 46ch;
-    font-size: clamp(16px, 1.9vw, 19px); line-height: 1.7; color: var(--muted);
+    margin: clamp(10px, 2vh, 20px) 0 0; max-width: 48ch;
+    font-size: clamp(16px, 1.9vw, 19px); line-height: 1.6; color: var(--muted);
   }
-  .gallery .soon {
-    margin-top: 18px; font-size: 11px; letter-spacing: 0.28em;
-    text-transform: uppercase; color: var(--pending);
+
+  /* --- live status strip --- */
+  .gal-status {
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.24em;
+    text-transform: uppercase; color: var(--muted);
+    padding: 15px 0; margin-top: clamp(22px, 4vh, 38px);
+    border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);
   }
-  .gcat { margin-top: clamp(40px, 7vh, 72px); }
-  .gcat h2 {
+  .gal-status .sep { opacity: 0.4; }
+  .gal-status .live-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--pending);
+    display: inline-block; margin-right: 8px; animation: galPulse 1.6s var(--ease-loop) infinite;
+  }
+  @keyframes galPulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  /* --- collections --- */
+  .collections { margin-top: clamp(38px, 6vh, 66px); display: grid; gap: clamp(44px, 8vh, 82px); }
+  .col-head {
+    display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 16px;
+    padding-bottom: 14px; margin-bottom: clamp(14px, 2vh, 22px);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .col-code {
+    font-family: 'Cinzel', serif; font-weight: 700;
+    font-size: clamp(22px, 3.4vw, 36px); line-height: 0.8;
+    color: transparent; -webkit-text-stroke: 1px var(--pearl);
+  }
+  .col-head h2 {
     font-family: 'Cinzel', serif; font-weight: 600;
-    font-size: 13px; letter-spacing: 0.24em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 20px;
+    font-size: clamp(15px, 2vw, 21px); letter-spacing: 0.14em; text-transform: uppercase;
   }
-  .ggrid {
+  .col-count {
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted); text-align: right;
+  }
+  .col-count .num { color: var(--ink); }
+
+  .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: clamp(12px, 2vw, 20px);
+    grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 20vw, 188px), 1fr));
+    gap: clamp(10px, 1.4vw, 16px);
   }
-  /* empty archive slots — drop images in later */
-  .gtile {
-    aspect-ratio: 4 / 5;
-    background: var(--bone-deep);
-    border: 1px dashed var(--hairline);
-    border-radius: 2px;
-    display: grid; place-items: center;
-    color: var(--hairline);
-    transition: border-color 0.25s var(--ease), color 0.25s var(--ease);
+  .slot {
+    position: relative; aspect-ratio: 4 / 5;
+    background: var(--bone-deep); border: 1px solid var(--hairline);
+    overflow: hidden; transition: border-color 0.3s var(--ease);
   }
-  .gtile::after { content: "+"; font-size: clamp(20px, 3vw, 30px); font-weight: 300; }
-  .gtile:hover { border-color: var(--muted); color: var(--muted); }
+  .slot.wide { grid-column: span 2; aspect-ratio: 16 / 10; }
+  @media (max-width: 460px) { .slot.wide { grid-column: span 1; aspect-ratio: 4 / 5; } }
+  .slot:hover { border-color: var(--pearl); }
+  .slot .code {
+    position: absolute; top: 10px; left: 12px; z-index: 2;
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.2em; color: var(--muted);
+  }
+  .slot::before {
+    content: "+"; position: absolute; inset: 0; display: grid; place-items: center;
+    color: var(--hairline); font-size: clamp(20px, 3vw, 30px); font-weight: 300;
+    transition: color 0.3s var(--ease);
+  }
+  .slot:hover::before { color: var(--muted); }
+  /* scanline sweep on hover — the database "reading" a slot */
+  .slot::after {
+    content: ""; position: absolute; left: 0; right: 0; height: 42%; top: -45%;
+    background: linear-gradient(to bottom, transparent, rgba(127,127,120,0.14), transparent);
+    opacity: 0; pointer-events: none;
+  }
+  .slot:hover::after { opacity: 1; animation: slotScan 1.3s var(--ease-loop) infinite; }
+  @keyframes slotScan { from { transform: translateY(0); } to { transform: translateY(360%); } }
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <header class="site-head">
-    <nav class="head-links head-nav">
-      <a href="shop.html" data-i18n="nav.shop">Tienda</a>
-      <a href="gallery.html" data-i18n="nav.gallery">Galería</a>
-      <a href="about.html" data-i18n="nav.about">Nosotros</a>
-    </nav>
+    <button type="button" class="menu-btn" data-open-menu aria-label="Menú" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
     <a class="mark" href="shop.html" aria-label="LVCK">
       <img src="logo-w.png" alt="LVCK">
     </a>
@@ -114,34 +169,73 @@
 </div>
 
 <main class="gallery">
-  <section class="gallery-hero">
-    <div class="eyebrow" data-i18n="gallery.eyebrow">Galería</div>
-    <h1 class="chrome" data-i18n="gallery.title">El archivo</h1>
-    <p class="lead" data-i18n="gallery.lead">Un vistazo a lo que hemos creado — prendas, identidad, proceso.</p>
-    <div class="soon" data-i18n="gallery.soon">Archivo en construcción</div>
-  </section>
+  <div class="tex-noise" aria-hidden="true"></div>
+  <div class="gallery-inner">
 
-  <section class="gcat">
-    <h2 data-i18n="gallery.cat1">Prendas</h2>
-    <div class="ggrid">
-      <div class="gtile"></div><div class="gtile"></div><div class="gtile"></div>
-      <div class="gtile"></div><div class="gtile"></div><div class="gtile"></div>
-    </div>
-  </section>
+    <header class="gallery-hero">
+      <div class="hero-meta">
+        <span class="eyebrow" data-i18n="gallery.eyebrow">Galería</span>
+        <span class="meta-tick">// LVCK — Archivo</span>
+      </div>
+      <h1 class="chrome" data-i18n="gallery.title">El archivo</h1>
+      <p class="lead" data-i18n="gallery.lead">Un vistazo a lo que hemos creado — prendas, identidad, proceso.</p>
+    </header>
 
-  <section class="gcat">
-    <h2 data-i18n="gallery.cat2">Identidad</h2>
-    <div class="ggrid">
-      <div class="gtile"></div><div class="gtile"></div><div class="gtile"></div>
+    <div class="gal-status" data-reveal="up">
+      <span><span class="live-dot"></span><span data-i18n="gallery.soon">Archivo en construcción</span></span>
+      <span class="sep">—</span>
+      <span>03 <span data-i18n="gallery.cat1">Prendas</span> / <span data-i18n="gallery.cat2">Identidad</span> / <span data-i18n="gallery.cat3">Proceso</span></span>
     </div>
-  </section>
 
-  <section class="gcat">
-    <h2 data-i18n="gallery.cat3">Proceso</h2>
-    <div class="ggrid">
-      <div class="gtile"></div><div class="gtile"></div><div class="gtile"></div>
+    <div class="collections">
+
+      <section class="collection" data-reveal="up">
+        <div class="col-head">
+          <span class="col-code">A</span>
+          <h2 data-i18n="gallery.cat1">Prendas</h2>
+          <span class="col-count"><span class="num">06</span> · <span data-i18n="gallery.soon">Archivo en construcción</span></span>
+        </div>
+        <div class="grid">
+          <div class="slot wide"><span class="code">A-01</span></div>
+          <div class="slot"><span class="code">A-02</span></div>
+          <div class="slot"><span class="code">A-03</span></div>
+          <div class="slot"><span class="code">A-04</span></div>
+          <div class="slot"><span class="code">A-05</span></div>
+          <div class="slot"><span class="code">A-06</span></div>
+        </div>
+      </section>
+
+      <section class="collection" data-reveal="up">
+        <div class="col-head">
+          <span class="col-code">B</span>
+          <h2 data-i18n="gallery.cat2">Identidad</h2>
+          <span class="col-count"><span class="num">04</span> · <span data-i18n="gallery.soon">Archivo en construcción</span></span>
+        </div>
+        <div class="grid">
+          <div class="slot"><span class="code">B-01</span></div>
+          <div class="slot"><span class="code">B-02</span></div>
+          <div class="slot wide"><span class="code">B-03</span></div>
+          <div class="slot"><span class="code">B-04</span></div>
+        </div>
+      </section>
+
+      <section class="collection" data-reveal="up">
+        <div class="col-head">
+          <span class="col-code">C</span>
+          <h2 data-i18n="gallery.cat3">Proceso</h2>
+          <span class="col-count"><span class="num">05</span> · <span data-i18n="gallery.soon">Archivo en construcción</span></span>
+        </div>
+        <div class="grid">
+          <div class="slot"><span class="code">C-01</span></div>
+          <div class="slot"><span class="code">C-02</span></div>
+          <div class="slot"><span class="code">C-03</span></div>
+          <div class="slot wide"><span class="code">C-04</span></div>
+          <div class="slot"><span class="code">C-05</span></div>
+        </div>
+      </section>
+
     </div>
-  </section>
+  </div>
 </main>
 
 <footer class="site-foot">
@@ -185,6 +279,7 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeIg(); });
   })();
   LVCK.boot();
+  LVCK.initReveal();
 </script>
 <script src="music.js"></script>
 </body>
