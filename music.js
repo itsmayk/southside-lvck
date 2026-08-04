@@ -111,15 +111,18 @@
     var s = document.createElement("style");
     s.id = STYLE_ID;
     s.textContent =
-      "#" + BTN_ID + "{position:fixed;right:20px;bottom:74px;z-index:120;width:46px;height:46px;" +
-      "border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#9a9a9a;" +
-      "border:1px solid rgba(255,255,255,.14);background:rgba(150,150,150,.12);" +
-      "-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2);opacity:.62;" +
-      "box-shadow:0 6px 20px -8px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.14);" +
-      "transition:opacity .25s ease,transform .25s ease,color .25s ease;}" +
-      "#" + BTN_ID + ":hover{opacity:1;color:#d8d8d8;transform:scale(1.06);}" +
-      "#" + BTN_ID + ".off{opacity:.5;}" +
-      "#" + BTN_ID + " svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;" +
+      /* matches the theme-switch glass exactly (same tokens, size, shadow, hover) */
+      "#" + BTN_ID + "{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:74px;z-index:120;width:46px;height:46px;" +
+      "border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--ink);" +
+      "border:1px solid rgba(255,255,255,.16);background:rgba(245,245,240,.34);" +
+      "-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2);" +
+      "box-shadow:0 6px 20px -8px rgba(10,10,10,.25),inset 0 1px 0 rgba(255,255,255,.16);" +
+      "transition:border-color .3s ease,transform .3s ease,box-shadow .3s ease,opacity .25s ease;}" +
+      ":root[data-theme=\"dark\"] #" + BTN_ID + "{background:rgba(35,35,32,.34);border-color:rgba(255,255,255,.08);" +
+      "box-shadow:0 6px 20px -8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.07);}" +
+      "#" + BTN_ID + ":hover{color:var(--ink);border-color:var(--ink);transform:translateY(-2px);box-shadow:0 7px 22px -8px rgba(10,10,10,.32);}" +
+      "#" + BTN_ID + ".off{opacity:.55;}" +
+      "#" + BTN_ID + " svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.6;" +
       "stroke-linecap:round;stroke-linejoin:round;}" +
       "#" + BTN_ID + " .x{stroke-width:1.9;}";
     (document.head || document.documentElement).appendChild(s);

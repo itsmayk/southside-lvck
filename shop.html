@@ -179,21 +179,19 @@
   @keyframes selShadow { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(0.82); opacity: 0.7; } }
 
   /* arrows */
+  /* minimal thin chevrons — no button chrome, sized down to match the reduced rack */
   .sel-arrow {
-    position: absolute; top: 50%; margin-top: -27px;
-    width: 54px; height: 54px; display: grid; place-items: center;
-    border: 1px solid var(--hairline); border-radius: 50%;
-    background: var(--bone-deep);   /* fallback for browsers without color-mix */
-    background: color-mix(in srgb, var(--bone) 70%, transparent);
-    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    position: absolute; top: 50%; margin-top: -20px;
+    width: 40px; height: 40px; display: grid; place-items: center;
+    border: none; background: none; padding: 0;
     color: var(--muted); cursor: pointer; z-index: 20;
     opacity: 0; pointer-events: none;   /* revealed with the garments, not before */
     transition: opacity 0.5s var(--ease), transform 0.3s var(--ease), color 0.3s var(--ease);
   }
-  .sel-arrow:hover { opacity: 1; color: var(--ink); transform: scale(1.08); }
+  .sel-arrow:hover { opacity: 1; color: var(--ink); transform: scale(1.14); }
   .sel-arrow.left { left: clamp(8px, 4vw, 48px); animation: selNudgeL 2.6s var(--ease-loop) infinite; }
   .sel-arrow.right { right: clamp(8px, 4vw, 48px); animation: selNudgeR 2.6s var(--ease-loop) infinite; }
-  .sel-arrow svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
+  .sel-arrow svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; }
   @keyframes selNudgeL { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-5px); } }
   @keyframes selNudgeR { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(5px); } }
 
@@ -255,7 +253,8 @@
 
   @media (max-width: 560px) {
     .sel-stage { height: min(62vh, 520px); }
-    .sel-arrow { width: 44px; height: 44px; margin-top: -22px; }
+    .sel-arrow { width: 34px; height: 34px; margin-top: -17px; }
+    .sel-arrow svg { width: 16px; height: 16px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .sel-item.center .sel-obj, .sel-item.center::after, .sel-arrow { animation: none !important; }
