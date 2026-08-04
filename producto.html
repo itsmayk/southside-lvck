@@ -498,11 +498,22 @@
 
   function choose(size) {
     if (stock && stock[size.slug] === false) return;
+    var buy = document.getElementById("buy");
+
+    // tap the already-selected size again → deselect it, back to "Elige"
+    if (chosen && chosen.slug === size.slug) {
+      chosen = null;
+      document.querySelectorAll("#sizes .size").forEach(function (b) { b.classList.remove("on"); });
+      buy.classList.add("is-disabled");
+      buy.removeAttribute("href");
+      LVCK.btnLabel(buy).textContent = LVCK.t("p.pickFirst");
+      return;
+    }
+
     chosen = size;
     document.querySelectorAll("#sizes .size").forEach(function (b) {
       b.classList.toggle("on", b.dataset.slug === size.slug);
     });
-    var buy = document.getElementById("buy");
     buy.classList.remove("is-disabled");
     buy.href = size.url; // Stripe fallback, used only if Bold isn't configured
     // the label stays one word: the chosen size is already lit up right above
