@@ -88,6 +88,9 @@
     border-radius: clamp(14px, 2.5vw, 22px);
     border: 1px solid var(--glass-edge);
   }
+  /* trim only the main photo a touch on desktop; thumbnails keep their size.
+     (on mobile the image is already reduced by the gallery cap, so leave it.) */
+  @media (min-width: 861px) { .stage { max-width: 84%; } }
   .stage img {
     position: absolute;
     inset: 0;
