@@ -877,7 +877,7 @@ h1.display {
 .menu-btn {
   --mw: 26px;
   display: inline-flex; flex-direction: column; justify-content: center;
-  gap: 6px; width: 42px; height: 42px; padding: 0; margin-left: -8px;
+  gap: 6px; width: 42px; height: 42px; padding: 0; margin-left: 0;
   background: none; border: none; cursor: pointer;
 }
 .menu-btn span {
