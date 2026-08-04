@@ -19,6 +19,11 @@
   --pending: #B03A2E;     /* copy the brand still has to write */
   --topbar: rgba(245, 245, 240, 0.86);
   --scrim: rgba(10, 10, 10, 0.35);   /* behind the size guide */
+  /* liquid-glass tokens (theme-aware): reused by every rounded glass surface */
+  --glass: rgba(245, 245, 240, 0.34);        /* controls / chips */
+  --glass-strong: rgba(245, 245, 240, 0.66); /* pop-up cards */
+  --glass-edge: rgba(255, 255, 255, 0.18);   /* the light rim */
+  --round: 14px;                              /* the shared corner radius */
   --logo-invert: 1;       /* logo-w.png is white; invert it on a pale page */
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
   /* the idle animations: nearer constant speed than ease-in-out, which loiters
@@ -42,6 +47,9 @@
   --pending: #E0806E;     /* the light-mode red goes muddy on charcoal */
   --topbar: rgba(35, 35, 32, 0.86);
   --scrim: rgba(0, 0, 0, 0.55);
+  --glass: rgba(35, 35, 32, 0.32);
+  --glass-strong: rgba(35, 35, 32, 0.62);
+  --glass-edge: rgba(255, 255, 255, 0.09);
   --logo-invert: 0;       /* white logo, already right on a dark page */
   color-scheme: dark;
 }
@@ -786,8 +794,16 @@ h1.display {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  width: min(320px, 86vw);
+  width: min(340px, 86vw);
   text-align: center;
+  /* a defined glass window inside the frosted backdrop */
+  padding: clamp(24px, 5vw, 38px);
+  border-radius: clamp(18px, 3vw, 26px);
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-edge);
+  backdrop-filter: blur(30px) saturate(1.3);
+  -webkit-backdrop-filter: blur(30px) saturate(1.3);
+  box-shadow: 0 30px 60px -34px rgba(10, 10, 10, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .lang-modal .panel > .eyebrow { margin-bottom: 8px; }
@@ -798,16 +814,19 @@ h1.display {
   justify-content: center;
   gap: 14px;
   padding: 15px 20px;
-  border: 1px solid var(--ink);
-  background: transparent;
+  border: 1px solid var(--glass-edge);
+  border-radius: 12px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: var(--ink);
   font-family: 'Playfair Display', serif;
   font-size: 15px;
   cursor: pointer;
-  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
 }
 
-.lang-btn:hover { background: var(--ink); color: var(--bone); }
+.lang-btn:hover { background: var(--ink); color: var(--bone); border-color: var(--ink); }
 
 /* Instagram picker — reuses the .lang-modal shell, a few tweaks on top */
 .ig-modal .lang-btn { text-decoration: none; gap: 12px; }

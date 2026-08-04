@@ -120,8 +120,11 @@
   .chip {
     font-family: 'Cinzel', serif;
     font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--ink); background: transparent;
-    border: 1px solid var(--hairline); border-radius: 999px;
+    color: var(--ink);
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-edge); border-radius: 999px;
     padding: 11px 20px; cursor: pointer;
     transition: border-color 0.25s var(--ease), color 0.25s var(--ease);
   }

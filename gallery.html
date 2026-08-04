@@ -124,6 +124,7 @@
   .slot {
     position: relative; aspect-ratio: 4 / 5;
     background: var(--bone-deep); border: 1px solid var(--hairline);
+    border-radius: clamp(10px, 1.4vw, 16px);
     overflow: hidden; transition: border-color 0.3s var(--ease);
   }
   .slot.wide { grid-column: span 2; aspect-ratio: 16 / 10; }
