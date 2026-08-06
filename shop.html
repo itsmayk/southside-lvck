@@ -490,12 +490,18 @@
 
       var item = document.createElement("div");
       item.className = "sel-item";
-      item.addEventListener("click", function () {
-        if (moved) return;                        // that was a swipe/drag, not a tap
-        // only the centred (in-focus, "correct") photo opens its product; tapping
-        // a blurred side preview brings it into focus first, so a tap never jumps
-        // to a garment other than the one you're actually looking at
-        if (i === current) location.href = link(products[i]);
+      // Tap detection lives on the item itself (down→up travel), independent of
+      // the section-level swipe guard — that guard was over-eagerly swallowing
+      // taps on the big centre photo, so the middle image "didn't open". A tap
+      // barely moves; a swipe travels.
+      var downX = 0, downY = 0;
+      item.addEventListener("pointerdown", function (e) { downX = e.clientX; downY = e.clientY; });
+      item.addEventListener("click", function (e) {
+        if (Math.hypot(e.clientX - downX, e.clientY - downY) > 12) return;   // was a swipe
+        // ONLY the centred (in-focus) photo opens its product; tapping a blurred
+        // side preview just brings it into focus, so a tap never jumps to a
+        // garment other than the one you're looking at
+        if (item.classList.contains("center")) location.href = link(products[i]);
         else select(i);
       });
 
