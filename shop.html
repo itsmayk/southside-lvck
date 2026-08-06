@@ -264,35 +264,102 @@
     .shop-selector.in .sel-slot { transition: none; }
   }
 
-  /* ---------- how to buy ---------- */
+  /* ---------- how to buy ----------
+     A floating glass panel (not a flat full-bleed block) that carries the same
+     rounded-glass language as the topbar / modals, with big outlined-tribal
+     numerals matching the About chapters. */
   .how {
-    max-width: 1180px;
+    width: min(1180px, calc(100% - clamp(24px, 6vw, 64px)));
     margin: clamp(64px, 12vh, 130px) auto 0;
-    padding: clamp(40px, 7vh, 72px) clamp(16px, 4vw, 48px);
+    padding: clamp(34px, 6vh, 60px) clamp(18px, 3.4vw, 44px) clamp(40px, 7vh, 66px);
     background: var(--bone-deep);
+    border: 1px solid var(--glass-edge);
+    border-radius: clamp(20px, 3vw, 34px);
   }
   .how h2 {
     font-family: 'Cinzel', serif;
     font-size: clamp(20px, 2.6vw, 28px);
+    text-align: center;
     margin-bottom: clamp(28px, 5vh, 48px);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
   .steps {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: clamp(24px, 4vw, 48px);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: clamp(14px, 2vw, 24px);
   }
+  /* each step is its own frosted card that lifts on hover */
+  .step {
+    position: relative;
+    padding: clamp(22px, 3vw, 30px) clamp(20px, 2.4vw, 26px) clamp(24px, 3.4vw, 32px);
+    border: 1px solid var(--glass-edge);
+    border-radius: var(--round);
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    transition: transform 0.4s var(--ease), border-color 0.4s var(--ease), box-shadow 0.4s var(--ease);
+  }
+  .step:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--ink) 22%, transparent);
+    box-shadow: 0 18px 34px -22px rgba(10, 10, 10, 0.4);
+  }
+  /* big hollow tribal numeral — same treatment as the About chapters */
   .step .n {
     font-family: 'Cinzel', serif;
-    font-size: 12px;
-    letter-spacing: 0.3em;
-    color: var(--muted);
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--hairline);
-    margin-bottom: 14px;
+    font-size: clamp(42px, 6vw, 64px);
+    line-height: 0.9;
+    letter-spacing: 0;
+    color: transparent;
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--ink) 32%, transparent);
+    margin-bottom: clamp(12px, 1.6vw, 18px);
   }
-  .step h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
-  .step p { font-size: 14px; line-height: 1.6; color: var(--muted); }
+  .step h3 {
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 9px;
+  }
+  .step p { font-size: 14px; line-height: 1.65; color: var(--muted); }
+  @media (max-width: 560px) {
+    .how { width: calc(100% - 24px); }
+  }
+
+  /* ---------- loading skeleton ----------
+     A ghost garment + ghost readout lines with a soft shimmer, shown while
+     shop-config.json is in flight so the rack area never flashes empty. Built
+     from the same glass tokens as everything else; removed by build(). */
+  .sel-skeleton { padding-top: clamp(10px, 3vh, 34px); text-align: center; }
+  .sel-skeleton .sk-stage {
+    height: min(52vh, 440px);
+    display: grid; place-items: end center;
+  }
+  .sel-skeleton .sk-obj {
+    width: clamp(150px, 24vw, 244px); height: 100%;
+    border-radius: 22px 22px 34px 34px;
+  }
+  .sel-skeleton .sk-line { height: 14px; border-radius: 999px; margin: 14px auto 0; }
+  .sel-skeleton .sk-name  { width: min(60vw, 190px); height: 20px; margin-top: clamp(12px, 2.4vh, 26px); }
+  .sel-skeleton .sk-price { width: 90px; }
+  .sel-skeleton .sk-btn   { width: 160px; height: 30px; margin-top: 22px; }
+  .sel-skeleton .sk-obj,
+  .sel-skeleton .sk-line {
+    position: relative; overflow: hidden;
+    background: var(--glass);
+    border: 1px solid var(--glass-edge);
+  }
+  .sel-skeleton .sk-obj::after,
+  .sel-skeleton .sk-line::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(100deg,
+      transparent 30%, color-mix(in srgb, var(--ink) 9%, transparent) 50%, transparent 70%);
+    background-size: 220% 100%;
+    animation: skShimmer 1.4s var(--ease-loop) infinite;
+  }
+  @keyframes skShimmer { 0% { background-position: 130% 0; } 100% { background-position: -130% 0; } }
 
   /* shown in place of the rack if shop-config.json can't load */
   .missing {
@@ -339,7 +406,15 @@
   </div>
 </section>
 
-<main class="shop-selector" id="shop-selector" aria-roledescription="carrusel de prendas"></main>
+<main class="shop-selector" id="shop-selector" aria-roledescription="carrusel de prendas">
+  <!-- placeholder shown until shop-config.json loads; removed by build() -->
+  <div class="sel-skeleton" aria-hidden="true">
+    <div class="sk-stage"><div class="sk-obj"></div></div>
+    <div class="sk-line sk-name"></div>
+    <div class="sk-line sk-price"></div>
+    <div class="sk-line sk-btn"></div>
+  </div>
+</main>
 
 <section class="how">
   <h2 data-i18n="how.title">Cómo comprar</h2>
@@ -446,6 +521,9 @@
   function build(config) {
     products = config.products || [];
     N = products.length;
+
+    var sk = section.querySelector(".sel-skeleton");   // drop the loading placeholder
+    if (sk) sk.remove();
 
     stage = document.createElement("div");
     stage.className = "sel-stage";
