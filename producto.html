@@ -766,6 +766,27 @@
     LVCK.applyI18n(alsoEl);
   }
 
+  /* One-shot "this flame is a button" nudge, only the first time anyone opens a
+     product page (remembered in localStorage). It wiggles the CTA — which at
+     that point still says "Elige talla" — so a first-time visitor learns the
+     tribal is interactive before they hunt for a size. Skipped if the visitor
+     prefers reduced motion. */
+  function ctaFirstVisitHint() {
+    try { if (localStorage.getItem("ss-cta-hinted")) return; } catch (e) {}
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var buy = document.getElementById("buy");
+    if (!buy) return;
+    setTimeout(function () {
+      try { localStorage.setItem("ss-cta-hinted", "1"); } catch (e) {}
+      buy.classList.add("hint");
+      buy.addEventListener("animationend", function done(ev) {
+        if (ev.animationName !== "btnHint") return;   // ignore the float/breath loops
+        buy.classList.remove("hint");
+        buy.removeEventListener("animationend", done);
+      });
+    }, 1100);
+  }
+
   /* ---------- boot ---------- */
 
   function renderMissing() {
@@ -806,6 +827,7 @@
       LVCK.applyI18n();
       refreshDynamicCopy();
       LVCK.initReveal();
+      ctaFirstVisitHint();
 
       return fetch("/api/stock")
         .then(function (r) { return r.ok ? r.json() : null; })

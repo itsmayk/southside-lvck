@@ -511,6 +511,8 @@ h1.display {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  /* anchor for the shimmer streak (::before) so it can ride inside the flame */
+  position: relative;
   width: clamp(150px, 18vw, 174px);
   aspect-ratio: 1728 / 453.543;
   /* No percentage padding here. A percentage padding resolves against the
@@ -551,18 +553,75 @@ h1.display {
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  transition: filter 0.3s var(--ease), scale 0.35s var(--ease);
+  transition: filter 0.3s var(--ease), scale 0.2s var(--ease);
 
-  /* Same drift as the wordmark, so the metal reads as suspended over the page
-     rather than stamped onto it. It rides the standalone `translate` property
-     and hover rides `scale`, which are independent of each other — sharing one
-     `transform` would mean the hover wiped out the float mid-animation. */
-  animation: btnFloat 3.2s var(--ease-loop) infinite;
+  /* Two idle signals stack so a first-time visitor reads the flame as a live
+     control, not a logo: the wordmark's drift (`translate`) plus a slow
+     brightness "breath" (`filter`). They ride independent properties, and hover
+     pauses BOTH (see the play-state rule) so the metal settles under the
+     pointer. `scale` is left free for hover/press. */
+  animation: btnFloat 3.2s var(--ease-loop) infinite,
+             btnBreathe 4.2s var(--ease-loop) infinite;
+}
+
+/* Shimmer: a thin diagonal highlight sweeps across the flame every few seconds.
+   It's a ::before, so the button's own mask clips it to the flame silhouette —
+   the light reads as travelling over the metal. Sits below the .lbl (generated
+   content paints under real children), so it never washes out the label. */
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg,
+    transparent 42%, rgba(255, 255, 255, 0.5) 50%, transparent 58%);
+  background-size: 260% 100%;
+  background-position: 165% 0;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  animation: btnSheen 5.5s var(--ease-loop) infinite;
 }
 
 @keyframes btnFloat {
   0%, 100% { translate: 0 -3px; }
   50%      { translate: 0 3px; }
+}
+
+@keyframes btnBreathe {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.14); }
+}
+
+@keyframes btnSheen {
+  0%       { background-position: 165% 0; }
+  55%, 100% { background-position: -65% 0; }
+}
+
+/* one-shot wiggle used to point out the CTA on a visitor's first product view
+   (JS adds `.hint`, then removes it when the pass ends). It keeps the idle
+   float+breath and adds a rotate pass on top — `rotate` is its own property, so
+   it never fights the float's `translate` or the hover's `scale`. */
+.btn.hint {
+  transform-origin: center bottom;
+  animation: btnFloat 3.2s var(--ease-loop) infinite,
+             btnBreathe 4.2s var(--ease-loop) infinite,
+             btnHint 1.35s var(--ease) 1;
+}
+@keyframes btnHint {
+  0%, 100% { rotate: 0deg; }
+  16%      { rotate: -4deg; }
+  33%      { rotate: 3.4deg; }
+  50%      { rotate: -2.6deg; }
+  67%      { rotate: 1.8deg; }
+  84%      { rotate: -0.8deg; }
+}
+
+/* the hint must fire even while the CTA still reads "Elige talla" (disabled):
+   a newcomer needs to learn the flame is tappable BEFORE picking a size. The
+   disabled button stays otherwise inert, so here it runs the wiggle alone. */
+.btn.is-disabled.hint,
+.btn[disabled].hint {
+  transform-origin: center bottom;
+  animation: btnHint 1.35s var(--ease) 1;
 }
 
 /* two buttons side by side bobbing in lockstep look mechanical */
@@ -572,12 +631,17 @@ h1.display {
    stops: a target that keeps moving while you reach for it is a target you
    can miss. It settles under the pointer and under keyboard focus. */
 .btn:hover,
-.btn:focus-visible { animation-play-state: paused; }
+.btn:focus-visible,
+.btn:active { animation-play-state: paused; }
 .btn:hover { filter: brightness(1.22); scale: 1.04; }
 
 /* a focus ring would be clipped away by the mask, so focus reads as a
    brightening instead — keyboard users still see where they are */
 .btn:focus-visible { filter: brightness(1.35); outline: none; }
+
+/* press: the metal dips and flares, so a tap gets a physical confirmation
+   (reinforces "this is a button"). Beats the hover scale via later source order. */
+.btn:active { scale: 0.95; filter: brightness(1.32); }
 
 /* unavailable means flat: no chrome, no shine. Light enough to read as inert,
    dark enough that the label survives on it. */
@@ -586,7 +650,12 @@ h1.display {
   background: var(--pearl-off);
   filter: none;
   pointer-events: none;
+  /* nothing to invite yet: freeze the float/breath and drop the shimmer so the
+     "live control" cues only fire once a size is picked */
+  animation: none;
 }
+.btn[disabled]::before,
+.btn.is-disabled::before { display: none; }
 
 /* ---------- the label's chrome ---------- */
 
