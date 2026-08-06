@@ -492,7 +492,11 @@
       item.className = "sel-item";
       item.addEventListener("click", function () {
         if (moved) return;                        // that was a swipe/drag, not a tap
-        location.href = link(products[i]);        // tap any garment photo = open it directly
+        // only the centred (in-focus, "correct") photo opens its product; tapping
+        // a blurred side preview brings it into focus first, so a tap never jumps
+        // to a garment other than the one you're actually looking at
+        if (i === current) location.href = link(products[i]);
+        else select(i);
       });
 
       var obj = document.createElement("div");
@@ -586,11 +590,31 @@
       var y = window.scrollY, h = window.innerHeight;
       // hysteresis: enter at 0.72, leave at 0.55 — so a mobile URL bar nudging
       // innerHeight near a single threshold can't flip .in on and off (flicker)
-      if (!shown && y > h * 0.72) { shown = true; section.classList.add("in"); }
+      if (!shown && y > h * 0.72) { shown = true; section.classList.add("in"); ctaFirstVisitHint(); }
       else if (shown && y < h * 0.55) { shown = false; section.classList.remove("in"); }
     }
     window.addEventListener("scroll", check, { passive: true });
     check();
+  }
+
+  /* One-shot "this flame is a button" nudge for the selector's "Ver" CTA, the
+     first time anyone reveals the rack (remembered in localStorage). A touch
+     gentler than the product page's shake. Skipped under reduced motion. */
+  var ctaHinted = false;
+  function ctaFirstVisitHint() {
+    if (ctaHinted || !ctaEl) return;
+    try { if (localStorage.getItem("ss-view-hinted")) return; } catch (e) {}
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    ctaHinted = true;
+    setTimeout(function () {
+      try { localStorage.setItem("ss-view-hinted", "1"); } catch (e) {}
+      ctaEl.classList.add("hint-soft");
+      ctaEl.addEventListener("animationend", function done(ev) {
+        if (ev.animationName !== "btnHintSoft") return;   // ignore the float/breath loops
+        ctaEl.classList.remove("hint-soft");
+        ctaEl.removeEventListener("animationend", done);
+      });
+    }, 700);
   }
 
   // ---- input ----

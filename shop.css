@@ -604,15 +604,36 @@ h1.display {
   transform-origin: center bottom;
   animation: btnFloat 3.2s var(--ease-loop) infinite,
              btnBreathe 4.2s var(--ease-loop) infinite,
-             btnHint 1.35s var(--ease) 1;
+             btnHint 1.4s var(--ease) 1;
 }
+/* strong shake — the product page's "Elige" CTA (more energetic: this is the
+   flame a first-timer most needs to notice is tappable) */
 @keyframes btnHint {
   0%, 100% { rotate: 0deg; }
-  16%      { rotate: -4deg; }
-  33%      { rotate: 3.4deg; }
-  50%      { rotate: -2.6deg; }
-  67%      { rotate: 1.8deg; }
-  84%      { rotate: -0.8deg; }
+  10%      { rotate: -7deg; }
+  24%      { rotate: 6.2deg; }
+  38%      { rotate: -5.2deg; }
+  52%      { rotate: 4.2deg; }
+  66%      { rotate: -3deg; }
+  80%      { rotate: 1.6deg; }
+}
+
+/* soft shake — the home selector's "Ver" CTA (a touch gentler than the product
+   page's, per the brief) */
+@keyframes btnHintSoft {
+  0%, 100% { rotate: 0deg; }
+  12%      { rotate: -4deg; }
+  30%      { rotate: 3.2deg; }
+  48%      { rotate: -2.4deg; }
+  66%      { rotate: 1.6deg; }
+  82%      { rotate: -0.7deg; }
+}
+
+.btn.hint-soft {
+  transform-origin: center bottom;
+  animation: btnFloat 3.2s var(--ease-loop) infinite,
+             btnBreathe 4.2s var(--ease-loop) infinite,
+             btnHintSoft 1.25s var(--ease) 1;
 }
 
 /* the hint must fire even while the CTA still reads "Elige talla" (disabled):
@@ -621,7 +642,7 @@ h1.display {
 .btn.is-disabled.hint,
 .btn[disabled].hint {
   transform-origin: center bottom;
-  animation: btnHint 1.35s var(--ease) 1;
+  animation: btnHint 1.4s var(--ease) 1;
 }
 
 /* two buttons side by side bobbing in lockstep look mechanical */
