@@ -67,25 +67,6 @@
     line-height: 1.65;
     color: var(--muted);
   }
-  /* subtle drop-notify pill under the intro (glass, matches the chrome) */
-  .hero-notify {
-    display: inline-block;
-    margin-top: clamp(18px, 3vh, 28px);
-    padding: 11px 22px;
-    border: 1px solid var(--glass-edge);
-    border-radius: 999px;
-    background: var(--glass);
-    -webkit-backdrop-filter: blur(14px) saturate(1.1);
-    backdrop-filter: blur(14px) saturate(1.1);
-    color: var(--ink);
-    font-family: 'Cinzel', serif;
-    font-size: 12px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: border-color 0.25s var(--ease), transform 0.25s var(--ease), background 0.25s var(--ease);
-  }
-  .hero-notify:hover { border-color: var(--ink); transform: translateY(-2px); }
 
   .test-notice {
     max-width: 1180px;
@@ -333,16 +314,26 @@
     border-color: color-mix(in srgb, var(--ink) 22%, transparent);
     box-shadow: 0 18px 34px -22px rgba(10, 10, 10, 0.4);
   }
-  /* big hollow tribal numeral — same treatment as the About chapters */
-  .step .n {
-    font-family: 'Cinzel', serif;
-    font-size: clamp(42px, 6vw, 64px);
-    line-height: 0.9;
-    letter-spacing: 0;
-    color: transparent;
-    -webkit-text-stroke: 1px color-mix(in srgb, var(--ink) 32%, transparent);
-    margin-bottom: clamp(12px, 1.6vw, 18px);
+  /* thin line icon in a glass disc — echoes the round theme/music chrome, and
+     drops the numerals that clashed with the aesthetic */
+  .step .ico {
+    display: grid; place-items: center;
+    width: 48px; height: 48px;
+    margin-bottom: clamp(14px, 2vw, 20px);
+    border: 1px solid var(--glass-edge);
+    border-radius: 50%;
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    color: var(--pearl);
+    transition: color 0.4s var(--ease), border-color 0.4s var(--ease);
   }
+  .step .ico svg {
+    width: 23px; height: 23px;
+    fill: none; stroke: currentColor; stroke-width: 1.5;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .step:hover .ico { color: var(--ink); border-color: color-mix(in srgb, var(--ink) 26%, transparent); }
   .step h3 {
     font-family: 'Cinzel', serif;
     font-size: 15px;
@@ -426,7 +417,6 @@
       <div class="eyebrow" data-i18n="shop.eyebrow">Lanzamiento</div>
       <h1 class="chrome">South Side</h1>
       <p data-i18n="shop.intro">Dos piezas. Producción corta. Cuando se agota una talla, no vuelve.</p>
-      <button type="button" class="hero-notify" data-open-notify data-i18n="notify.open">Avísame en el drop</button>
       <!-- inside the slide rather than after it: left between the stage and the
            grid it was a lone badge floating in the gap while the hero left -->
       <div class="test-notice"><span data-i18n="test.notice">Modo prueba · ningún pago es real todavía</span></div>
@@ -449,17 +439,23 @@
   <h2 data-i18n="how.title">Cómo comprar</h2>
   <div class="steps">
     <div class="step" data-reveal="up">
-      <div class="n">01</div>
+      <div class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 4.5a1.6 1.6 0 1 0-1.4 2.4c.5.3.9.8.9 1.5"/><path d="m12 8.4-8 5.6c-.9.6-.5 2 .6 2h14.8c1.1 0 1.5-1.4.6-2L12 8.4Z"/></svg>
+      </div>
       <h3 data-i18n="how.1.t">Elige tu talla</h3>
       <p data-i18n="how.1.d">Mira la guía de medidas antes de decidir.</p>
     </div>
     <div class="step" data-reveal="up" data-reveal-delay="0.12">
-      <div class="n">02</div>
+      <div class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 3.2 5.2 6v5c0 4 2.9 7 6.8 8.2 3.9-1.2 6.8-4.2 6.8-8.2V6L12 3.2Z"/><path d="m9 11.4 2 2 4-4"/></svg>
+      </div>
       <h3 data-i18n="how.2.t">Paga seguro</h3>
       <p data-i18n="how.2.d">El pago lo procesa Bold.</p>
     </div>
     <div class="step" data-reveal="up" data-reveal-delay="0.24">
-      <div class="n">03</div>
+      <div class="ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 3.3 4.3 7v10L12 20.7 19.7 17V7L12 3.3Z"/><path d="M4.3 7 12 11l7.7-4M12 11v9.7"/></svg>
+      </div>
       <h3 data-i18n="how.3.t">Te llega a casa</h3>
       <p data-i18n="how.3.d">Recibes la confirmación y luego el número de guía.</p>
     </div>
