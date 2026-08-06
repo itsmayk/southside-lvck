@@ -68,6 +68,31 @@
       "p.notFound": "No encontramos ese producto.",
       "p.also": "También te puede gustar",
 
+      "notify.open": "Avísame en el drop",
+      "notify.title": "Avísame en el drop",
+      "notify.sub": "Te escribimos apenas caiga, el 15 AGO. Nada de spam.",
+      "notify.ph": "tu@correo.com",
+      "notify.cta": "Avísame",
+      "notify.sending": "Enviando…",
+      "notify.ok": "Listo. Te avisamos en el drop ✓",
+      "notify.invalid": "Revisa el correo.",
+      "notify.err": "No se pudo. Intenta de nuevo.",
+
+      "rec.open": "¿Tu talla?",
+      "rec.title": "Encuentra tu talla",
+      "rec.sub": "Rápido y aproximado. El corte es holgado; si dudas, sube una.",
+      "rec.height": "Altura (cm)",
+      "rec.weight": "Peso (kg)",
+      "rec.fit": "¿Cómo te gusta?",
+      "rec.fit.slim": "Ceñido",
+      "rec.fit.reg": "Normal",
+      "rec.fit.loose": "Holgado",
+      "rec.cta": "Ver mi talla",
+      "rec.result": "Te recomendamos",
+      "rec.apply": "Usar esta talla",
+      "rec.incomplete": "Pon altura y peso.",
+      "rec.note": "Estimación; la caída es holgada. Mira la guía de medidas para confirmar.",
+
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Gracias",
       "ty.sub": "Tu pedido entró. Te llega un correo con la confirmación en unos minutos.",
@@ -149,6 +174,31 @@
       "p.notFound": "We couldn't find that product.",
       "p.also": "You may also like",
 
+      "notify.open": "Notify me at the drop",
+      "notify.title": "Notify me at the drop",
+      "notify.sub": "We'll email you the moment it drops, AUG 15. No spam.",
+      "notify.ph": "you@email.com",
+      "notify.cta": "Notify me",
+      "notify.sending": "Sending…",
+      "notify.ok": "Done. We'll ping you at the drop ✓",
+      "notify.invalid": "Check the email.",
+      "notify.err": "Couldn't send. Try again.",
+
+      "rec.open": "Your size?",
+      "rec.title": "Find your size",
+      "rec.sub": "Quick and approximate. The cut is loose; if unsure, size up.",
+      "rec.height": "Height (cm)",
+      "rec.weight": "Weight (kg)",
+      "rec.fit": "How do you like it?",
+      "rec.fit.slim": "Fitted",
+      "rec.fit.reg": "Regular",
+      "rec.fit.loose": "Loose",
+      "rec.cta": "See my size",
+      "rec.result": "We recommend",
+      "rec.apply": "Use this size",
+      "rec.incomplete": "Enter height and weight.",
+      "rec.note": "An estimate; the cut is loose. Check the size guide to confirm.",
+
       "ty.eyebrow": "Order confirmed",
       "ty.title": "Thank you",
       "ty.sub": "Your order went through. A confirmation email is on its way.",
@@ -229,6 +279,31 @@
       "p.close": "Fechar",
       "p.notFound": "Não encontramos esse produto.",
       "p.also": "Você também pode gostar",
+
+      "notify.open": "Avise-me no drop",
+      "notify.title": "Avise-me no drop",
+      "notify.sub": "Mandamos um e-mail assim que cair, 15 AGO. Sem spam.",
+      "notify.ph": "voce@email.com",
+      "notify.cta": "Avise-me",
+      "notify.sending": "Enviando…",
+      "notify.ok": "Pronto. Avisamos no drop ✓",
+      "notify.invalid": "Confira o e-mail.",
+      "notify.err": "Não deu. Tente de novo.",
+
+      "rec.open": "Seu tamanho?",
+      "rec.title": "Ache seu tamanho",
+      "rec.sub": "Rápido e aproximado. O corte é solto; na dúvida, suba um.",
+      "rec.height": "Altura (cm)",
+      "rec.weight": "Peso (kg)",
+      "rec.fit": "Como você gosta?",
+      "rec.fit.slim": "Ajustado",
+      "rec.fit.reg": "Normal",
+      "rec.fit.loose": "Solto",
+      "rec.cta": "Ver meu tamanho",
+      "rec.result": "Recomendamos",
+      "rec.apply": "Usar este tamanho",
+      "rec.incomplete": "Ponha altura e peso.",
+      "rec.note": "Estimativa; o corte é solto. Veja o guia de medidas para confirmar.",
 
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Obrigado",
@@ -512,7 +587,71 @@
     if (e.target.closest && e.target.closest(".nav-list a")) { closeMenu(); return; }
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { closeMenu(); closeLangModal(); }
+    if (e.key === "Escape") { closeMenu(); closeLangModal(); closeNotify(); }
+  });
+
+  /* ---------- drop notify (email) ----------
+     A shared glass modal that drops an email into the same MailerLite list the
+     landing uses (/api/subscribe). Built lazily and self-healing on every page,
+     opened from any [data-open-notify] trigger. This is the "email now" half of
+     the drop alert; a Web Push layer can sit on top later. */
+  function buildNotifyModal() {
+    var m = document.getElementById("notify-modal");
+    if (m) return m;
+    m = document.createElement("div");
+    m.className = "lang-modal notify-modal";
+    m.id = "notify-modal";
+    m.innerHTML =
+      '<div class="panel">' +
+        '<div class="eyebrow" data-i18n="notify.title">Avísame en el drop</div>' +
+        '<p class="notify-sub" data-i18n="notify.sub"></p>' +
+        '<form class="notify-form" novalidate>' +
+          '<input class="notify-input" type="email" inputmode="email" autocomplete="email" required>' +
+          '<button class="lang-btn notify-send" type="submit" data-i18n="notify.cta">Avísame</button>' +
+        '</form>' +
+        '<div class="notify-msg" role="status" aria-live="polite"></div>' +
+        '<button class="ig-close" type="button" data-close-notify data-i18n="p.close">Cerrar</button>' +
+      '</div>';
+    document.body.appendChild(m);
+    m.querySelector(".notify-input").setAttribute("placeholder", t("notify.ph"));
+    applyI18n(m);
+    m.querySelector(".notify-form").addEventListener("submit", submitNotify);
+    return m;
+  }
+  function openNotify() {
+    var m = buildNotifyModal();
+    m.querySelector(".notify-msg").textContent = "";
+    m.classList.add("open");
+    setTimeout(function () { var i = m.querySelector(".notify-input"); if (i) i.focus(); }, 60);
+  }
+  function closeNotify() { var m = document.getElementById("notify-modal"); if (m) m.classList.remove("open"); }
+
+  var notifySending = false;
+  function submitNotify(e) {
+    e.preventDefault();
+    if (notifySending) return;
+    var m = document.getElementById("notify-modal");
+    var input = m.querySelector(".notify-input");
+    var msg = m.querySelector(".notify-msg");
+    var email = (input.value || "").trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = t("notify.invalid"); return; }
+    notifySending = true;
+    msg.textContent = t("notify.sending");
+    fetch("/api/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, lang: getLang() || "es", source: "storefront" })
+    }).then(function (r) {
+      notifySending = false;
+      if (r.ok) { msg.textContent = t("notify.ok"); input.value = ""; setTimeout(closeNotify, 1600); }
+      else msg.textContent = t("notify.err");
+    }).catch(function () { notifySending = false; msg.textContent = t("notify.err"); });
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest && e.target.closest("[data-open-notify]")) { e.preventDefault(); openNotify(); return; }
+    if (e.target.closest && e.target.closest("[data-close-notify]")) { closeNotify(); return; }
+    if (e.target.id === "notify-modal") closeNotify();
   });
 
   /* Scroll reveal. The displaced starting state is set from JS so that a
@@ -607,6 +746,7 @@
     t: t, money: money, getLang: getLang, setLang: setLang,
     applyI18n: applyI18n, initReveal: initReveal, boot: boot,
     openLangModal: openLangModal, btnLabel: btnLabel,
+    openNotify: openNotify, closeNotify: closeNotify,
     openMenu: openMenu, closeMenu: closeMenu,
     getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme
   };

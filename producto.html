@@ -101,6 +101,30 @@
     transition: opacity 0.7s var(--ease), transform 0.5s var(--ease);
   }
   .stage img.on { opacity: 1; }
+
+  /* 360° spin */
+  .spin-toggle {
+    position: absolute; z-index: 6; right: 10px; bottom: 10px;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 13px 7px 10px;
+    border: 1px solid var(--glass-edge); border-radius: 999px;
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+    color: var(--ink); font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.1em;
+    cursor: pointer; transition: border-color 0.2s var(--ease), transform 0.2s var(--ease), background 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .spin-toggle:hover { border-color: var(--ink); transform: translateY(-1px); }
+  .spin-toggle svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.6; }
+  .spin-toggle.loading { opacity: 0.55; pointer-events: none; }
+  .stage.spinning .spin-toggle { background: var(--ink); color: var(--bone); border-color: var(--ink); }
+  .stage.spinning { cursor: ew-resize; }
+  .spin-frame {
+    position: absolute; inset: 0; z-index: 4; display: none;
+    width: 100%; height: 100%; object-fit: contain;
+    background: var(--bone-deep);
+    cursor: ew-resize; touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+
   /* receiving end of the shop→product shared-element morph: the visible photo
      carries the same transition name as the centred coverflow garment, so the
      browser grows one into the other. Only the .on image is named (unique). */
@@ -207,6 +231,59 @@
     color: var(--muted);
     line-height: 1.6;
   }
+
+  /* subtle text triggers under the sizes / secure line */
+  .rec-link, .notify-link {
+    align-self: flex-start;
+    margin-top: 10px;
+    background: none; border: none; padding: 0;
+    color: var(--muted);
+    font-family: 'Cinzel', serif;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 1px solid var(--hairline);
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .rec-link { margin-top: 12px; }
+  .notify-link { margin-top: 14px; }
+  .rec-link:hover, .notify-link:hover { color: var(--ink); border-color: var(--ink); }
+
+  /* ---------- size recommender modal (reuses .sheet glass) ---------- */
+  .rec-row { display: flex; gap: 12px; margin-bottom: 18px; }
+  .rec-field { flex: 1; display: flex; flex-direction: column; gap: 7px; text-align: left; }
+  .rec-field span { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .rec-field input {
+    width: 100%; padding: 12px 14px;
+    border: 1px solid var(--glass-edge); border-radius: 10px;
+    background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    color: var(--ink); font-family: 'Playfair Display', serif; font-size: 16px; text-align: center;
+  }
+  .rec-field input:focus { outline: none; border-color: var(--ink); }
+  .rec-fitlab { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); text-align: left; margin-bottom: 9px; }
+  .rec-fits { display: flex; gap: 8px; margin-bottom: 20px; }
+  .rec-fit {
+    flex: 1; padding: 11px 6px;
+    border: 1px solid var(--glass-edge); border-radius: 10px;
+    background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    color: var(--muted); font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; cursor: pointer;
+    transition: background 0.2s var(--ease), color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+  .rec-fit.on { background: var(--ink); color: var(--bone); border-color: var(--ink); }
+  .rec-go { margin-top: 2px; }
+  .rec-result { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--hairline); }
+  .rec-lead { display: flex; align-items: baseline; justify-content: center; gap: 12px; }
+  .rec-reslabel { font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .rec-size { font-family: 'Cinzel', serif; font-size: clamp(34px, 8vw, 52px); line-height: 1; color: var(--ink); }
+  .rec-apply {
+    display: block; margin: 16px auto 0; padding: 12px 26px;
+    border: 1px solid var(--ink); border-radius: 999px; background: none;
+    color: var(--ink); font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; cursor: pointer; transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .rec-apply:hover { background: var(--ink); color: var(--bone); }
+  .rec-note { font-size: 11px !important; line-height: 1.6; color: var(--muted); margin: 14px 0 0 !important; }
+  .rec-warn { color: var(--pending); font-size: 13px !important; margin: 0 !important; }
 
   /* ---------- accordion ---------- */
   .facts { margin-top: clamp(30px, 5vh, 44px); border-top: 1px solid var(--hairline); }
@@ -377,6 +454,99 @@
     return n;
   }
 
+  /* ---------- 360° spin ----------
+     Drag the stage to rotate the garment. Real turntable frames come from
+     product.spin (an array of frame image URLs in shop-config.json); until those
+     exist, a placeholder turn is SYNTHESISED from the hero photo with a canvas
+     "billboard" squash, so the engine is fully wired and demoable now — swap in
+     real frames later and nothing else changes. */
+  function synthSpin(src, n) {
+    return new Promise(function (resolve) {
+      var im = new Image();
+      im.onload = function () {
+        var scale = Math.min(1, 520 / im.naturalWidth);
+        var w = Math.max(1, Math.round(im.naturalWidth * scale));
+        var h = Math.max(1, Math.round(im.naturalHeight * scale));
+        var c = document.createElement("canvas"); c.width = w; c.height = h;
+        var ctx = c.getContext("2d");
+        var frames = [];
+        for (var k = 0; k < n; k++) {
+          var sx = Math.cos((k / n) * Math.PI * 2);   // -1..1 : a turntable "billboard"
+          ctx.clearRect(0, 0, w, h);
+          ctx.save();
+          ctx.translate(w / 2, 0);
+          ctx.scale(Math.max(0.08, Math.abs(sx)), 1);
+          ctx.translate(-w / 2, 0);
+          ctx.globalAlpha = 0.4 + 0.6 * Math.abs(sx);
+          ctx.drawImage(im, 0, 0, w, h);
+          ctx.restore();
+          try { frames.push(c.toDataURL("image/jpeg", 0.7)); }
+          catch (e) { resolve(null); return; }        // tainted/again: give up quietly
+        }
+        resolve(frames);
+      };
+      im.onerror = function () { resolve(null); };
+      im.src = src;
+    });
+  }
+
+  function wireSpin(stage) {
+    var FRAMES = 24;
+    var real = Array.isArray(product.spin) && product.spin.length >= 2 ? product.spin : null;
+    var frames = null, spinning = false, building = false, idx = 0, layer = null;
+
+    var toggle = el("button", "spin-toggle");
+    toggle.type = "button";
+    toggle.setAttribute("aria-label", "360°");
+    toggle.innerHTML =
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.2-5.7" stroke-linecap="round"/>' +
+      '<path d="M5 3.2V6.4h3.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>360°</span>';
+    toggle.addEventListener("click", function () { spinning ? exitSpin() : enterSpin(); });
+    stage.appendChild(toggle);
+
+    function enterSpin() {
+      if (frames) return startSpin();
+      if (real) { frames = real; return startSpin(); }
+      if (building) return;
+      building = true; toggle.classList.add("loading");
+      synthSpin(product.photos[0].src, FRAMES).then(function (f) {
+        building = false; toggle.classList.remove("loading");
+        if (!f) { toggle.remove(); return; }   // no frames -> silently drop the feature
+        frames = f; startSpin();
+      });
+    }
+    function startSpin() {
+      spinning = true;
+      stage.classList.remove("zoom");
+      stage.classList.add("spinning");
+      if (!layer) { layer = el("img", "spin-frame"); layer.draggable = false; stage.appendChild(layer); }
+      idx = 0; layer.src = frames[0]; layer.style.display = "block";
+      window.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      stage.addEventListener("pointerdown", onDown);
+    }
+    function exitSpin() {
+      spinning = false;
+      stage.classList.remove("spinning");
+      if (layer) layer.style.display = "none";
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      stage.removeEventListener("pointerdown", onDown);
+    }
+
+    var dragging = false, lastX = 0;
+    function onDown(e) { dragging = true; lastX = e.clientX; e.preventDefault(); }
+    function onUp() { dragging = false; }
+    function onMove(e) {
+      if (!dragging || !frames) return;
+      var steps = Math.round((e.clientX - lastX) / 6);
+      if (!steps) return;
+      idx = ((idx - steps) % frames.length + frames.length) % frames.length;  // drag right → turn
+      layer.src = frames[idx];
+      lastX = e.clientX;
+    }
+  }
+
   /* ---------- gallery ---------- */
 
   function buildGallery() {
@@ -422,12 +592,13 @@
        the visitor can actually inspect the print and the stitching — the one
        thing a photo can't do that a fitting room can. Skipped on touch, where
        the same gesture means "swipe". */
-    stage.addEventListener("mouseenter", function () { stage.classList.add("zoom"); });
+    stage.addEventListener("mouseenter", function () { if (!stage.classList.contains("spinning")) stage.classList.add("zoom"); });
     stage.addEventListener("mouseleave", function () {
       stage.classList.remove("zoom");
       stage.querySelectorAll("img").forEach(function (img) { img.style.transformOrigin = "center"; });
     });
     stage.addEventListener("mousemove", function (e) {
+      if (stage.classList.contains("spinning")) return;
       var r = stage.getBoundingClientRect();
       var x = ((e.clientX - r.left) / r.width) * 100;
       var y = ((e.clientY - r.top) / r.height) * 100;
@@ -436,14 +607,15 @@
     });
 
     var startX = null;
-    stage.addEventListener("touchstart", function (e) { startX = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener("touchstart", function (e) { if (!stage.classList.contains("spinning")) startX = e.touches[0].clientX; }, { passive: true });
     stage.addEventListener("touchend", function (e) {
-      if (startX === null) return;
+      if (startX === null || stage.classList.contains("spinning")) { startX = null; return; }
       var dx = e.changedTouches[0].clientX - startX;
       startX = null;
       if (Math.abs(dx) > 40) show(index + (dx < 0 ? 1 : -1));
     }, { passive: true });
 
+    wireSpin(stage);
     col.appendChild(stage);
     if (product.photos.length > 1) col.appendChild(thumbs);
 
@@ -497,6 +669,13 @@
     });
     col.appendChild(sizes);
 
+    // size recommender trigger (opens the heuristic helper)
+    var recLink = el("button", "rec-link");
+    recLink.type = "button";
+    recLink.setAttribute("data-i18n", "rec.open");
+    recLink.addEventListener("click", openRec);
+    col.appendChild(recLink);
+
     var buy = el("a", "btn btn-block buy is-disabled");
     buy.id = "buy";
     buy.rel = "noopener";
@@ -507,6 +686,13 @@
     var secure = el("div", "secure");
     secure.setAttribute("data-i18n", "p.secure");
     col.appendChild(secure);
+
+    // drop-notify — for anyone not ready to buy yet (shared modal in shop-common)
+    var notify = el("button", "notify-link");
+    notify.type = "button";
+    notify.setAttribute("data-open-notify", "");
+    notify.setAttribute("data-i18n", "notify.open");
+    col.appendChild(notify);
 
     col.appendChild(buildFacts());
     return col;
@@ -639,6 +825,98 @@
 
   function openGuide() { document.getElementById("guide").classList.add("open"); }
   function closeGuide() { document.getElementById("guide").classList.remove("open"); }
+
+  function openRec() { document.getElementById("rec").classList.add("open"); }
+  function closeRec() { document.getElementById("rec").classList.remove("open"); }
+
+  /* ---------- size recommender (simple heuristic, no API) ----------
+     Weight sets the base size, BMI nudges it for build, and the fit preference
+     shifts one step (fitted -1 / loose +1). The cut is boxy/relaxed, so the copy
+     tells people this is an estimate and to size up if between two. Refine the
+     thresholds once the real cm measurements land. */
+  function recommendIndex(h, w, fit, n) {
+    var i = w < 55 ? 0 : w < 65 ? 1 : w < 78 ? 2 : w < 90 ? 3 : 4;   // base from weight
+    if (h > 0) {
+      var bmi = w / Math.pow(h / 100, 2);
+      if (bmi >= 27) i += 1; else if (bmi <= 18.5) i -= 1;           // build nudge
+    }
+    if (fit === "slim") i -= 1; else if (fit === "loose") i += 1;    // fit preference
+    return Math.max(0, Math.min(n - 1, i));
+  }
+
+  function buildRec() {
+    var sheet = el("div", "sheet rec-sheet");
+    sheet.id = "rec";
+    var panel = el("div", "panel");
+
+    var h3 = el("h3"); h3.setAttribute("data-i18n", "rec.title"); panel.appendChild(h3);
+    var sub = el("p"); sub.setAttribute("data-i18n", "rec.sub"); panel.appendChild(sub);
+
+    var saved = {};
+    try { saved = JSON.parse(localStorage.getItem("ss-rec") || "{}"); } catch (e) {}
+
+    function field(key, id, val) {
+      var wrap = el("label", "rec-field");
+      var lab = el("span"); lab.setAttribute("data-i18n", key); wrap.appendChild(lab);
+      var input = el("input"); input.type = "number"; input.id = id; input.inputMode = "numeric";
+      if (val) input.value = val;
+      wrap.appendChild(input);
+      return wrap;
+    }
+    var row = el("div", "rec-row");
+    row.appendChild(field("rec.height", "rec-h", saved.h));
+    row.appendChild(field("rec.weight", "rec-w", saved.w));
+    panel.appendChild(row);
+
+    var fitLab = el("div", "rec-fitlab"); fitLab.setAttribute("data-i18n", "rec.fit"); panel.appendChild(fitLab);
+    var fitRow = el("div", "rec-fits");
+    var fit = saved.fit || "reg";
+    [["slim", "rec.fit.slim"], ["reg", "rec.fit.reg"], ["loose", "rec.fit.loose"]].forEach(function (f) {
+      var b = el("button", "rec-fit" + (f[0] === fit ? " on" : ""));
+      b.type = "button"; b.dataset.fit = f[0]; b.setAttribute("data-i18n", f[1]);
+      b.addEventListener("click", function () {
+        fit = f[0];
+        fitRow.querySelectorAll(".rec-fit").forEach(function (x) { x.classList.toggle("on", x.dataset.fit === fit); });
+      });
+      fitRow.appendChild(b);
+    });
+    panel.appendChild(fitRow);
+
+    var cta = el("button", "lang-btn rec-go"); cta.type = "button"; cta.setAttribute("data-i18n", "rec.cta");
+    panel.appendChild(cta);
+
+    var result = el("div", "rec-result"); result.hidden = true; panel.appendChild(result);
+
+    cta.addEventListener("click", function () {
+      var h = parseFloat(document.getElementById("rec-h").value);
+      var w = parseFloat(document.getElementById("rec-w").value);
+      if (!(w > 0)) { result.hidden = false; result.innerHTML = ""; result.appendChild(el("p", "rec-warn", LVCK.t("rec.incomplete"))); return; }
+      try { localStorage.setItem("ss-rec", JSON.stringify({ h: h || "", w: w, fit: fit })); } catch (e) {}
+      var idx = recommendIndex(h || 0, w, fit, product.sizes.length);
+      var size = product.sizes[idx];
+
+      result.hidden = false;
+      result.innerHTML = "";
+      var lead = el("div", "rec-lead");
+      lead.appendChild(el("span", "rec-reslabel", LVCK.t("rec.result")));
+      lead.appendChild(el("span", "rec-size", size.size));
+      result.appendChild(lead);
+      var apply = el("button", "rec-apply"); apply.type = "button"; apply.setAttribute("data-i18n", "rec.apply");
+      apply.addEventListener("click", function () { choose(size); closeRec(); });
+      result.appendChild(apply);
+      result.appendChild(el("p", "rec-note", LVCK.t("rec.note")));
+      LVCK.applyI18n(result);
+    });
+
+    var close = el("button", "btn close"); close.type = "button";
+    LVCK.btnLabel(close).setAttribute("data-i18n", "p.close");
+    close.addEventListener("click", closeRec);
+    panel.appendChild(close);
+
+    sheet.appendChild(panel);
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) closeRec(); });
+    return sheet;
+  }
 
   function buildGuide() {
     var sheet = el("div", "sheet");
@@ -839,6 +1117,7 @@
       row.appendChild(buildInfo());
       wrap.appendChild(row);
       document.body.appendChild(buildGuide());
+      document.body.appendChild(buildRec());
 
       buildAlso();
       LVCK.applyI18n();
@@ -854,7 +1133,7 @@
     .catch(renderMissing);
 
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") closeGuide();
+    if (e.key === "Escape") { closeGuide(); closeRec(); }
   });
 
   window.addEventListener("lvck:lang", refreshDynamicCopy);

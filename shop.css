@@ -956,6 +956,38 @@ h1.display {
 }
 .ig-close:hover { color: var(--ink); }
 
+/* ---------- drop-notify modal (reuses the .lang-modal glass shell) ---------- */
+.notify-sub {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: -2px 0 4px;
+}
+.notify-form { display: flex; flex-direction: column; gap: 10px; }
+.notify-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 12px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--ink);
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  text-align: center;
+  transition: border-color 0.2s var(--ease);
+}
+.notify-input::placeholder { color: var(--pearl-off); }
+.notify-input:focus { outline: none; border-color: var(--ink); }
+.notify-send { font-family: 'Cinzel', serif; letter-spacing: 0.1em; text-transform: uppercase; font-size: 13px; }
+.notify-msg {
+  min-height: 16px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
 
 /* ==================================================================
    Futuristic nav + cross-page transitions  (added 2026-08-03)
