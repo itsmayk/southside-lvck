@@ -490,14 +490,18 @@
 
       var item = document.createElement("div");
       item.className = "sel-item";
-      // Tap detection lives on the item itself (down→up travel), independent of
-      // the section-level swipe guard — that guard was over-eagerly swallowing
-      // taps on the big centre photo, so the middle image "didn't open". A tap
-      // barely moves; a swipe travels.
-      var downX = 0, downY = 0;
+      // Open on a tap, never on a swipe. Two guards: the section-level `moved`
+      // (a real horizontal drag that stepped the ring) and this item's own
+      // down→up travel. `downX` starts null so that if pointerdown never fired
+      // (plain desktop clicks can arrive as a click without our pointerdown
+      // updating it) we still treat it as a tap instead of eating it — that
+      // null case was why the centre photo "opened nothing" on desktop.
+      var downX = null, downY = null;
       item.addEventListener("pointerdown", function (e) { downX = e.clientX; downY = e.clientY; });
       item.addEventListener("click", function (e) {
-        if (Math.hypot(e.clientX - downX, e.clientY - downY) > 12) return;   // was a swipe
+        var dragged = downX !== null && Math.hypot(e.clientX - downX, e.clientY - downY) > 12;
+        downX = downY = null;
+        if (moved || dragged) return;              // that was a swipe/drag, not a tap
         // ONLY the centred (in-focus) photo opens its product; tapping a blurred
         // side preview just brings it into focus, so a tap never jumps to a
         // garment other than the one you're looking at
@@ -546,6 +550,16 @@
       item.style.opacity = opacity;
       item.style.filter = blur ? "blur(" + blur + "px)" : "none";
       item.style.zIndex = z;
+      // Each .sel-slot has its own transform (scale 0.7), which makes it a
+      // stacking context — so an item's z-index only orders it WITHIN its slot,
+      // not across slots. The slots are all stacked at centre, so without this
+      // the last slot in the DOM sits on top and swallows the click meant for
+      // the centred garment (the middle photo "opened nothing"). Order the slots
+      // themselves so the centred one is on top and actually receives the tap.
+      if (item.parentNode) {
+        item.parentNode.style.zIndex = z;
+        item.parentNode.style.pointerEvents = abs <= 1 ? "auto" : "none";
+      }
       item.classList.toggle("center", off === 0);
       item.style.pointerEvents = abs <= 1 ? "auto" : "none";
       var objEl = item.querySelector(".sel-obj");
