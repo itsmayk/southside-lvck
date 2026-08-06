@@ -169,6 +169,15 @@
   .sel-item.center .sel-obj { animation: selBob 3.6s var(--ease-loop) infinite; }
   @keyframes selBob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -14px; } }
 
+  /* Shared-element view transition: the CENTRED garment carries a transition
+     name that the product page's main photo also carries, so on navigation the
+     browser morphs this image into that one — the piece "flies in" and sharpens
+     instead of a plain page swap. Only the centre gets the name (it must be
+     unique per page, and only one .center exists at a time). Motion-safe only. */
+  @media (prefers-reduced-motion: no-preference) {
+    .sel-item.center .sel-obj img { view-transition-name: ss-hero; }
+  }
+
   .sel-item::after {
     content: ""; position: absolute; bottom: 2%;
     width: 46%; height: 22px; border-radius: 50%;
@@ -467,6 +476,16 @@
   </svg>
 </button>
 
+<!-- Speculation Rules: prerender a product page as soon as a link to it shows
+     hover intent, so opening it feels instant. Covers the "Ver" CTA and any
+     other producto.html link. Chromium-only; ignored elsewhere. -->
+<script type="speculationrules">
+{
+  "prerender": [
+    { "where": { "href_matches": "/producto.html*" }, "eagerness": "moderate" }
+  ]
+}
+</script>
 <script src="shop-common.js"></script>
 <script>
 /* Instagram picker: open the little modal instead of leaving the shop. The
@@ -608,6 +627,7 @@
     layout();
     updateReadout(false);   // first paint: set the name/price without the slam
     reveal();
+    speculateCenter();      // warm up the first garment's product page
     LVCK.applyI18n(section);
   }
 
@@ -674,8 +694,28 @@
     }
   }
 
-  function select(i) { current = ((i % N) + N) % N; layout(); updateReadout(true); playWhoosh(); }
+  function select(i) { current = ((i % N) + N) % N; layout(); updateReadout(true); playWhoosh(); speculateCenter(); }
   function step(dir) { select(current + dir); }
+
+  /* Speculation Rules: prerender the product page of the garment you've SETTLED
+     on, so tapping the centred photo opens instantly. The tap is JS (not an
+     <a>), so the document-level rule at the end of <body> can't catch it — this
+     handles the centre. Debounced so swiping through the rack doesn't prerender
+     every piece; only the one you rest on. Chromium-only; a no-op elsewhere. */
+  var specTimer = null, specScript = null;
+  function speculateCenter() {
+    if (!(window.HTMLScriptElement && HTMLScriptElement.supports && HTMLScriptElement.supports("speculationrules"))) return;
+    clearTimeout(specTimer);
+    specTimer = setTimeout(function () {
+      if (!products.length) return;
+      var url = link(products[current]);
+      if (specScript) specScript.remove();
+      specScript = document.createElement("script");
+      specScript.type = "speculationrules";
+      specScript.textContent = JSON.stringify({ prerender: [{ source: "list", urls: [url] }] });
+      document.head.appendChild(specScript);
+    }, 650);
+  }
 
   // Reveal/hide the rack as you cross the wordmark's exit point — BOTH ways and
   // every time. Scroll down past the faded wordmark and the garments rise in;

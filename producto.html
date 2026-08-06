@@ -101,6 +101,12 @@
     transition: opacity 0.7s var(--ease), transform 0.5s var(--ease);
   }
   .stage img.on { opacity: 1; }
+  /* receiving end of the shop→product shared-element morph: the visible photo
+     carries the same transition name as the centred coverflow garment, so the
+     browser grows one into the other. Only the .on image is named (unique). */
+  @media (prefers-reduced-motion: no-preference) {
+    .stage img.on { view-transition-name: ss-hero; }
+  }
   /* the pointer becomes a loupe: the image scales around wherever it sits */
   .stage.zoom img.on { transform: scale(1.6); transition: transform 0.15s linear, opacity 0.7s var(--ease); }
 
@@ -340,6 +346,17 @@
   </svg>
 </button>
 
+<!-- Speculation Rules: prerender the other product ("también te puede gustar")
+     and the shop on hover intent, so moving between pieces is instant.
+     Chromium-only; ignored elsewhere. -->
+<script type="speculationrules">
+{
+  "prerender": [
+    { "where": { "href_matches": "/producto.html*" }, "eagerness": "moderate" },
+    { "where": { "href_matches": "/shop.html*" }, "eagerness": "moderate" }
+  ]
+}
+</script>
 <script src="shop-common.js"></script>
 <script>
 (function () {
