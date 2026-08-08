@@ -146,6 +146,8 @@
     transition: opacity 0.8s var(--ease), translate 0.8s var(--ease);
     will-change: opacity, translate;
   }
+  /* a touch smaller on desktop, where the rack otherwise reads a bit large */
+  @media (min-width: 861px) { .sel-slot { transform: scale(0.6); } }
   .shop-selector.in .sel-slot { opacity: 1; translate: 0 0; }
 
   /* LAYER 2 — coverflow (transform only, set from JS) */
