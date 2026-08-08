@@ -393,11 +393,15 @@ h1.display {
     animation-range: normal, 0 72vh;
   }
 
-  /* it comes the whole way at you and you pass through it */
+  /* It comes the whole way at you and you pass through it — but the opacity is
+     GONE by ~78% (≈0.56h), well before the selector reveals, so the huge faded
+     wordmark never lingers as a ghost behind the garments. The scale keeps
+     growing to 3.6 (invisibly) so the "pass through" still reads. */
   @keyframes chromeApproach {
     from { scale: 1;   opacity: 1; }
-    55%  { scale: 1.8; opacity: 0.9; }
-    85%  { scale: 2.7; opacity: 0.45; }
+    45%  { scale: 1.7; opacity: 0.82; }
+    68%  { scale: 2.5; opacity: 0.18; }
+    78%  { scale: 2.9; opacity: 0; }
     to   { scale: 3.6; opacity: 0; }
   }
 

@@ -735,9 +735,10 @@
     var shown = false;
     function check() {
       var y = window.scrollY, h = window.innerHeight;
-      // hysteresis: enter at 0.72, leave at 0.55 — so a mobile URL bar nudging
-      // innerHeight near a single threshold can't flip .in on and off (flicker)
-      if (!shown && y > h * 0.72) { shown = true; section.classList.add("in"); ctaFirstVisitHint(); }
+      // Enter at 0.60 (the garments rise in just as the wordmark's opacity hits 0
+      // at ~0.56h — a clean hand-off, no ghost overlap and no blank gap). Leave at
+      // 0.55 keeps a little hysteresis against a mobile URL bar nudging innerHeight.
+      if (!shown && y > h * 0.60) { shown = true; section.classList.add("in"); ctaFirstVisitHint(); }
       else if (shown && y < h * 0.55) { shown = false; section.classList.remove("in"); }
     }
     window.addEventListener("scroll", check, { passive: true });
