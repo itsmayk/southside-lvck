@@ -870,6 +870,10 @@
 (function () {
   if (!(window.CSS && CSS.supports && CSS.supports("animation-timeline", "view()"))) return;
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  // Touch devices only. On desktop the native wheel already scrolls fluidly and
+  // plays the wordmark zoom on its own — intercepting it there just made it feel
+  // laggy, so leave the mouse/trackpad alone and only snap where the finger is.
+  if (!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches)) return;
 
   var section = document.getElementById("shop-selector");
   if (!section) return;
