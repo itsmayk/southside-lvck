@@ -219,25 +219,6 @@
   .shop-selector.in .sel-readout,
   .shop-selector.in .sel-dots { opacity: 1; }
 
-  /* subtle mute toggle for the slide whoosh, in the stage corner */
-  .sound-switch {
-    position: absolute; top: 10px; right: 12px; z-index: 25;
-    width: 34px; height: 34px; display: grid; place-items: center;
-    border: 1px solid var(--hairline); border-radius: 50%;
-    background: var(--bone-deep);
-    background: color-mix(in srgb, var(--bone) 70%, transparent);
-    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-    color: var(--muted); cursor: pointer;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.4s var(--ease), color 0.25s var(--ease);
-  }
-  .shop-selector.in .sound-switch { opacity: 0.5; pointer-events: auto; }
-  .shop-selector.in .sound-switch:hover { opacity: 1; color: var(--ink); }
-  .sound-switch svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; }
-  .sound-switch .slash { display: none; }
-  .sound-switch.muted .slash { display: block; }
-  .sound-switch.muted .wave { display: none; }
-
   /* readout: name + price + buy CTA, cross-fades on change */
   .sel-readout { text-align: center; margin-top: clamp(10px, 2vh, 24px); padding: 0 20px; }
   .sel-readout .name {
@@ -583,7 +564,6 @@
     next.addEventListener("click", function () { step(1); });
     stage.appendChild(prev);
     stage.appendChild(next);
-    stage.appendChild(makeSoundSwitch());
     wireTilt(stage);
 
     readout = document.createElement("div");
@@ -843,26 +823,6 @@
       src.connect(filt); filt.connect(gain); gain.connect(audioCtx.destination);
       src.start(t); src.stop(t + dur);
     } catch (e) {}
-  }
-
-  function makeSoundSwitch() {
-    var b = document.createElement("button");
-    b.type = "button";
-    b.className = "sound-switch" + (soundOff ? " muted" : "");
-    b.setAttribute("aria-label", "Sonido");
-    b.innerHTML =
-      '<svg viewBox="0 0 24 24">' +
-        '<path d="M4 9v6h4l5 4V5L8 9H4z" stroke-linejoin="round"/>' +
-        '<path class="wave" d="M16.5 9.5a3.6 3.6 0 0 1 0 5" stroke-linecap="round"/>' +
-        '<path class="slash" d="M18.5 5.5 5.5 18.5" stroke-linecap="round"/>' +
-      '</svg>';
-    b.addEventListener("click", function () {
-      soundOff = !soundOff;
-      b.classList.toggle("muted", soundOff);
-      try { localStorage.setItem("ss-sound", soundOff ? "off" : "on"); } catch (e) {}
-      if (!soundOff) playWhoosh();   // a little confirmation when switching on
-    });
-    return b;
   }
 
   // If the catalog itself can't load, show a short message instead of a blank
