@@ -548,10 +548,26 @@
     global.dispatchEvent(new CustomEvent("lvck:currency", { detail: { currency: co.cur, country: co.c } }));
   }
 
-  // The reference price shown to the visitor. Home currency (COP) prints exact;
-  // any other prints an approximate converted figure using the live rate, so a
-  // shopper abroad reads a familiar number. The real charge is always COP/USD —
-  // stated separately (money.note) so this is never mistaken for the charge.
+  // charm-price a converted amount to a retail 9-ending, per the currency's scale:
+  //   2-decimal currencies (USD/EUR/MXN…) -> nearest integer, then .99  (66.99)
+  //   0-decimal currencies (JPY/CLP/KRW…) -> nearest step, then trailing 9 (10.199)
+  // Returns { value, dp } so the formatter uses the right decimal count.
+  function charmPrice(amount, cur, loc) {
+    var dp;
+    try { dp = new Intl.NumberFormat(loc, { style: "currency", currency: cur }).resolvedOptions().maximumFractionDigits; }
+    catch (e) { dp = 2; }
+    if (dp >= 2) {
+      return { value: Math.max(0.99, Math.round(amount) - 0.01), dp: 2 };   // …N.99
+    }
+    var step = amount >= 100000 ? 1000 : amount >= 1000 ? 100 : 10;
+    return { value: Math.max(step - 1, Math.round(amount / step) * step - 1), dp: 0 };  // …9
+  }
+
+  // The reference price shown to the visitor. Home currency (COP) prints EXACT
+  // (that's the real charge). Any other currency prints a charm-rounded figure
+  // (retail 9-ending) so a shopper abroad reads a familiar, tidy price. The real
+  // charge stays COP/USD — stated separately (cur.charged note) so the pretty
+  // number is never mistaken for the exact charge.
   function money(cop, lang) {
     var cur = getCurrency();
     var loc = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-CO";
@@ -559,13 +575,14 @@
       return "$" + Number(cop).toLocaleString(loc) + " COP";
     }
     var amount = Number(cop) * Number(fxRates[cur]);
+    var c = charmPrice(amount, cur, loc);
     try {
-      var s = new Intl.NumberFormat(loc, {
-        style: "currency", currency: cur, maximumFractionDigits: 0
-      }).format(amount);
-      return "≈ " + s;
+      return new Intl.NumberFormat(loc, {
+        style: "currency", currency: cur,
+        minimumFractionDigits: c.dp, maximumFractionDigits: c.dp
+      }).format(c.value);
     } catch (e) {
-      return "≈ " + Math.round(amount).toLocaleString(loc) + " " + cur;
+      return c.value.toLocaleString(loc) + " " + cur;
     }
   }
 
