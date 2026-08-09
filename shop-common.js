@@ -14,64 +14,99 @@
   var CURRENCY_KEY = "ss-currency";
   var LANGS = ["es", "en", "pt"];
 
-  /* ---------- currency (display only) ----------
-     Prices live in COP. The visitor can switch the *reference* currency shown;
-     the actual charge stays COP (Bold) / USD (intl). Flags + names for a global
-     picker; rates come live from /api/rates (base COP). */
+  /* ---------- currency picker (Shopify-style, display only) ----------
+     Prices live in COP. The visitor picks a COUNTRY and prices show in that
+     country's currency (reference only — the real charge stays COP/Bold, USD/intl).
+     Real flags come from flagcdn.com (render everywhere, unlike flag emoji on
+     Windows). Rates come live from /api/rates (base COP). */
   var HOME_CURRENCY = "COP";
-  var CURRENCIES = [
-    { code: "COP", flag: "🇨🇴", name: "Peso colombiano" },
-    { code: "USD", flag: "🇺🇸", name: "US Dollar" },
-    { code: "EUR", flag: "🇪🇺", name: "Euro" },
-    { code: "MXN", flag: "🇲🇽", name: "Peso mexicano" },
-    { code: "BRL", flag: "🇧🇷", name: "Real brasileño" },
-    { code: "ARS", flag: "🇦🇷", name: "Peso argentino" },
-    { code: "CLP", flag: "🇨🇱", name: "Peso chileno" },
-    { code: "PEN", flag: "🇵🇪", name: "Sol peruano" },
-    { code: "UYU", flag: "🇺🇾", name: "Peso uruguayo" },
-    { code: "BOB", flag: "🇧🇴", name: "Boliviano" },
-    { code: "PYG", flag: "🇵🇾", name: "Guaraní" },
-    { code: "CRC", flag: "🇨🇷", name: "Colón costarricense" },
-    { code: "GTQ", flag: "🇬🇹", name: "Quetzal" },
-    { code: "DOP", flag: "🇩🇴", name: "Peso dominicano" },
-    { code: "GBP", flag: "🇬🇧", name: "British Pound" },
-    { code: "CAD", flag: "🇨🇦", name: "Canadian Dollar" },
-    { code: "AUD", flag: "🇦🇺", name: "Australian Dollar" },
-    { code: "CHF", flag: "🇨🇭", name: "Swiss Franc" },
-    { code: "JPY", flag: "🇯🇵", name: "Japanese Yen" },
-    { code: "CNY", flag: "🇨🇳", name: "Chinese Yuan" },
-    { code: "KRW", flag: "🇰🇷", name: "Korean Won" },
-    { code: "INR", flag: "🇮🇳", name: "Indian Rupee" },
-    { code: "SGD", flag: "🇸🇬", name: "Singapore Dollar" },
-    { code: "HKD", flag: "🇭🇰", name: "Hong Kong Dollar" },
-    { code: "NZD", flag: "🇳🇿", name: "NZ Dollar" },
-    { code: "SEK", flag: "🇸🇪", name: "Swedish Krona" },
-    { code: "NOK", flag: "🇳🇴", name: "Norwegian Krone" },
-    { code: "DKK", flag: "🇩🇰", name: "Danish Krone" },
-    { code: "PLN", flag: "🇵🇱", name: "Polish Zloty" },
-    { code: "CZK", flag: "🇨🇿", name: "Czech Koruna" },
-    { code: "AED", flag: "🇦🇪", name: "UAE Dirham" },
-    { code: "SAR", flag: "🇸🇦", name: "Saudi Riyal" },
-    { code: "ILS", flag: "🇮🇱", name: "Israeli Shekel" },
-    { code: "TRY", flag: "🇹🇷", name: "Turkish Lira" },
-    { code: "ZAR", flag: "🇿🇦", name: "South African Rand" },
-    { code: "THB", flag: "🇹🇭", name: "Thai Baht" },
-    { code: "PHP", flag: "🇵🇭", name: "Philippine Peso" },
-    { code: "MYR", flag: "🇲🇾", name: "Malaysian Ringgit" },
-    { code: "IDR", flag: "🇮🇩", name: "Indonesian Rupiah" },
-    { code: "VND", flag: "🇻🇳", name: "Vietnamese Dong" }
-  ];
-  var CURRENCY_CODES = CURRENCIES.map(function (c) { return c.code; });
-  // country -> its currency, to pre-select from the detected ss-country
-  var CURRENCY_BY_COUNTRY = {
-    CO: "COP", US: "USD", MX: "MXN", BR: "BRL", AR: "ARS", CL: "CLP", PE: "PEN",
-    UY: "UYU", BO: "BOB", PY: "PYG", CR: "CRC", GT: "GTQ", DO: "DOP",
-    ES: "EUR", FR: "EUR", DE: "EUR", IT: "EUR", PT: "EUR", NL: "EUR", BE: "EUR",
-    IE: "EUR", AT: "EUR", FI: "EUR", GB: "GBP", CA: "CAD", AU: "AUD", CH: "CHF",
-    JP: "JPY", CN: "CNY", KR: "KRW", IN: "INR", SG: "SGD", HK: "HKD", NZ: "NZD",
-    SE: "SEK", NO: "NOK", DK: "DKK", PL: "PLN", CZ: "CZK", AE: "AED", SA: "SAR",
-    IL: "ILS", TR: "TRY", ZA: "ZAR", TH: "THB", PH: "PHP", MY: "MYR", ID: "IDR", VN: "VND"
+  var CUR_COUNTRY_KEY = "ss-cur-country";   // the picked country's ISO2 (drives currency + flag)
+
+  // currency -> display symbol (cosmetic; Intl handles the actual price format)
+  var CUR_SYM = {
+    USD: "$", EUR: "€", GBP: "£", JPY: "¥", CNY: "¥", AUD: "$", CAD: "$", CHF: "Fr",
+    COP: "$", MXN: "$", BRL: "R$", ARS: "$", CLP: "$", PEN: "S/", UYU: "$U", BOB: "Bs",
+    PYG: "₲", CRC: "₡", GTQ: "Q", DOP: "RD$", HNL: "L", NIO: "C$", PAB: "B/.", VES: "Bs",
+    CUP: "$", BZD: "BZ$", JMD: "J$", TTD: "TT$", BSD: "$", BBD: "$", BND: "$", FJD: "$",
+    KRW: "₩", INR: "₹", IDR: "Rp", PHP: "₱", MYR: "RM", SGD: "$", HKD: "$", TWD: "NT$",
+    THB: "฿", NZD: "$", VND: "₫", PKR: "₨", LKR: "₨", NPR: "₨", BDT: "৳", KHR: "៛",
+    SEK: "kr", NOK: "kr", DKK: "kr", ISK: "kr", PLN: "zł", CZK: "Kč", HUF: "Ft",
+    RON: "lei", BGN: "лв", RSD: "дин", RUB: "₽", UAH: "₴", TRY: "₺", GEL: "₾", AMD: "֏",
+    AZN: "₼", KZT: "₸", UZS: "soʻm", MNT: "₮", MDL: "L", BYN: "Br", BAM: "KM", MKD: "ден",
+    AED: "د.إ", SAR: "﷼", QAR: "﷼", KWD: "د.ك", BHD: ".د.ب", OMR: "﷼", JOD: "د.ا",
+    LBP: "ل.ل", ILS: "₪", EGP: "£", MAD: "د.م.", DZD: "د.ج", TND: "د.ت", AFN: "؋",
+    MVR: ".ރ", ZAR: "R", NGN: "₦", GHS: "₵", KES: "Sh", TZS: "Sh", UGX: "Sh", ZMW: "ZK",
+    ETB: "Br", AOA: "Kz", XOF: "Fr", XAF: "Fr", BWP: "P", MZN: "MT", MUR: "₨"
   };
+
+  // Country list (alphabetical by name) -> { n: name, c: ISO2 for the flag, cur: ISO4217 }.
+  // Comprehensive across every continent; pricing uses `cur`, the flag uses `c`.
+  var COUNTRIES = [
+    { n: "Afghanistan", c: "af", cur: "AFN" }, { n: "Albania", c: "al", cur: "ALL" },
+    { n: "Algeria", c: "dz", cur: "DZD" }, { n: "Andorra", c: "ad", cur: "EUR" },
+    { n: "Angola", c: "ao", cur: "AOA" }, { n: "Argentina", c: "ar", cur: "ARS" },
+    { n: "Armenia", c: "am", cur: "AMD" }, { n: "Australia", c: "au", cur: "AUD" },
+    { n: "Austria", c: "at", cur: "EUR" }, { n: "Azerbaijan", c: "az", cur: "AZN" },
+    { n: "Bahamas", c: "bs", cur: "BSD" }, { n: "Bahrain", c: "bh", cur: "BHD" },
+    { n: "Bangladesh", c: "bd", cur: "BDT" }, { n: "Barbados", c: "bb", cur: "BBD" },
+    { n: "Belarus", c: "by", cur: "BYN" }, { n: "Belgium", c: "be", cur: "EUR" },
+    { n: "Belize", c: "bz", cur: "BZD" }, { n: "Bolivia", c: "bo", cur: "BOB" },
+    { n: "Bosnia & Herzegovina", c: "ba", cur: "BAM" }, { n: "Botswana", c: "bw", cur: "BWP" },
+    { n: "Brazil", c: "br", cur: "BRL" }, { n: "Brunei", c: "bn", cur: "BND" },
+    { n: "Bulgaria", c: "bg", cur: "BGN" }, { n: "Cambodia", c: "kh", cur: "KHR" },
+    { n: "Cameroon", c: "cm", cur: "XAF" }, { n: "Canada", c: "ca", cur: "CAD" },
+    { n: "Chile", c: "cl", cur: "CLP" }, { n: "China", c: "cn", cur: "CNY" },
+    { n: "Colombia", c: "co", cur: "COP" }, { n: "Costa Rica", c: "cr", cur: "CRC" },
+    { n: "Croatia", c: "hr", cur: "EUR" }, { n: "Cuba", c: "cu", cur: "CUP" },
+    { n: "Cyprus", c: "cy", cur: "EUR" }, { n: "Czechia", c: "cz", cur: "CZK" },
+    { n: "Denmark", c: "dk", cur: "DKK" }, { n: "Dominican Republic", c: "do", cur: "DOP" },
+    { n: "Ecuador", c: "ec", cur: "USD" }, { n: "Egypt", c: "eg", cur: "EGP" },
+    { n: "El Salvador", c: "sv", cur: "USD" }, { n: "Estonia", c: "ee", cur: "EUR" },
+    { n: "Ethiopia", c: "et", cur: "ETB" }, { n: "Fiji", c: "fj", cur: "FJD" },
+    { n: "Finland", c: "fi", cur: "EUR" }, { n: "France", c: "fr", cur: "EUR" },
+    { n: "Georgia", c: "ge", cur: "GEL" }, { n: "Germany", c: "de", cur: "EUR" },
+    { n: "Ghana", c: "gh", cur: "GHS" }, { n: "Greece", c: "gr", cur: "EUR" },
+    { n: "Guatemala", c: "gt", cur: "GTQ" }, { n: "Honduras", c: "hn", cur: "HNL" },
+    { n: "Hong Kong", c: "hk", cur: "HKD" }, { n: "Hungary", c: "hu", cur: "HUF" },
+    { n: "Iceland", c: "is", cur: "ISK" }, { n: "India", c: "in", cur: "INR" },
+    { n: "Indonesia", c: "id", cur: "IDR" }, { n: "Ireland", c: "ie", cur: "EUR" },
+    { n: "Israel", c: "il", cur: "ILS" }, { n: "Italy", c: "it", cur: "EUR" },
+    { n: "Jamaica", c: "jm", cur: "JMD" }, { n: "Japan", c: "jp", cur: "JPY" },
+    { n: "Jordan", c: "jo", cur: "JOD" }, { n: "Kazakhstan", c: "kz", cur: "KZT" },
+    { n: "Kenya", c: "ke", cur: "KES" }, { n: "Kuwait", c: "kw", cur: "KWD" },
+    { n: "Latvia", c: "lv", cur: "EUR" }, { n: "Lebanon", c: "lb", cur: "LBP" },
+    { n: "Lithuania", c: "lt", cur: "EUR" }, { n: "Luxembourg", c: "lu", cur: "EUR" },
+    { n: "Malaysia", c: "my", cur: "MYR" }, { n: "Maldives", c: "mv", cur: "MVR" },
+    { n: "Malta", c: "mt", cur: "EUR" }, { n: "Mauritius", c: "mu", cur: "MUR" },
+    { n: "Mexico", c: "mx", cur: "MXN" }, { n: "Moldova", c: "md", cur: "MDL" },
+    { n: "Monaco", c: "mc", cur: "EUR" }, { n: "Mongolia", c: "mn", cur: "MNT" },
+    { n: "Morocco", c: "ma", cur: "MAD" }, { n: "Mozambique", c: "mz", cur: "MZN" },
+    { n: "Nepal", c: "np", cur: "NPR" }, { n: "Netherlands", c: "nl", cur: "EUR" },
+    { n: "New Zealand", c: "nz", cur: "NZD" }, { n: "Nicaragua", c: "ni", cur: "NIO" },
+    { n: "Nigeria", c: "ng", cur: "NGN" }, { n: "North Macedonia", c: "mk", cur: "MKD" },
+    { n: "Norway", c: "no", cur: "NOK" }, { n: "Oman", c: "om", cur: "OMR" },
+    { n: "Pakistan", c: "pk", cur: "PKR" }, { n: "Panama", c: "pa", cur: "PAB" },
+    { n: "Paraguay", c: "py", cur: "PYG" }, { n: "Peru", c: "pe", cur: "PEN" },
+    { n: "Philippines", c: "ph", cur: "PHP" }, { n: "Poland", c: "pl", cur: "PLN" },
+    { n: "Portugal", c: "pt", cur: "EUR" }, { n: "Puerto Rico", c: "pr", cur: "USD" },
+    { n: "Qatar", c: "qa", cur: "QAR" }, { n: "Romania", c: "ro", cur: "RON" },
+    { n: "Russia", c: "ru", cur: "RUB" }, { n: "Saudi Arabia", c: "sa", cur: "SAR" },
+    { n: "Serbia", c: "rs", cur: "RSD" }, { n: "Singapore", c: "sg", cur: "SGD" },
+    { n: "Slovakia", c: "sk", cur: "EUR" }, { n: "Slovenia", c: "si", cur: "EUR" },
+    { n: "South Africa", c: "za", cur: "ZAR" }, { n: "South Korea", c: "kr", cur: "KRW" },
+    { n: "Spain", c: "es", cur: "EUR" }, { n: "Sri Lanka", c: "lk", cur: "LKR" },
+    { n: "Sweden", c: "se", cur: "SEK" }, { n: "Switzerland", c: "ch", cur: "CHF" },
+    { n: "Taiwan", c: "tw", cur: "TWD" }, { n: "Tanzania", c: "tz", cur: "TZS" },
+    { n: "Thailand", c: "th", cur: "THB" }, { n: "Trinidad & Tobago", c: "tt", cur: "TTD" },
+    { n: "Tunisia", c: "tn", cur: "TND" }, { n: "Turkey", c: "tr", cur: "TRY" },
+    { n: "Uganda", c: "ug", cur: "UGX" }, { n: "Ukraine", c: "ua", cur: "UAH" },
+    { n: "United Arab Emirates", c: "ae", cur: "AED" }, { n: "United Kingdom", c: "gb", cur: "GBP" },
+    { n: "United States", c: "us", cur: "USD" }, { n: "Uruguay", c: "uy", cur: "UYU" },
+    { n: "Uzbekistan", c: "uz", cur: "UZS" }, { n: "Venezuela", c: "ve", cur: "VES" },
+    { n: "Vietnam", c: "vn", cur: "VND" }, { n: "Zambia", c: "zm", cur: "ZMW" }
+  ];
+  var COUNTRY_BY_CC = {};
+  COUNTRIES.forEach(function (c) { COUNTRY_BY_CC[c.c.toUpperCase()] = c; });
   var fxRates = null;   // { USD: 0.00025, ... } per 1 COP; null until /api/rates answers
 
   // same country -> language table the landing page uses
@@ -487,19 +522,30 @@
     return dict[key] !== undefined ? dict[key] : (T.es[key] !== undefined ? T.es[key] : key);
   }
 
-  /* ---------- currency selection + conversion ---------- */
-  function getCurrency() {
-    var saved = store(CURRENCY_KEY);
-    if (CURRENCY_CODES.indexOf(saved) !== -1) return saved;
-    // not chosen yet: derive from the detected country, else home currency
-    var byCountry = CURRENCY_BY_COUNTRY[store(COUNTRY_KEY)];
-    return CURRENCY_CODES.indexOf(byCountry) !== -1 ? byCountry : HOME_CURRENCY;
+  /* ---------- country/currency selection + conversion ---------- */
+  var DEFAULT_COUNTRY = COUNTRY_BY_CC.CO;   // Colombia (home)
+  function getSelectedCountry() {
+    var saved = store(CUR_COUNTRY_KEY);
+    if (saved && COUNTRY_BY_CC[saved.toUpperCase()]) return COUNTRY_BY_CC[saved.toUpperCase()];
+    // not chosen yet: use the detected country if we have a match, else home
+    var detected = store(COUNTRY_KEY);
+    if (detected && COUNTRY_BY_CC[detected.toUpperCase()]) return COUNTRY_BY_CC[detected.toUpperCase()];
+    return DEFAULT_COUNTRY;
   }
-  function setCurrency(code) {
-    if (CURRENCY_CODES.indexOf(code) === -1) return;
-    store(CURRENCY_KEY, code);
+  function getCurrency() { return getSelectedCountry().cur; }
+  function curSym(cur) { return CUR_SYM[cur] || ""; }
+  function countryLabel(co) {
+    var sym = curSym(co.cur);
+    return co.n + " (" + co.cur + (sym ? " " + sym : "") + ")";
+  }
+  function flagUrl(cc) { return "https://flagcdn.com/" + cc + ".svg"; }
+
+  function setCountry(cc) {
+    var co = COUNTRY_BY_CC[String(cc).toUpperCase()];
+    if (!co) return;
+    store(CUR_COUNTRY_KEY, co.c.toUpperCase());
     updateCurrencyControl();
-    global.dispatchEvent(new CustomEvent("lvck:currency", { detail: { currency: code } }));
+    global.dispatchEvent(new CustomEvent("lvck:currency", { detail: { currency: co.cur, country: co.c } }));
   }
 
   // The reference price shown to the visitor. Home currency (COP) prints exact;
@@ -725,16 +771,21 @@
     if (e.target.id === "lang-modal") closeLangModal();
   });
 
-  /* ---------- currency picker (global, in the header next to Idioma) ---------- */
+  /* ---------- country/currency picker (Shopify-style, in the header) ----------
+     A searchable list of countries, each "Country (CUR sym)" with a real flag
+     from flagcdn.com. Picking one sets the reference currency for all prices. */
+  function flagImg(cc, cls) {
+    return '<img class="' + (cls || "cur-flag") + '" src="' + flagUrl(cc) + '" alt="" ' +
+      'loading="lazy" width="22" height="16" onerror="this.style.visibility=\'hidden\'">';
+  }
   function buildCurrencyModal() {
     var modal = document.createElement("div");
     modal.className = "lang-modal cur-modal";
     modal.id = "cur-modal";
-    var rows = CURRENCIES.map(function (c) {
-      return '<button class="lang-btn cur-btn" data-set-cur="' + c.code + '">' +
-        '<span class="flag">' + c.flag + '</span>' +
-        '<span class="cur-code">' + c.code + '</span>' +
-        '<span class="cur-name">' + c.name + '</span>' +
+    var rows = COUNTRIES.map(function (co) {
+      return '<button class="lang-btn cur-btn" data-set-cur="' + co.c + '">' +
+        flagImg(co.c) +
+        '<span class="cur-name">' + countryLabel(co) + '</span>' +
       '</button>';
     }).join("");
     modal.innerHTML =
@@ -745,7 +796,6 @@
       '</div>';
     document.body.appendChild(modal);
     applyI18n(modal);
-    // live filter
     var search = modal.querySelector(".cur-search");
     search.addEventListener("input", function () {
       var q = search.value.trim().toLowerCase();
@@ -757,9 +807,9 @@
     return modal;
   }
   function markCurrentCurrency(modal) {
-    var cur = getCurrency();
+    var cc = getSelectedCountry().c;
     (modal || document).querySelectorAll(".cur-btn").forEach(function (b) {
-      b.classList.toggle("on", b.getAttribute("data-set-cur") === cur);
+      b.classList.toggle("on", b.getAttribute("data-set-cur") === cc);
     });
   }
   function openCurrencyModal() {
@@ -768,61 +818,40 @@
     var s = m.querySelector(".cur-search"); if (s) s.value = "";
     m.querySelectorAll(".cur-btn").forEach(function (b) { b.style.display = ""; });
     m.classList.add("open");
+    // bring the selected country into view
+    var on = m.querySelector(".cur-btn.on"); if (on) on.scrollIntoView({ block: "center" });
+    if (s) setTimeout(function () { s.focus(); }, 60);
   }
   function closeCurrencyModal() {
     var m = document.getElementById("cur-modal");
     if (m) m.classList.remove("open");
   }
 
-  /* Windows (Edge/Chrome) ships no flag-emoji glyphs, so 🇨🇴 renders as the two
-     letters "CO". Detect real flag support by drawing one and checking for a
-     COLOURED pixel (flags are colourful; the letter fallback is monochrome). If
-     unsupported, <html> gets `.no-flags` and the CSS hides the flag column — a
-     clean code+name list instead of stray letters. Phones/Mac render the flags. */
-  var _flagsChecked = false;
-  function detectFlagSupport() {
-    if (_flagsChecked) return;
-    _flagsChecked = true;
-    var supported = false;
-    try {
-      var c = document.createElement("canvas");
-      c.width = 20; c.height = 20;
-      var ctx = c.getContext("2d");
-      ctx.font = "16px sans-serif";
-      ctx.fillText("🇨🇭", 0, 16);   // Swiss flag: strong red
-      var d = ctx.getImageData(0, 0, 20, 20).data;
-      for (var i = 0; i < d.length; i += 4) {
-        if (d[i] > 120 && d[i + 1] < 90 && d[i + 2] < 90) { supported = true; break; }  // red pixel
-      }
-    } catch (e) { supported = false; }
-    document.documentElement.classList.toggle("no-flags", !supported);
-  }
-
   // The header trigger, injected next to the "Idioma" button so every storefront
-  // page gets it without editing each header.
+  // page gets it without editing each header. Shows flag + currency code + chevron.
   function initCurrencyControl() {
-    detectFlagSupport();
     var langBtn = document.querySelector("[data-open-lang]");
     if (!langBtn || document.getElementById("cur-open")) return;
     var b = document.createElement("button");
     b.type = "button";
     b.id = "cur-open";
     b.setAttribute("data-open-currency", "");
-    b.setAttribute("aria-label", "Moneda");
+    b.setAttribute("aria-label", "Moneda / Currency");
     langBtn.parentNode.insertBefore(b, langBtn);
     updateCurrencyControl();
   }
   function updateCurrencyControl() {
     var b = document.getElementById("cur-open");
     if (!b) return;
-    var cur = getCurrency();
-    var meta = CURRENCIES.filter(function (c) { return c.code === cur; })[0] || CURRENCIES[0];
-    b.innerHTML = '<span class="flag">' + meta.flag + '</span><span>' + meta.code + '</span>';
+    var co = getSelectedCountry();
+    b.innerHTML = flagImg(co.c, "cur-flag") +
+      '<span class="cur-open-code">' + co.cur + '</span>' +
+      '<svg class="cur-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   }
 
   document.addEventListener("click", function (e) {
     var setter = e.target.closest && e.target.closest("[data-set-cur]");
-    if (setter) { setCurrency(setter.getAttribute("data-set-cur")); closeCurrencyModal(); return; }
+    if (setter) { setCountry(setter.getAttribute("data-set-cur")); closeCurrencyModal(); return; }
     if (e.target.closest && e.target.closest("[data-open-currency]")) { openCurrencyModal(); return; }
     if (e.target.id === "cur-modal") closeCurrencyModal();
   });
@@ -1048,7 +1077,8 @@
     openLangModal: openLangModal, btnLabel: btnLabel,
     openNotify: openNotify, closeNotify: closeNotify,
     openMenu: openMenu, closeMenu: closeMenu,
-    getCurrency: getCurrency, setCurrency: setCurrency, openCurrencyModal: openCurrencyModal,
+    getCurrency: getCurrency, setCountry: setCountry, getSelectedCountry: getSelectedCountry,
+    openCurrencyModal: openCurrencyModal,
     getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme
   };
 })(window);
