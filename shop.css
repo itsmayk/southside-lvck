@@ -961,12 +961,12 @@ h1.display {
 .ig-close:hover { color: var(--ink); }
 
 /* ---------- country / currency picker (footer dropdown, real flags) ---------- */
-/* its own centred row at the bottom of the footer */
+/* its own row at the bottom of the footer, aligned left */
 .site-foot .cur-select {
   position: relative;
   flex: 1 0 100%;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   margin-top: clamp(14px, 3vh, 22px);
 }
 
@@ -1009,9 +1009,9 @@ h1.display {
 .cur-pop {
   position: absolute;
   bottom: calc(100% + 10px);
-  left: 50%;
+  left: 0;
   width: min(300px, 84vw);
-  transform: translateX(-50%) translateY(8px);
+  transform: translateY(8px);
   opacity: 0;
   visibility: hidden;
   z-index: 60;
@@ -1030,7 +1030,7 @@ h1.display {
 .cur-select.open .cur-pop {
   opacity: 1;
   visibility: visible;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
   transition: opacity 0.25s var(--ease), transform 0.25s var(--ease), visibility 0s;
 }
 .cur-search {
@@ -1049,7 +1049,7 @@ h1.display {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  max-height: min(42vh, 320px);
+  max-height: 232px;   /* ~5 rows, then scroll — a short, compact menu */
   overflow-y: auto;
   padding-right: 3px;
 }
