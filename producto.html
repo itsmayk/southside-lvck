@@ -283,6 +283,24 @@
   .rec-note { font-size: 11px !important; line-height: 1.6; color: var(--muted); margin: 14px 0 0 !important; }
   .rec-warn { color: var(--pending); font-size: 13px !important; margin: 0 !important; }
 
+  /* ---------- international shipping modal (reuses .sheet glass) ---------- */
+  .ship-field { display: flex; flex-direction: column; gap: 6px; text-align: left; margin-bottom: 12px; }
+  .ship-field span { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .ship-input {
+    width: 100%; padding: 11px 13px;
+    border: 1px solid var(--glass-edge); border-radius: 10px;
+    background: var(--glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    color: var(--ink); font-family: 'Playfair Display', serif; font-size: 15px;
+  }
+  .ship-input:focus { outline: none; border-color: var(--ink); }
+  select.ship-input { cursor: pointer; }
+  .ship-calc { margin-top: 4px; }
+  .ship-result { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--hairline); }
+  .ship-line { display: flex; align-items: baseline; justify-content: space-between; font-size: 15px; }
+  .ship-note { font-size: 11px !important; line-height: 1.6; color: var(--muted); margin: 10px 0 0 !important; }
+  .ship-warn { color: var(--pending); font-size: 13px !important; margin: 0 !important; }
+  .ship-pay { margin-top: 16px; }
+
   /* ---------- accordion ---------- */
   .facts { margin-top: clamp(30px, 5vh, 44px); border-top: 1px solid var(--hairline); }
   .fact { border-bottom: 1px solid var(--hairline); }
@@ -439,6 +457,17 @@
   var alsoEl = document.getElementById("also");
   var product = null, allProducts = [], stock = null;
   var chosen = null;               // the size object the visitor picked
+  var shipCfg = null;              // shipping-config.json; null/intlEnabled:false = Colombia-only (current behaviour)
+
+  // display names for the country <select> in the (dormant) international modal
+  var COUNTRY_NAMES = {
+    CO: "Colombia", US: "United States", MX: "México", BR: "Brasil", AR: "Argentina",
+    CL: "Chile", PE: "Perú", EC: "Ecuador", UY: "Uruguay", PY: "Paraguay", BO: "Bolivia",
+    CR: "Costa Rica", PA: "Panamá", GT: "Guatemala", DO: "Rep. Dominicana",
+    ES: "España", FR: "Francia", DE: "Alemania", IT: "Italia", PT: "Portugal",
+    NL: "Países Bajos", BE: "Bélgica", IE: "Irlanda", AT: "Austria", SE: "Suecia",
+    DK: "Dinamarca", FI: "Finlandia", PL: "Polonia"
+  };
 
   function param(name) {
     var m = new RegExp("[?&]" + name + "=([^&]*)").exec(location.search);
@@ -722,6 +751,16 @@
   function startCheckout(e) {
     if (!chosen) return;
     e.preventDefault();
+    // International flow is DORMANT until shipping-config.intlEnabled is true (and
+    // the keys exist). While off, this branch is skipped and the Colombia/Bold
+    // path below runs exactly as before.
+    if (shipCfg && shipCfg.intlEnabled) { openShip(); return; }
+    goBold();
+  }
+
+  // The Colombia checkout, unchanged: mint a Bold link and go. Extracted so the
+  // (dormant) international modal can reuse it for CO buyers without duplicating.
+  function goBold() {
     if (checkingOut) return;
     var buy = document.getElementById("buy");
     var stripeFallback = buy.getAttribute("href");
@@ -1073,6 +1112,112 @@
     }, 1100);
   }
 
+  /* ---------- international shipping (DORMANT until shipping-config.intlEnabled) ----------
+     Collects the destination + address, quotes shipping via /api/quote, and routes
+     the payment: Colombia -> the existing Bold flow (goBold); international -> the
+     intl processor (not wired yet, shows "coming soon"). Built lazily, only ever
+     reachable when the flag is on. */
+  function openShip() { (document.getElementById("ship") || buildShipModal()).classList.add("open"); }
+  function closeShip() { var m = document.getElementById("ship"); if (m) m.classList.remove("open"); }
+
+  function shipVal(id) { var n = document.getElementById(id); return n ? n.value.trim() : ""; }
+  function shipFmt(amount, currency) {
+    if (currency === "COP") return LVCK.money(amount);
+    return "$" + Number(amount).toFixed(2) + " " + (currency || "USD");
+  }
+
+  function buildShipModal() {
+    var lang = LVCK.getLang() || "es";
+    var sheet = el("div", "sheet ship-sheet"); sheet.id = "ship";
+    var panel = el("div", "panel");
+    var h3 = el("h3"); h3.setAttribute("data-i18n", "ship.title"); panel.appendChild(h3);
+    var sub = el("p"); sub.setAttribute("data-i18n", "ship.sub"); panel.appendChild(sub);
+
+    // country select: Colombia + every ENABLED international zone
+    var cwrap = el("label", "ship-field");
+    var clab = el("span"); clab.setAttribute("data-i18n", "ship.country"); cwrap.appendChild(clab);
+    var sel = el("select", "ship-input"); sel.id = "ship-country";
+    var opt0 = el("option", null, LVCK.t("ship.pickCountry")); opt0.value = ""; sel.appendChild(opt0);
+    var oco = el("option", null, "Colombia"); oco.value = "CO"; sel.appendChild(oco);
+    var zones = (shipCfg && shipCfg.zones) || {};
+    Object.keys(zones).forEach(function (k) {
+      var z = zones[k]; if (!z.enabled) return;
+      var og = document.createElement("optgroup");
+      og.label = (z.label && (z.label[lang] || z.label.es)) || k;
+      (z.countries || []).forEach(function (cc) {
+        var o = el("option", null, COUNTRY_NAMES[cc] || cc); o.value = cc; og.appendChild(o);
+      });
+      sel.appendChild(og);
+    });
+    cwrap.appendChild(sel); panel.appendChild(cwrap);
+
+    [["ship.name", "ship-name"], ["ship.addr", "ship-addr"], ["ship.city", "ship-city"],
+     ["ship.state", "ship-state"], ["ship.zip", "ship-zip"], ["ship.phone", "ship-phone"],
+     ["ship.email", "ship-email"]].forEach(function (f) {
+      var w = el("label", "ship-field");
+      var l = el("span"); l.setAttribute("data-i18n", f[0]); w.appendChild(l);
+      var i = el("input", "ship-input"); i.id = f[1];
+      if (f[1] === "ship-email") i.type = "email";
+      w.appendChild(i); panel.appendChild(w);
+    });
+
+    var calc = el("button", "lang-btn ship-calc"); calc.type = "button";
+    calc.setAttribute("data-i18n", "ship.calc"); calc.addEventListener("click", quoteShip);
+    panel.appendChild(calc);
+
+    var result = el("div", "ship-result"); result.id = "ship-result"; result.hidden = true; panel.appendChild(result);
+
+    var close = el("button", "btn close"); close.type = "button";
+    LVCK.btnLabel(close).setAttribute("data-i18n", "p.close");
+    close.addEventListener("click", closeShip); panel.appendChild(close);
+
+    sheet.appendChild(panel);
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) closeShip(); });
+    document.body.appendChild(sheet);
+    LVCK.applyI18n(sheet);
+    return sheet;
+  }
+
+  function quoteShip() {
+    var country = shipVal("ship-country");
+    var result = document.getElementById("ship-result");
+    result.hidden = false; result.innerHTML = "";
+    if (!country) { result.appendChild(el("p", "ship-warn", LVCK.t("ship.incomplete"))); return; }
+    var address = {
+      name: shipVal("ship-name"), address1: shipVal("ship-addr"), city: shipVal("ship-city"),
+      state: shipVal("ship-state"), postalCode: shipVal("ship-zip"), phone: shipVal("ship-phone"),
+      email: shipVal("ship-email"), country: country
+    };
+    result.appendChild(el("p", null, "…"));
+    fetch("/api/quote", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ product: product.slug, country: country, address: address, lang: LVCK.getLang() || "es" })
+    }).then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+      .then(function (res) {
+        result.innerHTML = "";
+        if (res.status !== 200) {
+          result.appendChild(el("p", "ship-warn", res.body && res.body.error === "zone_unavailable" ? LVCK.t("ship.unavailable") : LVCK.t("ship.err")));
+          return;
+        }
+        var b = res.body;
+        var line = el("div", "ship-line");
+        line.appendChild(el("span", null, LVCK.t("ship.shippingLbl")));
+        line.appendChild(el("span", null, shipFmt(b.shipping, b.currency)));
+        result.appendChild(line);
+        if (b.note) result.appendChild(el("p", "ship-note", b.note));
+        var pay = el("button", "rec-apply ship-pay"); pay.type = "button";
+        pay.setAttribute("data-i18n", "ship.pay");
+        pay.addEventListener("click", function () {
+          if (country === "CO") { closeShip(); goBold(); return; }  // Colombia -> Bold (unchanged)
+          // international processor not wired yet (Point 1 is scaffolding)
+          result.innerHTML = ""; result.appendChild(el("p", "ship-note", LVCK.t("ship.soon")));
+        });
+        result.appendChild(pay);
+        LVCK.applyI18n(result);
+      })
+      .catch(function () { result.innerHTML = ""; result.appendChild(el("p", "ship-warn", LVCK.t("ship.err"))); });
+  }
+
   /* ---------- boot ---------- */
 
   function renderMissing() {
@@ -1088,6 +1233,13 @@
     wrap.appendChild(box);
     LVCK.applyI18n(wrap);
   }
+
+  // shipping/international config — optional, non-blocking. If it fails to load,
+  // shipCfg stays null and the storefront runs Colombia-only (current behaviour).
+  fetch("shipping-config.json")
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (c) { shipCfg = c; })
+    .catch(function () {});
 
   fetch("shop-config.json")
     .then(function (r) { return r.json(); })
@@ -1124,7 +1276,7 @@
     .catch(renderMissing);
 
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { closeGuide(); closeRec(); }
+    if (e.key === "Escape") { closeGuide(); closeRec(); closeShip(); }
   });
 
   window.addEventListener("lvck:lang", refreshDynamicCopy);

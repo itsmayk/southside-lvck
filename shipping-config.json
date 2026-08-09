@@ -1,0 +1,64 @@
+{
+  "_comment": "International shipping + payment config. FLAG OFF until the accounts/keys exist. While intlEnabled is false the storefront behaves exactly as today: Colombia -> Bold, no address step. Fill the PENDIENTE fields and flip intlEnabled to true (plus set the env keys) to go live per zone.",
+
+  "intlEnabled": false,
+  "provider": "paypal",
+  "currencyIntl": "USD",
+
+  "origin": {
+    "name": "LVCK · South Side",
+    "country": "CO",
+    "state": "Bogotá D.C.",
+    "city": "Bogotá",
+    "postalCode": "PENDIENTE",
+    "address1": "PENDIENTE — dirección de recogida",
+    "phone": "PENDIENTE",
+    "email": "michael8080rt@gmail.com"
+  },
+
+  "parcelDefaults": { "weightKg": 0.7, "lengthCm": 32, "widthCm": 26, "heightCm": 8 },
+
+  "domestic": {
+    "flatCOP": 0,
+    "label": { "es": "Envío nacional", "en": "Domestic shipping", "pt": "Envio nacional" }
+  },
+
+  "zones": {
+    "US": {
+      "enabled": true,
+      "countries": ["US"],
+      "label": { "es": "Estados Unidos", "en": "United States", "pt": "Estados Unidos" },
+      "flatUSD": 35,
+      "duties": "none",
+      "note": {
+        "es": "Sin aranceles (de minimis US$800).",
+        "en": "No duties (US$800 de minimis).",
+        "pt": "Sem impostos (de minimis US$800)."
+      }
+    },
+    "LATAM": {
+      "enabled": false,
+      "countries": ["MX", "BR", "AR", "CL", "PE", "EC", "UY", "PY", "BO", "CR", "PA", "GT", "DO"],
+      "label": { "es": "Latinoamérica", "en": "Latin America", "pt": "América Latina" },
+      "flatUSD": 30,
+      "duties": "ddu",
+      "note": {
+        "es": "Los impuestos de importación los paga el destinatario en destino.",
+        "en": "Import taxes are paid by the recipient at destination.",
+        "pt": "Os impostos de importação são pagos pelo destinatário no destino."
+      }
+    },
+    "EU": {
+      "enabled": false,
+      "countries": ["ES", "FR", "DE", "IT", "PT", "NL", "BE", "IE", "AT", "SE", "DK", "FI", "PL"],
+      "label": { "es": "Europa", "en": "Europe", "pt": "Europa" },
+      "flatUSD": 45,
+      "duties": "ddu",
+      "note": {
+        "es": "El IVA y los aranceles los paga el destinatario al recibir.",
+        "en": "VAT and duties are paid by the recipient on delivery.",
+        "pt": "IVA e impostos são pagos pelo destinatário na entrega."
+      }
+    }
+  }
+}
