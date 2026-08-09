@@ -14,12 +14,13 @@
   var CURRENCY_KEY = "ss-currency";
   var LANGS = ["es", "en", "pt"];
 
-  /* ---------- currency picker (Shopify-style, display only) ----------
-     Prices live in COP. The visitor picks a COUNTRY and prices show in that
-     country's currency (reference only — the real charge stays COP/Bold, USD/intl).
-     Real flags come from flagcdn.com (render everywhere, unlike flag emoji on
-     Windows). Rates come live from /api/rates (base COP). */
-  var HOME_CURRENCY = "COP";
+  /* ---------- currency picker (Shopify-style) ----------
+     Prices are defined in USD (BASE_CURRENCY). The visitor picks a COUNTRY and
+     prices show in that country's currency. USD prints exact (the base); COP is
+     the Colombian charge (Bold), converted from USD and rounded to a clean 5/9
+     thousands value; every other currency is a charm-rounded reference. Real
+     flags come from flagcdn.com. Rates come live from /api/rates (base USD). */
+  var BASE_CURRENCY = "USD";
   var CUR_COUNTRY_KEY = "ss-cur-country";   // the picked country's ISO2 (drives currency + flag)
 
   // currency -> display symbol (cosmetic; Intl handles the actual price format)
@@ -129,7 +130,7 @@
       "lang.pick": "Elige tu idioma",
       "cur.title": "Elige tu moneda",
       "cur.search": "Buscar moneda…",
-      "cur.charged": "Precio de referencia · el cobro se realiza en COP.",
+      "cur.charged": "Precio de referencia · el cobro se hace en USD (o COP en Colombia).",
       "test.notice": "Modo prueba · ningún pago es real todavía",
       "drop.label": "Lanzamiento",
       "drop.date": "15 AGO 2026",
@@ -258,7 +259,7 @@
       "lang.pick": "Choose your language",
       "cur.title": "Choose your currency",
       "cur.search": "Search currency…",
-      "cur.charged": "Reference price · you are charged in COP.",
+      "cur.charged": "Reference price · you are charged in USD (or COP in Colombia).",
       "test.notice": "Test mode · no payment is real yet",
       "drop.label": "Drop",
       "drop.date": "15 AUG 2026",
@@ -387,7 +388,7 @@
       "lang.pick": "Escolha seu idioma",
       "cur.title": "Escolha sua moeda",
       "cur.search": "Buscar moeda…",
-      "cur.charged": "Preço de referência · a cobrança é feita em COP.",
+      "cur.charged": "Preço de referência · a cobrança é feita em USD (ou COP na Colômbia).",
       "test.notice": "Modo teste · nenhum pagamento é real ainda",
       "drop.label": "Lançamento",
       "drop.date": "15 AGO 2026",
@@ -563,18 +564,44 @@
     return { value: Math.max(step - 1, Math.round(amount / step) * step - 1), dp: 0 };  // …9
   }
 
-  // The reference price shown to the visitor. Home currency (COP) prints EXACT
-  // (that's the real charge). Any other currency prints a charm-rounded figure
-  // (retail 9-ending) so a shopper abroad reads a familiar, tidy price. The real
-  // charge stays COP/USD — stated separately (cur.charged note) so the pretty
-  // number is never mistaken for the exact charge.
-  function money(cop, lang) {
+  // Colombia's COP charge: nearest thousands value ending in 5 or 9, ties -> 5
+  // (356000 -> 355000, 358000 -> 359000, 362000 -> 365000). Mirrors lib/fx.js so
+  // what a Colombian sees is exactly what Bold charges.
+  function roundCOP59(cop) {
+    var T = Math.round(cop / 1000);
+    var d = Math.floor(T / 10) * 10;
+    var cands = [d - 1, d + 5, d + 9, d + 15];
+    var best = cands[0], bestDist = Infinity;
+    for (var i = 0; i < cands.length; i++) {
+      var dist = Math.abs(cands[i] - T);
+      if (dist < bestDist - 1e-9 || (Math.abs(dist - bestDist) < 1e-9 && cands[i] % 10 === 5)) {
+        best = cands[i]; bestDist = dist;
+      }
+    }
+    return Math.max(0, best) * 1000;
+  }
+
+  // The price shown to the visitor. Takes a USD amount (prices are USD-based).
+  //   USD  -> exact ($89), it's the base
+  //   COP  -> converted, rounded to a clean 5/9 thousands (Colombia's Bold charge)
+  //   else -> converted, charm-rounded (retail 9-ending) reference
+  // Before rates load (or for an unknown currency) it falls back to the USD price.
+  function money(usd, lang) {
     var cur = getCurrency();
     var loc = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-CO";
-    if (cur === HOME_CURRENCY || !fxRates || !fxRates[cur]) {
-      return "$" + Number(cop).toLocaleString(loc) + " COP";
+    var u = Number(usd);
+
+    function fmtUSD() {
+      try { return new Intl.NumberFormat(loc, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(u); }
+      catch (e) { return "US$ " + u; }
     }
-    var amount = Number(cop) * Number(fxRates[cur]);
+    if (cur === BASE_CURRENCY) return fmtUSD();
+    if (!fxRates || !fxRates[cur]) return fmtUSD();
+
+    var amount = u * Number(fxRates[cur]);
+    if (cur === "COP") {
+      return "$" + roundCOP59(amount).toLocaleString(loc) + " COP";
+    }
     var c = charmPrice(amount, cur, loc);
     try {
       return new Intl.NumberFormat(loc, {
@@ -591,13 +618,13 @@
   // failure (money() then shows COP). Calls back so callers can re-render prices.
   function loadRates(done) {
     var cached = null;
-    try { cached = JSON.parse(sessionStorage.getItem("ss-rates") || "null"); } catch (e) {}
+    try { cached = JSON.parse(sessionStorage.getItem("ss-rates-usd") || "null"); } catch (e) {}
     if (cached && cached.rates) { fxRates = cached.rates; if (done) done(); return; }
 
     function ok(rates) {
       if (rates) {
         fxRates = rates;
-        try { sessionStorage.setItem("ss-rates", JSON.stringify({ rates: rates })); } catch (e) {}
+        try { sessionStorage.setItem("ss-rates-usd", JSON.stringify({ rates: rates })); } catch (e) {}
       }
       if (done) done();
     }

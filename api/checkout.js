@@ -9,9 +9,15 @@
 const config = require("../shop-config.json");
 const bold = require("../lib/bold.js");
 const store = require("../lib/store.js");
+const fx = require("../lib/fx.js");
 
 const products = config.products || [];
 const HOLD_SECONDS = 30 * 60; // how long a size is reserved once checkout starts
+
+// prices are USD-based; postLaunch picks launch vs post-launch
+function activeUsd(product) {
+  return config.postLaunch ? product.priceUSDPost : product.priceUSD;
+}
 
 function findSize(productSlug, sizeSlug) {
   const product = products.find((p) => p.slug === productSlug);
@@ -58,11 +64,16 @@ module.exports = async function handler(req, res) {
     const held = await store.reserve(size.slug, size.stock, reference, HOLD_SECONDS);
     if (!held) return res.status(409).json({ error: "sold_out", size: size.size });
 
+    // prices are USD; Colombia's Bold charge is the USD price converted to COP
+    // and rounded to a clean 5/9 thousands (same value the storefront shows).
+    const amountCOP = await fx.copFor(activeUsd(product));
+    const name = (product.name && (product.name.es || product.name.en)) || product.slug;
+
     let link;
     try {
       link = await bold.createLink({
-        amountCOP: product.priceCOP,
-        description: (product.name + " · " + size.size).slice(0, 100),
+        amountCOP: amountCOP,
+        description: (name + " · " + size.size).slice(0, 100),
         reference: reference,
         callbackUrl: origin(req) + "/gracias.html",
       });

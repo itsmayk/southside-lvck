@@ -1,13 +1,13 @@
 // Live FX rates so the storefront can show a reference price in the visitor's
-// currency. Base is COP (our prices live in COP); each rate is "how much 1 COP
-// is worth in X", so amountX = priceCOP * rates[X].
+// currency. Base is USD (our prices are defined in USD); each rate is "how much
+// 1 USD is worth in X", so amountX = priceUSD * rates[X].
 //
 // Source: open.er-api.com — free, no key, CORS-enabled, refreshed daily. Cached
 // in module scope (survives warm invocations) + at the CDN for a day. Never
 // throws to the client: on any failure it returns { rates: null } so the front
-// falls back to showing COP only.
+// falls back to showing the USD price only.
 
-const SRC = "https://open.er-api.com/v6/latest/COP";
+const SRC = "https://open.er-api.com/v6/latest/USD";
 
 let cache = { at: 0, rates: null };
 const TTL_MS = 24 * 60 * 60 * 1000;
@@ -18,19 +18,19 @@ module.exports = async function handler(req, res) {
 
   const now = Date.now();
   if (cache.rates && now - cache.at < TTL_MS) {
-    return res.status(200).json({ base: "COP", rates: cache.rates, cached: true });
+    return res.status(200).json({ base: "USD", rates: cache.rates, cached: true });
   }
 
   try {
     const r = await fetch(SRC);
     const json = await r.json();
     if (!r.ok || !json || json.result !== "success" || !json.rates) {
-      // don't 500 — a missing rate set just means "show COP"
-      return res.status(200).json({ base: "COP", rates: cache.rates });
+      // don't 500 — a missing rate set just means "show USD"
+      return res.status(200).json({ base: "USD", rates: cache.rates });
     }
     cache = { at: now, rates: json.rates };
-    return res.status(200).json({ base: "COP", rates: json.rates });
+    return res.status(200).json({ base: "USD", rates: json.rates });
   } catch (err) {
-    return res.status(200).json({ base: "COP", rates: cache.rates });
+    return res.status(200).json({ base: "USD", rates: cache.rates });
   }
 };

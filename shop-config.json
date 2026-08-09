@@ -1,4 +1,6 @@
 {
+  "_comment": "Prices are defined in USD (base currency). postLaunch:false shows the launch price (priceUSD); flip to true to switch to priceUSDPost. Colombia's Bold charge is derived from USD via lib/fx.js (auto-convert + round to nearest thousand ending in 5/9).",
+  "postLaunch": false,
   "products": [
     {
       "slug": "boxi-fit",
@@ -9,7 +11,8 @@
         "en": "Boxy cut, bone tone",
         "pt": "Corte quadrado, tom osso"
       },
-      "priceCOP": 300000,
+      "priceUSD": 89,
+      "priceUSDPost": 99,
       "photos": [
         { "src": "photos/boxi-fit-01.jpg", "alt": { "es": "SS Chaqueta Hueso de pie, cuerpo completo", "en": "SS Chaqueta Hueso standing, full body", "pt": "SS Chaqueta Hueso em pé, corpo inteiro" } },
         { "src": "photos/boxi-fit-02.jpg", "alt": { "es": "SS Chaqueta Hueso sentado, se ve la caída", "en": "SS Chaqueta Hueso seated, showing the drape", "pt": "SS Chaqueta Hueso sentado, mostrando o caimento" } },
@@ -32,7 +35,8 @@
         "en": "Light denim, relaxed cut",
         "pt": "Denim claro, corte solto"
       },
-      "priceCOP": 269000,
+      "priceUSD": 79,
+      "priceUSDPost": 89,
       "photos": [
         { "src": "photos/jean-lxc-01.jpg", "alt": { "es": "SS Jean Hueso visto de lado, cuerpo completo", "en": "SS Jean Hueso side view, full body", "pt": "SS Jean Hueso de lado, corpo inteiro" } },
         { "src": "photos/jean-lxc-02.jpg", "alt": { "es": "Detalle de la SS Jean Hueso sobre la pierna", "en": "Close-up of the SS Jean Hueso on the leg", "pt": "Detalhe da SS Jean Hueso na perna" } }
@@ -54,7 +58,8 @@
         "en": "Boxy cut, black",
         "pt": "Corte quadrado, preto"
       },
-      "priceCOP": 300000,
+      "priceUSD": 89,
+      "priceUSDPost": 99,
       "photos": [
         { "src": "photos/boxi-fit-01.jpg", "alt": { "es": "SS Chaqueta Negra de pie, cuerpo completo", "en": "SS Chaqueta Negra standing, full body", "pt": "SS Chaqueta Negra em pé, corpo inteiro" } },
         { "src": "photos/boxi-fit-02.jpg", "alt": { "es": "SS Chaqueta Negra sentado, se ve la caída", "en": "SS Chaqueta Negra seated, showing the drape", "pt": "SS Chaqueta Negra sentado, mostrando o caimento" } }
@@ -76,7 +81,8 @@
         "en": "Black denim, relaxed cut",
         "pt": "Denim preto, corte solto"
       },
-      "priceCOP": 269000,
+      "priceUSD": 79,
+      "priceUSDPost": 89,
       "photos": [
         { "src": "photos/jean-lxc-01.jpg", "alt": { "es": "SS Jean Negro visto de lado, cuerpo completo", "en": "SS Jean Negro side view, full body", "pt": "SS Jean Negro de lado, corpo inteiro" } },
         { "src": "photos/jean-lxc-02.jpg", "alt": { "es": "Detalle de la SS Jean Negro sobre la pierna", "en": "Close-up of the SS Jean Negro on the leg", "pt": "Detalhe da SS Jean Negro na perna" } }

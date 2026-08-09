@@ -523,6 +523,8 @@
   var audioCtx = null, soundOff = false;
   try { soundOff = localStorage.getItem("ss-sound") === "off"; } catch (e) {}
   var products = [];
+  var postLaunch = false;           // shop-config.postLaunch: false = launch price, true = post-launch
+  function activeUsd(p) { return postLaunch ? p.priceUSDPost : p.priceUSD; }
   var stock = null;                 // size-slug -> boolean, null until /api/stock answers
   var items = [];
   var current = 0, N = 0;
@@ -549,6 +551,7 @@
 
   function build(config) {
     products = config.products || [];
+    postLaunch = !!config.postLaunch;
     N = products.length;
 
     var sk = section.querySelector(".sel-skeleton");   // drop the loading placeholder
@@ -687,7 +690,7 @@
       var sold = isSold(p);
       nameEl.textContent = nameOf(p, lang);
       if (animate) { nameEl.classList.remove("slam"); void nameEl.offsetWidth; nameEl.classList.add("slam"); }
-      priceEl.textContent = sold ? "" : LVCK.money(p.priceCOP, lang);
+      priceEl.textContent = sold ? "" : LVCK.money(activeUsd(p), lang);
       readout.classList.toggle("sold", sold);
       ctaEl.href = link(p);
       ctaEl.classList.toggle("is-sold", sold);

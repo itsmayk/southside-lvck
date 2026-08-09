@@ -456,7 +456,11 @@
   var wrap = document.getElementById("wrap");
   var alsoEl = document.getElementById("also");
   var product = null, allProducts = [], stock = null;
+  var postLaunch = false;          // shop-config.postLaunch: false = launch price, true = post-launch
   var chosen = null;               // the size object the visitor picked
+
+  // active USD price for a product (prices are USD-based; launch vs post-launch)
+  function activeUsd(p) { return postLaunch ? p.priceUSDPost : p.priceUSD; }
   var shipCfg = null;              // shipping-config.json; null/intlEnabled:false = Colombia-only (current behaviour)
 
   // display names for the country <select> in the (dormant) international modal
@@ -670,7 +674,7 @@
     tag.id = "tagline";
     col.appendChild(tag);
 
-    var price = el("div", "price", LVCK.money(product.priceCOP, lang));
+    var price = el("div", "price", LVCK.money(activeUsd(product), lang));
     price.id = "price";
     col.appendChild(price);
 
@@ -1045,7 +1049,7 @@
     a.appendChild(img);
     var txt = el("div");
     txt.appendChild(el("div", "n", nameOf(other, lang)));
-    txt.appendChild(el("div", "p", LVCK.money(other.priceCOP, lang)));
+    txt.appendChild(el("div", "p", LVCK.money(activeUsd(other), lang)));
     a.appendChild(txt);
     alsoEl.appendChild(a);
   }
@@ -1064,12 +1068,15 @@
     var tag = document.getElementById("tagline");
     if (tag) tag.textContent = product.tagline[lang] || product.tagline.es;
     var price = document.getElementById("price");
-    if (price) price.textContent = LVCK.money(product.priceCOP, lang);
+    if (price) price.textContent = LVCK.money(activeUsd(product), lang);
     var pnote = document.getElementById("price-note");
     if (pnote) {
-      var nonHome = LVCK.getCurrency && LVCK.getCurrency() !== "COP";
-      pnote.hidden = !nonHome;
-      if (nonHome) pnote.textContent = LVCK.t("cur.charged", lang);
+      // USD (base) and COP (Colombia/Bold) are exact charges — no note. Every
+      // other currency is a converted reference, so flag it.
+      var cur = LVCK.getCurrency ? LVCK.getCurrency() : "USD";
+      var isReference = cur !== "USD" && cur !== "COP";
+      pnote.hidden = !isReference;
+      if (isReference) pnote.textContent = LVCK.t("cur.charged", lang);
     }
 
     document.querySelectorAll(".stage img").forEach(function (img) {
@@ -1255,6 +1262,7 @@
     .then(function (r) { return r.json(); })
     .then(function (config) {
       allProducts = config.products || [];
+      postLaunch = !!config.postLaunch;
       var slug = param("p");
       product = allProducts.filter(function (p) { return p.slug === slug; })[0] || null;
 
