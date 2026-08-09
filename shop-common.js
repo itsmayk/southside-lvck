@@ -585,21 +585,15 @@
   // code): narrowSymbol gives "$89.00" / "€81,99" / "¥13.399", never "US$"/"MXN"/
   // "EUR". Falls back to symbol+number if the engine lacks narrowSymbol.
   function fmtMoney(value, cur, dp, loc) {
-    var out;
     try {
-      out = new Intl.NumberFormat(loc, {
+      return new Intl.NumberFormat(loc, {
         style: "currency", currency: cur, currencyDisplay: "narrowSymbol",
         minimumFractionDigits: dp, maximumFractionDigits: dp
       }).format(value);
     } catch (e) {
       var sym = CUR_SYM[cur] || "";
-      out = sym + value.toLocaleString(loc, { minimumFractionDigits: dp, maximumFractionDigits: dp });
+      return sym + value.toLocaleString(loc, { minimumFractionDigits: dp, maximumFractionDigits: dp });
     }
-    // tuck the symbol against the number: "$ 89,00" -> "$89,00" (some locales
-    // insert a (non-breaking) space between the currency symbol and the digits)
-    try { out = out.replace(/(\p{Sc})[\s  ]+/u, "$1"); }
-    catch (e2) { out = out.replace(/([^\d\s])[\s  ]+(?=\d)/, "$1"); }
-    return out;
   }
 
   // The price shown to the visitor. Takes a USD amount (prices are USD-based).
