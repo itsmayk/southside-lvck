@@ -906,6 +906,19 @@
     if (currencyOpen() && !(e.target.closest && e.target.closest("#cur-select"))) closeCurrencyMenu();
   });
 
+  // Re-sync the currency when a page that was built earlier is (re)shown with a
+  // possibly newer choice: a Speculation-Rules PRERENDER activates (it was built
+  // with whatever currency was picked at prerender time), or a bfcache restore.
+  // Without this, opening a prerendered product shows the old currency even after
+  // you switched. getSelectedCountry() reads localStorage live, so re-emitting
+  // lvck:currency re-renders every price with the current choice.
+  function syncCurrency() {
+    updateCurrencyControl();
+    global.dispatchEvent(new CustomEvent("lvck:currency", { detail: { currency: getCurrency() } }));
+  }
+  document.addEventListener("prerenderingchange", syncCurrency);
+  global.addEventListener("pageshow", function (e) { if (e.persisted) syncCurrency(); });
+
   /* ---------- futuristic nav overlay (hamburger) ----------
      The left-hand word nav moved into a full-screen overlay built once here and
      reused on every storefront page. It sits UNDER the sticky header (z-index),
