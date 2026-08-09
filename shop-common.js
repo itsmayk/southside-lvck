@@ -581,8 +581,29 @@
     return Math.max(0, best) * 1000;
   }
 
+  // Format a value in a currency, showing only the symbol + digits (no letter
+  // code): narrowSymbol gives "$89.00" / "€81,99" / "¥13.399", never "US$"/"MXN"/
+  // "EUR". Falls back to symbol+number if the engine lacks narrowSymbol.
+  function fmtMoney(value, cur, dp, loc) {
+    var out;
+    try {
+      out = new Intl.NumberFormat(loc, {
+        style: "currency", currency: cur, currencyDisplay: "narrowSymbol",
+        minimumFractionDigits: dp, maximumFractionDigits: dp
+      }).format(value);
+    } catch (e) {
+      var sym = CUR_SYM[cur] || "";
+      out = sym + value.toLocaleString(loc, { minimumFractionDigits: dp, maximumFractionDigits: dp });
+    }
+    // tuck the symbol against the number: "$ 89,00" -> "$89,00" (some locales
+    // insert a (non-breaking) space between the currency symbol and the digits)
+    try { out = out.replace(/(\p{Sc})[\s  ]+/u, "$1"); }
+    catch (e2) { out = out.replace(/([^\d\s])[\s  ]+(?=\d)/, "$1"); }
+    return out;
+  }
+
   // The price shown to the visitor. Takes a USD amount (prices are USD-based).
-  //   USD  -> exact ($89), it's the base
+  //   USD  -> exact, 2 decimals ($89.00), it's the base
   //   COP  -> converted, rounded to a clean 5/9 thousands (Colombia's Bold charge)
   //   else -> converted, charm-rounded (retail 9-ending) reference
   // Before rates load (or for an unknown currency) it falls back to the USD price.
@@ -591,26 +612,12 @@
     var loc = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-CO";
     var u = Number(usd);
 
-    function fmtUSD() {
-      try { return new Intl.NumberFormat(loc, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(u); }
-      catch (e) { return "US$ " + u; }
-    }
-    if (cur === BASE_CURRENCY) return fmtUSD();
-    if (!fxRates || !fxRates[cur]) return fmtUSD();
+    if (cur === BASE_CURRENCY || !fxRates || !fxRates[cur]) return fmtMoney(u, "USD", 2, loc);
 
     var amount = u * Number(fxRates[cur]);
-    if (cur === "COP") {
-      return "$" + roundCOP59(amount).toLocaleString(loc) + " COP";
-    }
+    if (cur === "COP") return fmtMoney(roundCOP59(amount), "COP", 0, loc);
     var c = charmPrice(amount, cur, loc);
-    try {
-      return new Intl.NumberFormat(loc, {
-        style: "currency", currency: cur,
-        minimumFractionDigits: c.dp, maximumFractionDigits: c.dp
-      }).format(c.value);
-    } catch (e) {
-      return c.value.toLocaleString(loc) + " " + cur;
-    }
+    return fmtMoney(c.value, cur, c.dp, loc);
   }
 
   // Load live rates once; cache in sessionStorage for the session. Falls back to
