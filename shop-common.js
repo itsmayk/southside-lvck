@@ -11,7 +11,68 @@
 
   var LANG_KEY = "ss-lang";
   var COUNTRY_KEY = "ss-country";
+  var CURRENCY_KEY = "ss-currency";
   var LANGS = ["es", "en", "pt"];
+
+  /* ---------- currency (display only) ----------
+     Prices live in COP. The visitor can switch the *reference* currency shown;
+     the actual charge stays COP (Bold) / USD (intl). Flags + names for a global
+     picker; rates come live from /api/rates (base COP). */
+  var HOME_CURRENCY = "COP";
+  var CURRENCIES = [
+    { code: "COP", flag: "🇨🇴", name: "Peso colombiano" },
+    { code: "USD", flag: "🇺🇸", name: "US Dollar" },
+    { code: "EUR", flag: "🇪🇺", name: "Euro" },
+    { code: "MXN", flag: "🇲🇽", name: "Peso mexicano" },
+    { code: "BRL", flag: "🇧🇷", name: "Real brasileño" },
+    { code: "ARS", flag: "🇦🇷", name: "Peso argentino" },
+    { code: "CLP", flag: "🇨🇱", name: "Peso chileno" },
+    { code: "PEN", flag: "🇵🇪", name: "Sol peruano" },
+    { code: "UYU", flag: "🇺🇾", name: "Peso uruguayo" },
+    { code: "BOB", flag: "🇧🇴", name: "Boliviano" },
+    { code: "PYG", flag: "🇵🇾", name: "Guaraní" },
+    { code: "CRC", flag: "🇨🇷", name: "Colón costarricense" },
+    { code: "GTQ", flag: "🇬🇹", name: "Quetzal" },
+    { code: "DOP", flag: "🇩🇴", name: "Peso dominicano" },
+    { code: "GBP", flag: "🇬🇧", name: "British Pound" },
+    { code: "CAD", flag: "🇨🇦", name: "Canadian Dollar" },
+    { code: "AUD", flag: "🇦🇺", name: "Australian Dollar" },
+    { code: "CHF", flag: "🇨🇭", name: "Swiss Franc" },
+    { code: "JPY", flag: "🇯🇵", name: "Japanese Yen" },
+    { code: "CNY", flag: "🇨🇳", name: "Chinese Yuan" },
+    { code: "KRW", flag: "🇰🇷", name: "Korean Won" },
+    { code: "INR", flag: "🇮🇳", name: "Indian Rupee" },
+    { code: "SGD", flag: "🇸🇬", name: "Singapore Dollar" },
+    { code: "HKD", flag: "🇭🇰", name: "Hong Kong Dollar" },
+    { code: "NZD", flag: "🇳🇿", name: "NZ Dollar" },
+    { code: "SEK", flag: "🇸🇪", name: "Swedish Krona" },
+    { code: "NOK", flag: "🇳🇴", name: "Norwegian Krone" },
+    { code: "DKK", flag: "🇩🇰", name: "Danish Krone" },
+    { code: "PLN", flag: "🇵🇱", name: "Polish Zloty" },
+    { code: "CZK", flag: "🇨🇿", name: "Czech Koruna" },
+    { code: "AED", flag: "🇦🇪", name: "UAE Dirham" },
+    { code: "SAR", flag: "🇸🇦", name: "Saudi Riyal" },
+    { code: "ILS", flag: "🇮🇱", name: "Israeli Shekel" },
+    { code: "TRY", flag: "🇹🇷", name: "Turkish Lira" },
+    { code: "ZAR", flag: "🇿🇦", name: "South African Rand" },
+    { code: "THB", flag: "🇹🇭", name: "Thai Baht" },
+    { code: "PHP", flag: "🇵🇭", name: "Philippine Peso" },
+    { code: "MYR", flag: "🇲🇾", name: "Malaysian Ringgit" },
+    { code: "IDR", flag: "🇮🇩", name: "Indonesian Rupiah" },
+    { code: "VND", flag: "🇻🇳", name: "Vietnamese Dong" }
+  ];
+  var CURRENCY_CODES = CURRENCIES.map(function (c) { return c.code; });
+  // country -> its currency, to pre-select from the detected ss-country
+  var CURRENCY_BY_COUNTRY = {
+    CO: "COP", US: "USD", MX: "MXN", BR: "BRL", AR: "ARS", CL: "CLP", PE: "PEN",
+    UY: "UYU", BO: "BOB", PY: "PYG", CR: "CRC", GT: "GTQ", DO: "DOP",
+    ES: "EUR", FR: "EUR", DE: "EUR", IT: "EUR", PT: "EUR", NL: "EUR", BE: "EUR",
+    IE: "EUR", AT: "EUR", FI: "EUR", GB: "GBP", CA: "CAD", AU: "AUD", CH: "CHF",
+    JP: "JPY", CN: "CNY", KR: "KRW", IN: "INR", SG: "SGD", HK: "HKD", NZ: "NZD",
+    SE: "SEK", NO: "NOK", DK: "DKK", PL: "PLN", CZ: "CZK", AE: "AED", SA: "SAR",
+    IL: "ILS", TR: "TRY", ZA: "ZAR", TH: "THB", PH: "PHP", MY: "MYR", ID: "IDR", VN: "VND"
+  };
+  var fxRates = null;   // { USD: 0.00025, ... } per 1 COP; null until /api/rates answers
 
   // same country -> language table the landing page uses
   var LANG_BY_COUNTRY = {
@@ -31,6 +92,9 @@
       "foot.brand": "LVCK · South Side",
       "foot.note": "Bogotá, Colombia",
       "lang.pick": "Elige tu idioma",
+      "cur.title": "Elige tu moneda",
+      "cur.search": "Buscar moneda…",
+      "cur.charged": "Precio de referencia · el cobro se realiza en COP.",
       "test.notice": "Modo prueba · ningún pago es real todavía",
       "drop.label": "Lanzamiento",
       "drop.date": "15 AGO 2026",
@@ -157,6 +221,9 @@
       "foot.brand": "LVCK · South Side",
       "foot.note": "Bogotá, Colombia",
       "lang.pick": "Choose your language",
+      "cur.title": "Choose your currency",
+      "cur.search": "Search currency…",
+      "cur.charged": "Reference price · you are charged in COP.",
       "test.notice": "Test mode · no payment is real yet",
       "drop.label": "Drop",
       "drop.date": "15 AUG 2026",
@@ -283,6 +350,9 @@
       "foot.brand": "LVCK · South Side",
       "foot.note": "Bogotá, Colômbia",
       "lang.pick": "Escolha seu idioma",
+      "cur.title": "Escolha sua moeda",
+      "cur.search": "Buscar moeda…",
+      "cur.charged": "Preço de referência · a cobrança é feita em COP.",
       "test.notice": "Modo teste · nenhum pagamento é real ainda",
       "drop.label": "Lançamento",
       "drop.date": "15 AGO 2026",
@@ -417,10 +487,72 @@
     return dict[key] !== undefined ? dict[key] : (T.es[key] !== undefined ? T.es[key] : key);
   }
 
+  /* ---------- currency selection + conversion ---------- */
+  function getCurrency() {
+    var saved = store(CURRENCY_KEY);
+    if (CURRENCY_CODES.indexOf(saved) !== -1) return saved;
+    // not chosen yet: derive from the detected country, else home currency
+    var byCountry = CURRENCY_BY_COUNTRY[store(COUNTRY_KEY)];
+    return CURRENCY_CODES.indexOf(byCountry) !== -1 ? byCountry : HOME_CURRENCY;
+  }
+  function setCurrency(code) {
+    if (CURRENCY_CODES.indexOf(code) === -1) return;
+    store(CURRENCY_KEY, code);
+    updateCurrencyControl();
+    global.dispatchEvent(new CustomEvent("lvck:currency", { detail: { currency: code } }));
+  }
+
+  // The reference price shown to the visitor. Home currency (COP) prints exact;
+  // any other prints an approximate converted figure using the live rate, so a
+  // shopper abroad reads a familiar number. The real charge is always COP/USD —
+  // stated separately (money.note) so this is never mistaken for the charge.
   function money(cop, lang) {
-    // one currency for now: showing a converted price the Stripe checkout will
-    // not honour is worse than showing none. See the currency work still to come.
-    return "$" + Number(cop).toLocaleString(lang === "en" ? "en-US" : "es-CO") + " COP";
+    var cur = getCurrency();
+    var loc = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-CO";
+    if (cur === HOME_CURRENCY || !fxRates || !fxRates[cur]) {
+      return "$" + Number(cop).toLocaleString(loc) + " COP";
+    }
+    var amount = Number(cop) * Number(fxRates[cur]);
+    try {
+      var s = new Intl.NumberFormat(loc, {
+        style: "currency", currency: cur, maximumFractionDigits: 0
+      }).format(amount);
+      return "≈ " + s;
+    } catch (e) {
+      return "≈ " + Math.round(amount).toLocaleString(loc) + " " + cur;
+    }
+  }
+
+  // Load live rates once; cache in sessionStorage for the session. Falls back to
+  // the public API if our function is unreachable; leaves fxRates null on total
+  // failure (money() then shows COP). Calls back so callers can re-render prices.
+  function loadRates(done) {
+    var cached = null;
+    try { cached = JSON.parse(sessionStorage.getItem("ss-rates") || "null"); } catch (e) {}
+    if (cached && cached.rates) { fxRates = cached.rates; if (done) done(); return; }
+
+    function ok(rates) {
+      if (rates) {
+        fxRates = rates;
+        try { sessionStorage.setItem("ss-rates", JSON.stringify({ rates: rates })); } catch (e) {}
+      }
+      if (done) done();
+    }
+    fetch("/api/rates")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (j && j.rates) return ok(j.rates);
+        // fallback: hit the public API straight from the client
+        return fetch("https://open.er-api.com/v6/latest/COP")
+          .then(function (r) { return r.json(); })
+          .then(function (j2) { ok(j2 && j2.rates ? j2.rates : null); });
+      })
+      .catch(function () {
+        fetch("https://open.er-api.com/v6/latest/COP")
+          .then(function (r) { return r.json(); })
+          .then(function (j2) { ok(j2 && j2.rates ? j2.rates : null); })
+          .catch(function () { if (done) done(); });
+      });
   }
 
   /* Anything carrying data-i18n has its text replaced; data-i18n-attr does the
@@ -593,6 +725,108 @@
     if (e.target.id === "lang-modal") closeLangModal();
   });
 
+  /* ---------- currency picker (global, in the header next to Idioma) ---------- */
+  function buildCurrencyModal() {
+    var modal = document.createElement("div");
+    modal.className = "lang-modal cur-modal";
+    modal.id = "cur-modal";
+    var rows = CURRENCIES.map(function (c) {
+      return '<button class="lang-btn cur-btn" data-set-cur="' + c.code + '">' +
+        '<span class="flag">' + c.flag + '</span>' +
+        '<span class="cur-code">' + c.code + '</span>' +
+        '<span class="cur-name">' + c.name + '</span>' +
+      '</button>';
+    }).join("");
+    modal.innerHTML =
+      '<div class="panel cur-panel">' +
+        '<div class="eyebrow" data-i18n="cur.title">Moneda</div>' +
+        '<input class="cur-search" type="text" data-i18n-attr="placeholder:cur.search" aria-label="Buscar">' +
+        '<div class="cur-list">' + rows + '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+    applyI18n(modal);
+    // live filter
+    var search = modal.querySelector(".cur-search");
+    search.addEventListener("input", function () {
+      var q = search.value.trim().toLowerCase();
+      modal.querySelectorAll(".cur-btn").forEach(function (b) {
+        b.style.display = b.textContent.toLowerCase().indexOf(q) === -1 ? "none" : "";
+      });
+    });
+    markCurrentCurrency(modal);
+    return modal;
+  }
+  function markCurrentCurrency(modal) {
+    var cur = getCurrency();
+    (modal || document).querySelectorAll(".cur-btn").forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-set-cur") === cur);
+    });
+  }
+  function openCurrencyModal() {
+    var m = document.getElementById("cur-modal") || buildCurrencyModal();
+    markCurrentCurrency(m);
+    var s = m.querySelector(".cur-search"); if (s) s.value = "";
+    m.querySelectorAll(".cur-btn").forEach(function (b) { b.style.display = ""; });
+    m.classList.add("open");
+  }
+  function closeCurrencyModal() {
+    var m = document.getElementById("cur-modal");
+    if (m) m.classList.remove("open");
+  }
+
+  /* Windows (Edge/Chrome) ships no flag-emoji glyphs, so 🇨🇴 renders as the two
+     letters "CO". Detect real flag support by drawing one and checking for a
+     COLOURED pixel (flags are colourful; the letter fallback is monochrome). If
+     unsupported, <html> gets `.no-flags` and the CSS hides the flag column — a
+     clean code+name list instead of stray letters. Phones/Mac render the flags. */
+  var _flagsChecked = false;
+  function detectFlagSupport() {
+    if (_flagsChecked) return;
+    _flagsChecked = true;
+    var supported = false;
+    try {
+      var c = document.createElement("canvas");
+      c.width = 20; c.height = 20;
+      var ctx = c.getContext("2d");
+      ctx.font = "16px sans-serif";
+      ctx.fillText("🇨🇭", 0, 16);   // Swiss flag: strong red
+      var d = ctx.getImageData(0, 0, 20, 20).data;
+      for (var i = 0; i < d.length; i += 4) {
+        if (d[i] > 120 && d[i + 1] < 90 && d[i + 2] < 90) { supported = true; break; }  // red pixel
+      }
+    } catch (e) { supported = false; }
+    document.documentElement.classList.toggle("no-flags", !supported);
+  }
+
+  // The header trigger, injected next to the "Idioma" button so every storefront
+  // page gets it without editing each header.
+  function initCurrencyControl() {
+    detectFlagSupport();
+    var langBtn = document.querySelector("[data-open-lang]");
+    if (!langBtn || document.getElementById("cur-open")) return;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.id = "cur-open";
+    b.setAttribute("data-open-currency", "");
+    b.setAttribute("aria-label", "Moneda");
+    langBtn.parentNode.insertBefore(b, langBtn);
+    updateCurrencyControl();
+  }
+  function updateCurrencyControl() {
+    var b = document.getElementById("cur-open");
+    if (!b) return;
+    var cur = getCurrency();
+    var meta = CURRENCIES.filter(function (c) { return c.code === cur; })[0] || CURRENCIES[0];
+    b.innerHTML = '<span class="flag">' + meta.flag + '</span><span>' + meta.code + '</span>';
+  }
+
+  document.addEventListener("click", function (e) {
+    var setter = e.target.closest && e.target.closest("[data-set-cur]");
+    if (setter) { setCurrency(setter.getAttribute("data-set-cur")); closeCurrencyModal(); return; }
+    if (e.target.closest && e.target.closest("[data-open-currency]")) { openCurrencyModal(); return; }
+    if (e.target.id === "cur-modal") closeCurrencyModal();
+  });
+
   /* ---------- futuristic nav overlay (hamburger) ----------
      The left-hand word nav moved into a full-screen overlay built once here and
      reused on every storefront page. It sits UNDER the sticky header (z-index),
@@ -647,7 +881,7 @@
     if (e.target.closest && e.target.closest(".nav-list a")) { closeMenu(); return; }
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { closeMenu(); closeLangModal(); closeNotify(); }
+    if (e.key === "Escape") { closeMenu(); closeLangModal(); closeNotify(); closeCurrencyModal(); }
   });
 
   /* ---------- drop notify (email) ----------
@@ -788,6 +1022,12 @@
   function boot(afterLang) {
     initTheme();
     initCountdown();
+    initCurrencyControl();
+    // fetch live rates, then re-render any prices already on the page
+    loadRates(function () {
+      updateCurrencyControl();
+      global.dispatchEvent(new CustomEvent("lvck:currency", { detail: { currency: getCurrency() } }));
+    });
     var lang = getLang();
     applyI18n();
     if (!lang) {
@@ -808,6 +1048,7 @@
     openLangModal: openLangModal, btnLabel: btnLabel,
     openNotify: openNotify, closeNotify: closeNotify,
     openMenu: openMenu, closeMenu: closeMenu,
+    getCurrency: getCurrency, setCurrency: setCurrency, openCurrencyModal: openCurrencyModal,
     getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme
   };
 })(window);

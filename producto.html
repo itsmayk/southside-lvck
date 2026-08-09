@@ -674,6 +674,10 @@
     price.id = "price";
     col.appendChild(price);
 
+    // reference-price disclaimer, shown only when a non-COP currency is selected
+    var pnote = el("div", "price-note"); pnote.id = "price-note"; pnote.hidden = true;
+    col.appendChild(pnote);
+
     var head = el("div", "size-head");
     var label = el("span", "label");
     label.setAttribute("data-i18n", "p.choose");
@@ -1061,6 +1065,12 @@
     if (tag) tag.textContent = product.tagline[lang] || product.tagline.es;
     var price = document.getElementById("price");
     if (price) price.textContent = LVCK.money(product.priceCOP, lang);
+    var pnote = document.getElementById("price-note");
+    if (pnote) {
+      var nonHome = LVCK.getCurrency && LVCK.getCurrency() !== "COP";
+      pnote.hidden = !nonHome;
+      if (nonHome) pnote.textContent = LVCK.t("cur.charged", lang);
+    }
 
     document.querySelectorAll(".stage img").forEach(function (img) {
       var photo = product.photos[Number(img.dataset.i)];
@@ -1280,6 +1290,7 @@
   });
 
   window.addEventListener("lvck:lang", refreshDynamicCopy);
+  window.addEventListener("lvck:currency", refreshDynamicCopy);
   LVCK.boot();
 })();
 </script>

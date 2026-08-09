@@ -960,6 +960,100 @@ h1.display {
 }
 .ig-close:hover { color: var(--ink); }
 
+/* ---------- currency picker ---------- */
+/* header trigger — same quiet type as the "Idioma" button, with a flag + code */
+#cur-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.25s var(--ease);
+}
+#cur-open:hover { color: var(--ink); }
+#cur-open .flag { font-size: 15px; line-height: 1; }
+
+/* the picker reuses the .lang-modal glass shell; the panel holds a search field
+   and a scrollable list of currencies */
+.cur-modal .cur-panel {
+  width: min(400px, 90vw);
+  text-align: left;
+  gap: 12px;
+}
+.cur-modal .cur-panel > .eyebrow { text-align: center; }
+.cur-search {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 12px;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: var(--ink);
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+}
+.cur-search::placeholder { color: var(--pearl-off); }
+.cur-search:focus { outline: none; border-color: var(--ink); }
+.cur-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: min(52vh, 420px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+/* slim, on-brand scrollbar */
+.cur-list::-webkit-scrollbar { width: 8px; }
+.cur-list::-webkit-scrollbar-thumb { background: var(--hairline); border-radius: 999px; }
+.cur-btn {
+  display: grid;
+  grid-template-columns: 26px 52px 1fr;
+  align-items: center;
+  gap: 12px;
+  justify-content: start;
+  text-align: left;
+  padding: 12px 15px;
+}
+.cur-btn .flag { font-size: 19px; line-height: 1; }
+.cur-btn .cur-code {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+}
+.cur-btn .cur-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 14px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cur-btn.on { background: var(--ink); color: var(--bone); border-color: var(--ink); }
+.cur-btn.on .cur-name { color: var(--bone); }
+.cur-btn:hover .cur-name { color: inherit; }
+
+/* platforms without flag-emoji glyphs (Windows Edge/Chrome): hide the flag so it
+   never shows as stray letters; collapse the column for a clean code+name list */
+.no-flags .cur-btn .flag,
+.no-flags #cur-open .flag { display: none; }
+.no-flags .cur-btn { grid-template-columns: 52px 1fr; }
+.no-flags #cur-open { gap: 0; }
+
+/* the reference-price disclaimer under a converted price */
+.price-note {
+  margin-top: 6px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
 /* ---------- drop-notify modal (reuses the .lang-modal glass shell) ---------- */
 .notify-sub {
   font-size: 13px;
