@@ -1080,6 +1080,21 @@ h1.display {
 .cur-btn.on { background: var(--ink); color: var(--bone); }
 .cur-btn.on .cur-flag { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35); }
 
+/* Mobile: the footer stacks centred, so the currency selector centres too (not
+   left), and its menu opens centred + clamped so it never spills off-screen. */
+@media (max-width: 620px) {
+  .site-foot .cur-select {
+    justify-content: center;
+    margin-top: clamp(12px, 2.4vh, 18px);
+  }
+  .cur-pop {
+    left: 50%;
+    width: min(340px, 92vw);
+    transform: translateX(-50%) translateY(8px);
+  }
+  .cur-select.open .cur-pop { transform: translateX(-50%) translateY(0); }
+}
+
 /* the reference-price disclaimer under a converted price */
 .price-note {
   margin-top: 6px;
