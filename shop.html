@@ -50,9 +50,8 @@
 <link rel="stylesheet" href="shop.css">
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
-  /* the wordmark scales as you scroll, which resizes content above the fold;
-     without this the browser's scroll-anchoring nudges scrollY to compensate and
-     the section-snap lands ~40px short of its target */
+  /* no scroll-anchoring: the page scrolls plainly and fluidly (same on desktop and
+     mobile), never nudged by the browser as the scroll-driven wordmark animates */
   html { overflow-anchor: none; }
 
   .hero {
@@ -865,92 +864,6 @@
   window.addEventListener("lvck:lang", function () { if (products.length) updateReadout(false); });
   window.addEventListener("lvck:currency", function () { if (products.length) updateReadout(false); });
   LVCK.boot();
-})();
-</script>
-<script>
-/* ---- Section snap (hero <-> selector) ----
-   ONE vertical gesture, soft or hard, moves between the pinned "South Side" hero
-   and the centred product selector at a FIXED transition speed — it isn't tied
-   to how far you scrolled or swiped. Scrolling down plays the wordmark's zoom
-   and lands the selector centred; scrolling up returns to the text. Below the
-   selector everything scrolls normally. Only runs where the pinned zoom exists
-   (view timelines) and motion is allowed; otherwise native scroll is untouched
-   (so it can never trap the page). */
-(function () {
-  if (!(window.CSS && CSS.supports && CSS.supports("animation-timeline", "view()"))) return;
-  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  // Touch devices only. On desktop the native wheel already scrolls fluidly and
-  // plays the wordmark zoom on its own — intercepting it there just made it feel
-  // laggy, so leave the mouse/trackpad alone and only snap where the finger is.
-  if (!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches)) return;
-
-  var section = document.getElementById("shop-selector");
-  if (!section) return;
-
-  var FRAME_TOP = 0.06;   // where the selector stage's top rests (fraction of viewport)
-  var DURATION = 550;     // fixed transition time, both directions
-  var locked = false, cooldownUntil = 0;
-
-  function anchorB() {
-    var st = section.querySelector(".sel-stage");
-    if (!st) return null;
-    var top = st.getBoundingClientRect().top + window.scrollY;
-    return Math.max(0, Math.round(top - window.innerHeight * FRAME_TOP));
-  }
-
-  function ease(p) { return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
-  function tweenTo(y) {
-    locked = true;
-    var start = window.scrollY, dist = y - start, t0 = 0;
-    function stepFrame(now) {
-      if (!t0) t0 = now;
-      var p = Math.min(1, (now - t0) / DURATION);
-      window.scrollTo(0, Math.round(start + dist * ease(p)));
-      if (p < 1) requestAnimationFrame(stepFrame);
-      else { locked = false; cooldownUntil = Date.now() + 160; }
-    }
-    requestAnimationFrame(stepFrame);
-    // safety: if rAF is throttled and never lands the final frame, snap exactly
-    // to the target and release — the page can never end up stuck part-way
-    setTimeout(function () {
-      if (locked) { window.scrollTo(0, y); locked = false; cooldownUntil = Date.now() + 160; }
-    }, DURATION + 260);
-  }
-
-  // true = the gesture was consumed (caller preventDefaults)
-  function handle(dir) {
-    if (locked || Date.now() < cooldownUntil) return true;
-    var B = anchorB();
-    if (B == null || B < 40) return false;
-    var y = window.scrollY, vh = window.innerHeight;
-    if (dir > 0) {                                        // downward
-      if (y < B - 8) { tweenTo(B); return true; }         // text/zoom -> selector
-      return false;                                       // at selector or below -> native
-    }
-    if (y > 8 && y <= B + 8) { tweenTo(0); return true; }             // selector -> text
-    if (y > B + 8 && y < B + vh * 0.9) { tweenTo(B); return true; }   // just below -> back to selector
-    return false;                                         // deep below -> native
-  }
-
-  window.addEventListener("wheel", function (e) {
-    if (locked) { e.preventDefault(); return; }
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY) || Math.abs(e.deltaY) < 4) return;  // horizontal is the selector's
-    if (handle(e.deltaY > 0 ? 1 : -1)) e.preventDefault();
-  }, { passive: false });
-
-  var tsx = 0, tsy = 0, tActive = false;
-  window.addEventListener("touchstart", function (e) {
-    tActive = e.touches.length === 1;
-    if (tActive) { tsx = e.touches[0].clientX; tsy = e.touches[0].clientY; }
-  }, { passive: true });
-  window.addEventListener("touchmove", function (e) {
-    if (locked) { e.preventDefault(); return; }
-    if (!tActive) return;
-    var dx = e.touches[0].clientX - tsx, dy = e.touches[0].clientY - tsy;
-    if (Math.abs(dy) < 14 || Math.abs(dx) > Math.abs(dy)) return;    // not a vertical swipe
-    if (handle(dy < 0 ? 1 : -1)) { e.preventDefault(); tActive = false; }   // swipe up = go down
-  }, { passive: false });
-  window.addEventListener("touchend", function () { tActive = false; });
 })();
 </script>
 <script src="music.js"></script>
