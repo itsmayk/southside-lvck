@@ -372,6 +372,11 @@ h1.display {
      Both only exist where the animation does — without it a tall empty stage
      would just be 80vh of nothing to scroll past. */
   .hero-stage { height: 160vh; }
+  /* Phones are TALL, so the desktop-length pinned zoom left a big empty stretch
+     after the wordmark faded before the garment rose in. Compress the whole intro
+     on mobile — shorter pinned stage + a shorter zoom range (below) + a smaller
+     pull-up (in shop.html) — so the garment arrives right as the letters clear. */
+  @media (max-width: 560px) { .hero-stage { height: 120vh; } }
 
   .hero-pin {
     position: sticky;
@@ -392,6 +397,8 @@ h1.display {
        the screen — a blank slide you had to scroll past. */
     animation-range: normal, 0 72vh;
   }
+  /* mobile: shorter zoom range to match the compressed hero-stage above */
+  @media (max-width: 560px) { .chrome { animation-range: normal, 0 42vh; } }
 
   /* It comes the whole way at you and you pass through it — but the opacity is
      GONE by ~78% (≈0.56h), well before the selector reveals, so the huge faded

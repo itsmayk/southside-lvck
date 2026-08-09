@@ -104,9 +104,10 @@
      nothing. Lives here so document order beats the base margin above. */
   @supports (animation-timeline: view()) {
     .shop-selector { position: relative; z-index: 1; margin-top: -89vh; }
-    /* the mobile stage is shorter (62vh vs 74vh), so it lands ~8% too high with
-       the desktop pull — ease it up a touch less to centre the garment there */
-    @media (max-width: 560px) { .shop-selector { margin-top: -81vh; } }
+    /* mobile hero-stage is compressed to 120vh (see shop.css), so the pull-up is
+       smaller too — this lands the garment centred right as the wordmark clears,
+       instead of leaving a screen of empty space above it */
+    @media (max-width: 560px) { .shop-selector { margin-top: -72vh; } }
   }
   /* the stage holds the rotating rack; the readout + dots flow BELOW it (the
      rail is absolute, so keeping them out of the stage avoids overlap) */
@@ -732,13 +733,17 @@
   // repeat up and down; the 0.8s slot transition animates each direction.
   function reveal() {
     var shown = false;
+    // The garments fade in just as the wordmark clears. That happens at different
+    // scroll depths because the mobile hero is compressed (120vh / 42vh zoom) vs
+    // desktop (160vh / 72vh) — so the enter/leave thresholds are per-viewport,
+    // or the rack would reveal too late (a blank gap) on phones.
+    var narrow = window.innerWidth <= 560;
+    var ENTER = narrow ? 0.30 : 0.60;
+    var LEAVE = narrow ? 0.24 : 0.55;
     function check() {
       var y = window.scrollY, h = window.innerHeight;
-      // Enter at 0.60 (the garments rise in just as the wordmark's opacity hits 0
-      // at ~0.56h — a clean hand-off, no ghost overlap and no blank gap). Leave at
-      // 0.55 keeps a little hysteresis against a mobile URL bar nudging innerHeight.
-      if (!shown && y > h * 0.60) { shown = true; section.classList.add("in"); ctaFirstVisitHint(); }
-      else if (shown && y < h * 0.55) { shown = false; section.classList.remove("in"); }
+      if (!shown && y > h * ENTER) { shown = true; section.classList.add("in"); ctaFirstVisitHint(); }
+      else if (shown && y < h * LEAVE) { shown = false; section.classList.remove("in"); }
     }
     window.addEventListener("scroll", check, { passive: true });
     check();
