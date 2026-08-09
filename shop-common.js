@@ -771,89 +771,88 @@
     if (e.target.id === "lang-modal") closeLangModal();
   });
 
-  /* ---------- country/currency picker (Shopify-style, in the header) ----------
-     A searchable list of countries, each "Country (CUR sym)" with a real flag
-     from flagcdn.com. Picking one sets the reference currency for all prices. */
+  /* ---------- country/currency picker (footer dropdown, Shopify-style) ----------
+     Lives in the footer, not a popup: a trigger showing "flag Country (CUR sym)"
+     and a small menu that slides UP with a searchable list of countries, each with
+     a real flag from flagcdn.com. Picking one sets the reference currency. */
   function flagImg(cc, cls) {
     return '<img class="' + (cls || "cur-flag") + '" src="' + flagUrl(cc) + '" alt="" ' +
       'loading="lazy" width="22" height="16" onerror="this.style.visibility=\'hidden\'">';
   }
-  function buildCurrencyModal() {
-    var modal = document.createElement("div");
-    modal.className = "lang-modal cur-modal";
-    modal.id = "cur-modal";
-    var rows = COUNTRIES.map(function (co) {
-      return '<button class="lang-btn cur-btn" data-set-cur="' + co.c + '">' +
+  function curRowsHtml() {
+    return COUNTRIES.map(function (co) {
+      return '<button class="cur-btn" type="button" data-set-cur="' + co.c + '">' +
         flagImg(co.c) +
         '<span class="cur-name">' + countryLabel(co) + '</span>' +
       '</button>';
     }).join("");
-    modal.innerHTML =
-      '<div class="panel cur-panel">' +
-        '<div class="eyebrow" data-i18n="cur.title">Moneda</div>' +
+  }
+
+  // Built once into every page's footer (so no per-page markup edits).
+  function initCurrencyControl() {
+    var foot = document.querySelector(".site-foot");
+    if (!foot || document.getElementById("cur-select")) return;
+    var wrap = document.createElement("div");
+    wrap.className = "cur-select";
+    wrap.id = "cur-select";
+    wrap.innerHTML =
+      '<button class="cur-trigger" type="button" data-open-currency aria-haspopup="listbox" aria-expanded="false"></button>' +
+      '<div class="cur-pop" role="listbox">' +
         '<input class="cur-search" type="text" data-i18n-attr="placeholder:cur.search" aria-label="Buscar">' +
-        '<div class="cur-list">' + rows + '</div>' +
+        '<div class="cur-list">' + curRowsHtml() + '</div>' +
       '</div>';
-    document.body.appendChild(modal);
-    applyI18n(modal);
-    var search = modal.querySelector(".cur-search");
+    foot.appendChild(wrap);
+    applyI18n(wrap);
+    var search = wrap.querySelector(".cur-search");
     search.addEventListener("input", function () {
       var q = search.value.trim().toLowerCase();
-      modal.querySelectorAll(".cur-btn").forEach(function (b) {
+      wrap.querySelectorAll(".cur-btn").forEach(function (b) {
         b.style.display = b.textContent.toLowerCase().indexOf(q) === -1 ? "none" : "";
       });
     });
-    markCurrentCurrency(modal);
-    return modal;
-  }
-  function markCurrentCurrency(modal) {
-    var cc = getSelectedCountry().c;
-    (modal || document).querySelectorAll(".cur-btn").forEach(function (b) {
-      b.classList.toggle("on", b.getAttribute("data-set-cur") === cc);
-    });
-  }
-  function openCurrencyModal() {
-    var m = document.getElementById("cur-modal") || buildCurrencyModal();
-    markCurrentCurrency(m);
-    var s = m.querySelector(".cur-search"); if (s) s.value = "";
-    m.querySelectorAll(".cur-btn").forEach(function (b) { b.style.display = ""; });
-    m.classList.add("open");
-    // bring the selected country into view
-    var on = m.querySelector(".cur-btn.on"); if (on) on.scrollIntoView({ block: "center" });
-    if (s) setTimeout(function () { s.focus(); }, 60);
-  }
-  function closeCurrencyModal() {
-    var m = document.getElementById("cur-modal");
-    if (m) m.classList.remove("open");
-  }
-
-  // The header trigger, injected next to the "Idioma" button so every storefront
-  // page gets it without editing each header. Shows flag + currency code + chevron.
-  function initCurrencyControl() {
-    var langBtn = document.querySelector("[data-open-lang]");
-    if (!langBtn || document.getElementById("cur-open")) return;
-    var b = document.createElement("button");
-    b.type = "button";
-    b.id = "cur-open";
-    b.setAttribute("data-open-currency", "");
-    b.setAttribute("aria-label", "Moneda / Currency");
-    langBtn.parentNode.insertBefore(b, langBtn);
     updateCurrencyControl();
   }
   function updateCurrencyControl() {
-    var b = document.getElementById("cur-open");
-    if (!b) return;
+    var wrap = document.getElementById("cur-select");
+    if (!wrap) return;
     var co = getSelectedCountry();
-    b.innerHTML = flagImg(co.c, "cur-flag") +
-      '<span class="cur-open-code">' + co.cur + '</span>' +
-      '<svg class="cur-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    wrap.querySelector(".cur-trigger").innerHTML =
+      flagImg(co.c, "cur-flag") +
+      '<span class="cur-trig-label">' + countryLabel(co) + '</span>' +
+      '<svg class="cur-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    wrap.querySelectorAll(".cur-btn").forEach(function (b) {
+      b.classList.toggle("on", b.getAttribute("data-set-cur") === co.c);
+    });
   }
+  function currencyOpen() {
+    var w = document.getElementById("cur-select");
+    return w && w.classList.contains("open");
+  }
+  function openCurrencyMenu() {
+    var wrap = document.getElementById("cur-select");
+    if (!wrap) return;
+    var s = wrap.querySelector(".cur-search");
+    if (s) s.value = "";
+    wrap.querySelectorAll(".cur-btn").forEach(function (b) { b.style.display = ""; });
+    wrap.classList.add("open");
+    wrap.querySelector(".cur-trigger").setAttribute("aria-expanded", "true");
+    var on = wrap.querySelector(".cur-btn.on"); if (on) on.scrollIntoView({ block: "center" });
+    if (s) setTimeout(function () { s.focus(); }, 40);
+  }
+  function closeCurrencyMenu() {
+    var wrap = document.getElementById("cur-select");
+    if (!wrap) return;
+    wrap.classList.remove("open");
+    var t = wrap.querySelector(".cur-trigger"); if (t) t.setAttribute("aria-expanded", "false");
+  }
+  function toggleCurrencyMenu() { currencyOpen() ? closeCurrencyMenu() : openCurrencyMenu(); }
 
   document.addEventListener("click", function (e) {
     var setter = e.target.closest && e.target.closest("[data-set-cur]");
-    if (setter) { setCountry(setter.getAttribute("data-set-cur")); closeCurrencyModal(); return; }
-    if (e.target.closest && e.target.closest("[data-open-currency]")) { openCurrencyModal(); return; }
-    if (e.target.id === "cur-modal") closeCurrencyModal();
+    if (setter) { setCountry(setter.getAttribute("data-set-cur")); closeCurrencyMenu(); return; }
+    if (e.target.closest && e.target.closest("[data-open-currency]")) { toggleCurrencyMenu(); return; }
+    // click anywhere outside the open menu closes it
+    if (currencyOpen() && !(e.target.closest && e.target.closest("#cur-select"))) closeCurrencyMenu();
   });
 
   /* ---------- futuristic nav overlay (hamburger) ----------
@@ -910,7 +909,7 @@
     if (e.target.closest && e.target.closest(".nav-list a")) { closeMenu(); return; }
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { closeMenu(); closeLangModal(); closeNotify(); closeCurrencyModal(); }
+    if (e.key === "Escape") { closeMenu(); closeLangModal(); closeNotify(); closeCurrencyMenu(); }
   });
 
   /* ---------- drop notify (email) ----------
@@ -1078,7 +1077,7 @@
     openNotify: openNotify, closeNotify: closeNotify,
     openMenu: openMenu, closeMenu: closeMenu,
     getCurrency: getCurrency, setCountry: setCountry, getSelectedCountry: getSelectedCountry,
-    openCurrencyModal: openCurrencyModal,
+    openCurrencyMenu: openCurrencyMenu,
     getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme
   };
 })(window);
