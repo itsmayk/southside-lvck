@@ -178,7 +178,18 @@
     line-height: 1.15;
   }
   .info .tagline { margin-top: 10px; font-size: 15px; color: var(--muted); }
-  .info .price { margin-top: 18px; font-size: 21px; }
+  /* Playfair AND Cinzel render old-style numerals here (uneven heights, the "1"
+     dropping to x-height), so a price read as mismatched digits. Times New Roman
+     has uniform LINING figures (every digit the same height) and is already a
+     brand face on the landing; tabular keeps the digit widths even. */
+  .info .price {
+    margin-top: 18px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 22px;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
 
   .size-head {
     display: flex;
@@ -394,7 +405,7 @@
   .also a { display: flex; gap: 20px; align-items: center; text-decoration: none; color: var(--ink); }
   .also img { width: clamp(96px, 16vw, 150px); aspect-ratio: 4/5; object-fit: cover; background: var(--bone-deep); border-radius: 12px; border: 1px solid var(--glass-edge); }
   .also .n { font-family: 'Cinzel', serif; font-size: clamp(17px, 2.4vw, 23px); }
-  .also .p { font-size: 14px; color: var(--muted); margin-top: 6px; }
+  .also .p { font-family: 'Times New Roman', Times, serif; font-size: 15px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
   .missing { max-width: 700px; margin: 18vh auto; padding: 0 24px; text-align: center; }
 </style>
