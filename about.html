@@ -15,8 +15,8 @@
 <meta name="twitter:title" content="SouthSide — LVCK">
 <meta name="twitter:description" content="LVCK returns with SouthSide — the drop that marks our new chapter. 20 AUG 2026.">
 <meta name="twitter:image" content="https://southside-lvck.vercel.app/og-image.png?v=2">
-<link rel="icon" type="image/png" href="favicon.png?v=8">
-<link rel="apple-touch-icon" href="favicon.png?v=8">
+<link rel="icon" type="image/png" href="favicon.png?v=9">
+<link rel="apple-touch-icon" href="favicon.png?v=9">
 <script>
   (function () {
     if (location.hostname.indexOf("github.io") === -1) return;
@@ -44,99 +44,53 @@
 <link rel="stylesheet" href="shop.css">
 <script defer src="/_vercel/insights/script.js"></script>
 <style>
-  /* ===== About — an editorial / manifesto space ===== */
+  /* ===== About — year index. Only the years for now; each opens its own
+     chapter later (tap the number). ===== */
   .about {
     position: relative;
     overflow: hidden;                 /* holds the grain layer */
-    padding: clamp(34px, 7vh, 82px) 0 clamp(64px, 11vh, 120px);
+    min-height: calc(100dvh - 168px); /* fill the screen under the topbar */
+    display: flex; align-items: center;
+    padding: clamp(48px, 12vh, 120px) 0;
   }
   .about-inner {
     position: relative;
     z-index: 1;
+    width: 100%;
     max-width: 940px;
     margin: 0 auto;
     padding: 0 clamp(20px, 5vw, 44px);
   }
 
-  /* --- hero --- */
-  .about-hero { margin-bottom: clamp(28px, 5vh, 50px); }
-  .hero-meta {
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    margin-bottom: 12px;
-  }
-  .hero-meta .meta-tick {
-    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.3em;
-    text-transform: uppercase; color: var(--muted); opacity: 0.75;
-  }
-  /* faint monumental headline — 25% opacity. Keep the base .chrome line-height
-     (1.34) + padding UNTOUCHED: AngerStyles' long swashes need that box or
-     background-clip:text chops the tails. Only size/opacity/motion change here. */
-  .about h1.chrome.ghost {
-    font-size: clamp(34px, 9vw, 150px);
-    opacity: 0.25;
-    margin: 0.02em 0 0;
-    animation: chromeFloat 3.4s var(--ease-loop) infinite,
-               aboutSlideIn 0.95s var(--ease) both;
-    animation-timeline: auto;
-    animation-range: normal;
-    will-change: transform, translate;
-  }
-  @keyframes aboutSlideIn {
-    from { transform: translateX(-42px); opacity: 0; }
-    to   { transform: translateX(0);     opacity: 0.25; }
-  }
-  .about .lead {
-    margin: clamp(8px, 2vh, 20px) 0 0;
-    max-width: 34ch;
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(19px, 2.6vw, 30px);
-    line-height: 1.4;
-    color: var(--ink);
-  }
-
-  /* --- coordinates strip (futuristic meta) --- */
-  .about-coords {
-    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
-    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.26em;
-    text-transform: uppercase; color: var(--muted);
-    padding: 16px 0; margin-top: clamp(24px, 4vh, 40px);
-    border-top: 1px solid var(--hairline);
-    border-bottom: 1px solid var(--hairline);
-  }
-  .about-coords .sep { opacity: 0.4; }
-
-  /* --- numbered chapters --- */
-  .chapters { margin-top: clamp(40px, 7vh, 72px); display: grid; gap: clamp(30px, 5vh, 54px); }
-  .chap {
-    display: grid;
-    grid-template-columns: clamp(66px, 10vw, 120px) 1fr;
-    gap: clamp(16px, 3vw, 44px);
-    align-items: start;
-  }
-  @media (max-width: 620px) { .chap { grid-template-columns: 1fr; gap: 10px; } }
-  .chap-n {
-    font-family: 'Cinzel', serif; font-weight: 700;
-    font-size: clamp(40px, 7vw, 88px); line-height: 0.85;
+  .years { display: flex; flex-direction: column; align-items: center; gap: clamp(4px, 1.6vh, 16px); }
+  /* big outlined numerals (same treatment as the old chapter numbers) that fill
+     in on hover/tap; they're buttons, ready to open each year's story later */
+  .year {
+    appearance: none; -webkit-appearance: none; background: none; border: 0;
+    padding: clamp(4px, 1vh, 10px) 12px; cursor: pointer;
+    font-family: 'Cinzel', serif; font-weight: 700; line-height: 0.95;
+    font-size: clamp(52px, 15vw, 150px); letter-spacing: 0.02em;
     color: transparent;
-    -webkit-text-stroke: 1px var(--pearl);
-    letter-spacing: 0.01em;
+    -webkit-text-stroke: 1.4px var(--pearl); text-stroke: 1.4px var(--pearl);
+    -webkit-tap-highlight-color: transparent;
+    opacity: 0; transform: translateY(26px);
+    transition: color 0.4s var(--ease), -webkit-text-stroke-color 0.4s var(--ease),
+                transform 0.5s var(--ease), opacity 0.7s var(--ease);
   }
-  .chap-body h2 {
-    font-family: 'Cinzel', serif; font-weight: 600;
-    font-size: clamp(17px, 2.2vw, 23px); letter-spacing: 0.05em; text-transform: uppercase;
-    margin-bottom: 12px; padding-bottom: 12px;
-    border-bottom: 1px solid var(--hairline);
+  /* the combined range is ~2x the characters, so scale it down to sit in line */
+  .year-range { font-size: clamp(34px, 9.5vw, 96px); }
+  .about.in .year { opacity: 1; transform: translateY(0); }
+  .about.in .year:nth-child(1) { transition-delay: 0.05s; }
+  .about.in .year:nth-child(2) { transition-delay: 0.13s; }
+  .about.in .year:nth-child(3) { transition-delay: 0.21s; }
+  .about.in .year:nth-child(4) { transition-delay: 0.29s; }
+  .year:hover, .year:focus-visible {
+    color: var(--ink); -webkit-text-stroke-color: var(--ink);
+    transform: translateY(-2px) scale(1.015); outline: none;
   }
-  .chap-body p { font-size: clamp(15px, 1.6vw, 17px); line-height: 1.75; color: var(--muted); max-width: 60ch; }
-
-  /* --- closing statement --- */
-  .statement {
-    margin: clamp(50px, 9vh, 96px) 0 0;
-    font-family: 'Cinzel', serif; font-weight: 600;
-    font-size: clamp(23px, 4.2vw, 48px); line-height: 1.22; letter-spacing: 0.01em;
-    max-width: 18ch;
+  @media (prefers-reduced-motion: reduce) {
+    .year { opacity: 1; transform: none; transition: color 0.3s var(--ease); }
   }
-  .about .btn { margin: clamp(34px, 6vh, 54px) 0 0; }
 </style>
 </head>
 <body>
@@ -163,50 +117,12 @@
 <main class="about">
   <div class="tex-noise" aria-hidden="true"></div>
   <div class="about-inner">
-
-    <header class="about-hero">
-      <div class="hero-meta">
-        <span class="eyebrow" data-i18n="about.eyebrow">Nosotros</span>
-        <span class="meta-tick">// LVCK — Manifiesto</span>
-      </div>
-      <h1 class="chrome ghost" data-i18n="about.title">El origen</h1>
-      <p class="lead" data-i18n="about.lead">LVCK no nació en una tienda. Nació en la calle, en el sur, donde la ropa dice más que las palabras.</p>
-    </header>
-
-    <div class="about-coords" data-reveal="up">
-      <span>Est. [año]</span><span class="sep">—</span>
-      <span>[ciudad]</span><span class="sep">—</span>
-      <span>Colombia</span>
-    </div>
-
-    <section class="chapters">
-      <article class="chap" data-reveal="up">
-        <div class="chap-n">01</div>
-        <div class="chap-body">
-          <h2 data-i18n="about.s1.t">Cómo empezó</h2>
-          <p data-i18n="about.s1.p">Empezó en [año], en [ciudad], con una idea simple y terca: hacer piezas cortas, honestas, que se sientan tuyas.</p>
-        </div>
-      </article>
-      <article class="chap" data-reveal="up" data-reveal-delay="0.08">
-        <div class="chap-n">02</div>
-        <div class="chap-body">
-          <h2 data-i18n="about.s2.t">El desarrollo</h2>
-          <p data-i18n="about.s2.p">De los primeros bocetos a los primeros drops, cada colección fue un experimento.</p>
-        </div>
-      </article>
-      <article class="chap" data-reveal="up" data-reveal-delay="0.16">
-        <div class="chap-n">03</div>
-        <div class="chap-body">
-          <h2 data-i18n="about.s3.t">Hacia dónde vamos</h2>
-          <p data-i18n="about.s3.p">South Side es el próximo capítulo — de Colombia para el mundo.</p>
-        </div>
-      </article>
-    </section>
-
-    <p class="statement" data-reveal="up" data-i18n="about.close">Esto no es solo ropa. Es de dónde venimos.</p>
-
-    <a class="btn" href="shop.html"><span class="lbl" data-i18n="nav.shop">Tienda</span></a>
-
+    <nav class="years" aria-label="Años">
+      <button type="button" class="year" data-year="2026">2026</button>
+      <button type="button" class="year" data-year="2024">2024</button>
+      <button type="button" class="year" data-year="2023">2023</button>
+      <button type="button" class="year year-range" data-year="2022-2021">2022–2021</button>
+    </nav>
   </div>
 </main>
 
@@ -252,6 +168,17 @@
   })();
   LVCK.boot();
   LVCK.initReveal();
+
+  // reveal the years on load
+  requestAnimationFrame(function () {
+    var about = document.querySelector(".about");
+    if (about) about.classList.add("in");
+  });
+
+  // each year will open its own chapter later; for now the tap is a no-op
+  document.querySelectorAll(".year").forEach(function (y) {
+    y.addEventListener("click", function () { /* TODO: open year <- data-year */ });
+  });
 </script>
 <script src="music.js"></script>
 </body>
