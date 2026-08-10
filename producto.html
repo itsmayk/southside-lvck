@@ -1119,13 +1119,15 @@
     if (!shipCfg) return { served: false };
     var cc = String(country || "CO").toUpperCase();
     if (cc === "CO") {
+      // charge currency is COP (Bold); the shipping is a literal flat, not rounded
       var flat = Number(shipCfg.domestic && shipCfg.domestic.flatCOP) || 0;
-      return { served: true, costStr: LVCK.fmtCOP(flat, lang), etaStr: LVCK.t("prod.ship.eta", lang), whatsapp: true };
+      return { served: true, kind: "CO", shipCOP: flat, costStr: LVCK.fmtCOP(flat, lang), etaStr: LVCK.t("prod.ship.eta", lang), whatsapp: true };
     }
     var z = zoneForCountry(cc);
     if (z && z.flatUSD != null) {
+      // zones charge in USD; costStr converts it to the visitor's currency
       return {
-        served: true,
+        served: true, kind: "USD", shipUSD: Number(z.flatUSD),
         costStr: LVCK.money(Number(z.flatUSD), lang),
         etaStr: null,
         noteStr: (z.note && (z.note[lang] || z.note.es)) || null
@@ -1173,6 +1175,9 @@
         fact.textContent = LVCK.t("prod.ship.calc", lang);
       }
     }
+
+    // keep the "Datos de envío" step in sync if it's open when the country changes
+    if (document.getElementById("dom-totals")) refreshDomTotals();
   }
 
   /* ---------- language ---------- */
@@ -1387,19 +1392,38 @@
     box.appendChild(line);
   }
 
+  // Breakdown shown in the "Datos de envío" step. It mirrors the product page:
+  // product + shipping + total for the SELECTED country/currency (so the shipping
+  // price here matches the line under the price). Colombia charges COP; a zone
+  // charges USD converted to the visitor's currency; an unserved country shows the
+  // product and a "calculado al finalizar" shipping line (no total).
   function refreshDomTotals() {
     var box = document.getElementById("dom-totals"); if (!box) return;
     var lang = LVCK.getLang() || "es";
     box.innerHTML = "";
-    var shipCOP = Number(shipCfg && shipCfg.domestic && shipCfg.domestic.flatCOP) || 0;
-    var prodCOP = LVCK.copFromUsd ? LVCK.copFromUsd(activeUsd(product)) : null;
-    if (prodCOP != null) {
-      domRow(box, "dom.product", LVCK.fmtCOP(prodCOP, lang));
-      domRow(box, "ship.shippingLbl", LVCK.fmtCOP(shipCOP, lang));
-      domRow(box, "ship.totalLbl", LVCK.fmtCOP(prodCOP + shipCOP, lang), true);
+    var sel = LVCK.getSelectedCountry ? LVCK.getSelectedCountry() : null;
+    var country = sel ? (typeof sel === "string" ? sel : sel.c) : "CO";
+    var info = shipCostFor(country);
+    var usd = activeUsd(product);
+
+    if (info.kind === "CO") {
+      var prodCOP = LVCK.copFromUsd ? LVCK.copFromUsd(usd) : null;
+      if (prodCOP != null) {
+        domRow(box, "dom.product", LVCK.fmtCOP(prodCOP, lang));
+        domRow(box, "ship.shippingLbl", LVCK.fmtCOP(info.shipCOP, lang));
+        domRow(box, "ship.totalLbl", LVCK.fmtCOP(prodCOP + info.shipCOP, lang), true);
+      } else {
+        // rates not loaded yet — still show the flat shipping line
+        domRow(box, "ship.shippingLbl", LVCK.fmtCOP(info.shipCOP, lang));
+      }
+    } else if (info.kind === "USD") {
+      domRow(box, "dom.product", LVCK.money(usd, lang));
+      domRow(box, "ship.shippingLbl", LVCK.money(info.shipUSD, lang));
+      domRow(box, "ship.totalLbl", LVCK.money(usd + info.shipUSD, lang), true);
     } else {
-      // rates not loaded yet — still show the flat shipping line
-      domRow(box, "ship.shippingLbl", LVCK.fmtCOP(shipCOP, lang));
+      // no shipping rate for this country — show product and a neutral note
+      domRow(box, "dom.product", LVCK.money(usd, lang));
+      domRow(box, "ship.shippingLbl", LVCK.t("prod.ship.calc", lang));
     }
   }
 
