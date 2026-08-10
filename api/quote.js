@@ -60,6 +60,7 @@ module.exports = async function handler(req, res) {
           origin: shipCfg.origin,
           to: body.address,
           parcel: shipCfg.parcelDefaults,
+          currency: shipCfg.currencyIntl || "USD",
         });
         return res.status(200).json({
           zone: found.key,

@@ -1,13 +1,19 @@
-// Creates a Bold payment link the moment a shopper picks a size and hits Buy,
-// then hands back the checkout URL to send them to. Runs on Vercel; the Bold
-// key stays server-side.
+// Mints a payment link the moment a shopper picks a size and hits Buy, then
+// hands back the checkout URL. Runs on Vercel; keys stay server-side.
 //
-// The old flow pointed each button at a fixed Stripe link. Bold links are
-// single-use, so they have to be minted per order — which is also what lets us
-// hold the size in inventory while the shopper pays.
+// Routing by destination:
+//   Colombia (CO)   -> Bold, charged in COP (product COP + flat domestic shipping)
+//   international    -> the intl processor via lib/intlpay.js (PayPal), in USD
+//                       (product USD + quoted shipping). DORMANT until
+//                       shipping-config.intlEnabled AND the keys exist.
+//
+// Either way we reserve the size first (so nobody pays for a sold-out piece)
+// and save the order (who + where + amounts) so it can actually be shipped.
 
 const config = require("../shop-config.json");
+const shipCfg = require("../shipping-config.json");
 const bold = require("../lib/bold.js");
+const intlpay = require("../lib/intlpay.js");
 const store = require("../lib/store.js");
 const fx = require("../lib/fx.js");
 
@@ -48,41 +54,96 @@ module.exports = async function handler(req, res) {
   }
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  if (!bold.isConfigured()) {
-    return res.status(503).json({ error: "Payments not configured yet" });
+  let body;
+  try {
+    body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+  } catch (e) { return res.status(400).json({ error: "bad body" }); }
+
+  const address = body.address && typeof body.address === "object" ? body.address : null;
+  const country = String(body.country || (address && address.country) || "CO").toUpperCase();
+  const isCO = country === "CO";
+
+  // Guard per route BEFORE reserving, so a 503 never holds a unit.
+  if (isCO) {
+    // Bold not live yet: 503 lets the button fall back to its Stripe href.
+    if (!bold.isConfigured()) return res.status(503).json({ error: "Payments not configured yet" });
+  } else {
+    if (!shipCfg.intlEnabled) return res.status(503).json({ error: "international_disabled" });
+    if (!intlpay.isConfigured()) return res.status(503).json({ error: "intl_not_configured" });
   }
 
   try {
-    const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
     const found = findSize(body.product, body.size);
     if (!found) return res.status(400).json({ error: "Unknown product or size" });
 
     const { product, size } = found;
     const reference = newReference(size.slug);
+    const name = (product.name && (product.name.es || product.name.en)) || product.slug;
+    const description = (name + " · " + size.size).slice(0, 100);
 
     // hold one unit; refuse if the size is gone so nobody pays for nothing
     const held = await store.reserve(size.slug, size.stock, reference, HOLD_SECONDS);
     if (!held) return res.status(409).json({ error: "sold_out", size: size.size });
 
-    // prices are USD; Colombia's Bold charge is the USD price converted to COP
-    // and rounded to a clean 5/9 thousands (same value the storefront shows).
-    const amountCOP = await fx.copFor(activeUsd(product));
-    const name = (product.name && (product.name.es || product.name.en)) || product.slug;
+    // ---------------- Colombia -> Bold (COP) ----------------
+    if (isCO) {
+      // product COP (USD -> COP, rounded 5/9) + flat domestic shipping
+      const productCOP = await fx.copFor(activeUsd(product));
+      const shipCOP = Number(shipCfg.domestic && shipCfg.domestic.flatCOP) || 0;
+      const totalCOP = productCOP + shipCOP;
 
-    let link;
-    try {
-      link = await bold.createLink({
-        amountCOP: amountCOP,
-        description: (name + " · " + size.size).slice(0, 100),
-        reference: reference,
-        callbackUrl: origin(req) + "/gracias.html",
+      let link;
+      try {
+        link = await bold.createLink({
+          amountCOP: totalCOP,
+          description: description,
+          reference: reference,
+          callbackUrl: origin(req) + "/gracias.html?reference=" + encodeURIComponent(reference),
+        });
+      } catch (err) {
+        await store.release(reference); // give the held unit back on failure
+        return res.status(502).json({ error: "Bold unavailable", status: err.status || null });
+      }
+
+      await store.saveOrder(reference, {
+        method: "bold", country: "CO",
+        product: product.slug, name: name, size: size.size, sizeSlug: size.slug,
+        address: address, // short: { name, city, whatsapp }
+        amounts: { productCOP: productCOP, shipCOP: shipCOP, totalCOP: totalCOP, currency: "COP" },
+        createdAt: Date.now(),
       });
-    } catch (err) {
-      await store.release(reference); // give the held unit back on failure
-      return res.status(502).json({ error: "Bold unavailable", status: err.status || null });
+
+      return res.status(200).json({ url: link.url, reference: reference });
     }
 
-    return res.status(200).json({ url: link.url, reference: reference });
+    // ---------------- International -> intl processor (USD) ----------------
+    const productUSD = Number(activeUsd(product));
+    const shippingUSD = Number(body.shippingAmount) || 0; // quoted earlier by /api/quote
+    const totalUSD = productUSD + shippingUSD;
+
+    let order;
+    try {
+      order = await intlpay.createOrder({
+        amount: totalUSD, currency: "USD",
+        description: description, reference: reference,
+        returnUrl: origin(req) + "/gracias.html?reference=" + encodeURIComponent(reference),
+        cancelUrl: origin(req) + "/producto.html?p=" + encodeURIComponent(product.slug),
+      });
+    } catch (err) {
+      await store.release(reference);
+      return res.status(502).json({ error: "intl_pay_unavailable", status: err.status || null });
+    }
+
+    await store.saveOrder(reference, {
+      method: intlpay.provider || "paypal", country: country,
+      product: product.slug, name: name, size: size.size, sizeSlug: size.slug,
+      address: address, rateId: body.rateId || null,
+      amounts: { productUSD: productUSD, shippingUSD: shippingUSD, totalUSD: totalUSD, currency: "USD" },
+      payOrderId: order.id || null,
+      createdAt: Date.now(),
+    });
+
+    return res.status(200).json({ url: order.approveUrl, reference: reference });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }

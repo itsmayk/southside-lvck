@@ -19,7 +19,10 @@
   "parcelDefaults": { "weightKg": 0.7, "lengthCm": 32, "widthCm": 26, "heightCm": 8 },
 
   "domestic": {
-    "flatCOP": 0,
+    "_comment": "Colombia. collect:true abre un paso corto (Nombre + Ciudad + WhatsApp) antes de Bold; flatCOP se suma al total. La dirección completa se confirma por otra vía después.",
+    "collect": true,
+    "flatCOP": 8000,
+    "fields": ["name", "city", "whatsapp"],
     "label": { "es": "Envío nacional", "en": "Domestic shipping", "pt": "Envio nacional" }
   },
 

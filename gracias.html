@@ -173,6 +173,12 @@
     </ol>
   </section>
 
+  <section class="next ship-status" id="ship-status" hidden>
+    <h2 data-i18n="ty.ship.title">Envío</h2>
+    <p id="ship-status-body" data-i18n="ty.ship.pending">Confirmamos tu dirección por WhatsApp y te enviamos el número de guía.</p>
+    <a id="ship-track" class="tag-link" href="#" target="_blank" rel="noopener" hidden><span data-i18n="ty.ship.track">Rastrear envío</span></a>
+  </section>
+
   <section class="join">
     <div class="eyebrow" data-i18n="ty.tag.label">Sal en el feed</div>
     <p class="lead" data-i18n="ty.tag.copy">Súbela con #SouthSide y etiquétanos. Reposteamos a los del drop.</p>
@@ -216,10 +222,37 @@
 
 <script src="shop-common.js"></script>
 <script>
-  /* Reached only after Bold (or the Stripe fallback) redirects here, so there is
-     nothing to fetch and nothing to get wrong — the one job is to reassure. The
-     processor may append its own reference/session id; we don't read or show it. */
+  /* Reached after Bold / PayPal (or the Stripe fallback) redirects here. If our
+     order reference rode along (?reference=…), ask /api/order for its shipping
+     status: show the tracking once a label exists, otherwise the "we'll confirm
+     by WhatsApp" note. No reference (or no store) → the block stays hidden and the
+     page is just the reassurance it always was. */
   LVCK.boot();
+
+  (function () {
+    var ref = new URLSearchParams(location.search).get("reference");
+    if (!ref) return;
+    var box = document.getElementById("ship-status");
+    var body = document.getElementById("ship-status-body");
+    var track = document.getElementById("ship-track");
+    // show the pending note straight away; upgrade to tracking if we have it
+    if (box) box.hidden = false;
+
+    fetch("/api/order?reference=" + encodeURIComponent(ref))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (o) {
+        if (!o || !o.found) return;
+        var t = o.tracking;
+        if (t && (t.number || t.url)) {
+          var parts = [LVCK.t("ty.ship.shipped")];
+          if (t.carrier) parts.push(t.carrier);
+          if (t.number) parts.push(t.number);
+          if (body) body.textContent = parts.join(" · ");
+          if (track && t.url) { track.href = t.url; track.hidden = false; }
+        }
+      })
+      .catch(function () {});
+  })();
 
   /* "Sal en el feed" CTAs: copy the #SouthSide hashtag, and open the Instagram
      picker to tag us. */

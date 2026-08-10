@@ -213,12 +213,23 @@
       "ship.err": "No pudimos cotizar. Intenta de nuevo.",
       "ship.soon": "Pago internacional en configuración. Muy pronto.",
 
+      "dom.title": "Datos de envío",
+      "dom.sub": "Solo lo básico para despachar. Confirmamos tu dirección exacta por WhatsApp antes de enviar.",
+      "dom.whatsapp": "WhatsApp",
+      "dom.product": "Producto",
+      "dom.incomplete": "Completa nombre, ciudad y WhatsApp.",
+      "dom.note": "Te escribimos por WhatsApp para confirmar la dirección exacta.",
+
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Gracias",
       "ty.sub": "Tu pedido entró. Te llega un correo con la confirmación en unos minutos.",
       "ty.n1": "Revisa tu correo (mira también en spam).",
       "ty.n2": "Preparamos tu pedido y te enviamos el número de guía.",
       "ty.n3": "¿Algo no cuadra? Escríbenos por Instagram.",
+      "ty.ship.title": "Envío",
+      "ty.ship.pending": "Confirmamos tu dirección por WhatsApp y te enviamos el número de guía.",
+      "ty.ship.shipped": "Tu pedido va en camino",
+      "ty.ship.track": "Rastrear envío",
       "ty.next": "Qué sigue",
       "ty.circle.label": "El Círculo",
       "ty.circle.copy": "Esto no es una lista de correo. Acceso y avisos antes que nadie — solo para quienes ya cayeron en un drop.",
@@ -342,12 +353,23 @@
       "ship.err": "Couldn't get a quote. Try again.",
       "ship.soon": "International payment is being set up. Very soon.",
 
+      "dom.title": "Shipping details",
+      "dom.sub": "Just the basics to ship. We'll confirm your exact address over WhatsApp before sending.",
+      "dom.whatsapp": "WhatsApp",
+      "dom.product": "Product",
+      "dom.incomplete": "Fill in name, city and WhatsApp.",
+      "dom.note": "We'll message you on WhatsApp to confirm the exact address.",
+
       "ty.eyebrow": "Order confirmed",
       "ty.title": "Thank you",
       "ty.sub": "Your order went through. A confirmation email is on its way.",
       "ty.n1": "Check your inbox (and your spam folder).",
       "ty.n2": "We prepare your order and send you the tracking number.",
       "ty.n3": "Something off? Message us on Instagram.",
+      "ty.ship.title": "Shipping",
+      "ty.ship.pending": "We'll confirm your address over WhatsApp and send you the tracking number.",
+      "ty.ship.shipped": "Your order is on the way",
+      "ty.ship.track": "Track shipment",
       "ty.next": "What happens next",
       "ty.circle.label": "The Circle",
       "ty.circle.copy": "This isn't a mailing list. Early access and heads-ups before anyone else — only for those who've copped a drop.",
@@ -471,12 +493,23 @@
       "ship.err": "Não foi possível cotar. Tente de novo.",
       "ship.soon": "Pagamento internacional em configuração. Em breve.",
 
+      "dom.title": "Dados de envio",
+      "dom.sub": "Só o básico para despachar. Confirmamos seu endereço exato por WhatsApp antes de enviar.",
+      "dom.whatsapp": "WhatsApp",
+      "dom.product": "Produto",
+      "dom.incomplete": "Preencha nome, cidade e WhatsApp.",
+      "dom.note": "Vamos te chamar no WhatsApp para confirmar o endereço exato.",
+
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Obrigado",
       "ty.sub": "Seu pedido entrou. Um e-mail de confirmação está a caminho.",
       "ty.n1": "Confira seu e-mail (e a caixa de spam).",
       "ty.n2": "Preparamos seu pedido e enviamos o código de rastreio.",
       "ty.n3": "Algo errado? Fale com a gente no Instagram.",
+      "ty.ship.title": "Envio",
+      "ty.ship.pending": "Confirmamos seu endereço por WhatsApp e enviamos o código de rastreio.",
+      "ty.ship.shipped": "Seu pedido está a caminho",
+      "ty.ship.track": "Rastrear envio",
       "ty.next": "O que acontece agora",
       "ty.circle.label": "O Círculo",
       "ty.circle.copy": "Isto não é uma lista de e-mails. Acesso e avisos antes de todos — só para quem já pegou um drop.",
@@ -612,6 +645,20 @@
     if (cur === "COP") return fmtMoney(roundCOP59(amount), "COP", 0, loc);
     var c = charmPrice(amount, cur, loc);
     return fmtMoney(c.value, cur, c.dp, loc);
+  }
+
+  // COP helpers for the Colombia checkout (the real Bold charge is always COP,
+  // regardless of the currency the visitor is browsing in).
+  //   copFromUsd(usd) -> the rounded 5/9 COP integer, or null before rates load
+  //   fmtCOP(cop)     -> that integer formatted as "$355.000" (symbol + digits)
+  function copFromUsd(usd) {
+    var rate = fxRates && fxRates.COP;
+    if (!rate) return null;
+    return roundCOP59(Number(usd) * Number(rate));
+  }
+  function fmtCOP(cop, lang) {
+    var loc = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-CO";
+    return fmtMoney(Number(cop) || 0, "COP", 0, loc);
   }
 
   // Load live rates once; cache in sessionStorage for the session. Falls back to
@@ -1135,6 +1182,7 @@
     openNotify: openNotify, closeNotify: closeNotify,
     openMenu: openMenu, closeMenu: closeMenu,
     getCurrency: getCurrency, setCountry: setCountry, getSelectedCountry: getSelectedCountry,
+    copFromUsd: copFromUsd, fmtCOP: fmtCOP,
     openCurrencyMenu: openCurrencyMenu,
     getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme
   };

@@ -6,6 +6,32 @@
 
 const bold = require("../lib/bold.js");
 const store = require("../lib/store.js");
+const shipCfg = require("../shipping-config.json");
+const envia = require("../lib/envia.js");
+
+// After a confirmed Colombian sale, mint the domestic label + tracking via Envia
+// (best-effort). No-op until ENVIA_API_KEY exists or if the order has no address,
+// so the current flow is unchanged while Envia is unconfigured.
+async function fulfilDomestic(reference) {
+  if (!envia.isConfigured()) return;
+  const order = await store.getOrder(reference);
+  if (!order || !order.address || order.tracking) return;
+  // the short domestic step only has a city; a label needs the full address,
+  // which is confirmed later by WhatsApp — skip until it's there
+  if (!(order.address.street || order.address.address1)) return;
+  try {
+    const ship = await envia.createShipment({
+      origin: shipCfg.origin,
+      to: order.address,
+      parcel: shipCfg.parcelDefaults,
+      reference: reference,
+      rateId: order.rateId || null,
+    });
+    await store.saveTracking(reference, ship);
+  } catch (e) {
+    console.error("[bold webhook] envia error:", e.message);
+  }
+}
 
 // Bold isn't parsed by Vercel here: the signature is over the exact bytes, so
 // a reserialized body would never match. Read the raw stream ourselves.
@@ -85,6 +111,7 @@ module.exports = async function handler(req, res) {
 
     if (kind === "approved") {
       const result = await store.confirm(reference);
+      if (result.ok && !result.duplicate) await fulfilDomestic(reference);
       return res.status(200).json({ ok: true, confirmed: result.ok, size: result.slug || null });
     }
     if (kind === "failed") {

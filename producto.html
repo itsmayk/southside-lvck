@@ -771,15 +771,18 @@
     if (!chosen) return;
     e.preventDefault();
     // International flow is DORMANT until shipping-config.intlEnabled is true (and
-    // the keys exist). While off, this branch is skipped and the Colombia/Bold
-    // path below runs exactly as before.
+    // the keys exist). While off, this branch is skipped.
     if (shipCfg && shipCfg.intlEnabled) { openShip(); return; }
+    // Colombia: collect a short shipping step (name + city + WhatsApp) before Bold
+    // so the order can be dispatched; the exact address is confirmed later.
+    if (shipCfg && shipCfg.domestic && shipCfg.domestic.collect) { openDom(); return; }
     goBold();
   }
 
-  // The Colombia checkout, unchanged: mint a Bold link and go. Extracted so the
+  // The Colombia checkout: mint a Bold link and go. `address` (short: name/city/
+  // whatsapp) rides along so the order is saved with who + where. Extracted so the
   // (dormant) international modal can reuse it for CO buyers without duplicating.
-  function goBold() {
+  function goBold(address) {
     if (checkingOut) return;
     var buy = document.getElementById("buy");
     var stripeFallback = buy.getAttribute("href");
@@ -790,7 +793,7 @@
     fetch("/api/checkout", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product: product.slug, size: chosen.slug })
+      body: JSON.stringify({ product: product.slug, size: chosen.slug, country: "CO", address: address || null })
     }).then(function (r) {
       return r.json().then(function (j) { return { status: r.status, body: j }; });
     }).then(function (res) {
@@ -1236,14 +1239,102 @@
         var pay = el("button", "rec-apply ship-pay"); pay.type = "button";
         pay.setAttribute("data-i18n", "ship.pay");
         pay.addEventListener("click", function () {
-          if (country === "CO") { closeShip(); goBold(); return; }  // Colombia -> Bold (unchanged)
-          // international processor not wired yet (Point 1 is scaffolding)
-          result.innerHTML = ""; result.appendChild(el("p", "ship-note", LVCK.t("ship.soon")));
+          if (country === "CO") { closeShip(); goBold(address); return; }  // Colombia -> Bold
+          // international -> our checkout mints the intl processor order (PayPal),
+          // then we send the buyer to its approve URL. Dormant until intlEnabled +
+          // the keys exist (checkout answers 503 → "coming soon").
+          result.innerHTML = ""; result.appendChild(el("p", null, "…"));
+          fetch("/api/checkout", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              product: product.slug, size: chosen.slug, country: country, address: address,
+              shippingAmount: b.shipping, shippingCurrency: b.currency, rateId: b.rateId || null
+            })
+          }).then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+            .then(function (res2) {
+              if (res2.status === 200 && res2.body.url) { window.location.href = res2.body.url; return; }
+              result.innerHTML = ""; result.appendChild(el("p", "ship-note", LVCK.t("ship.soon")));
+            })
+            .catch(function () { result.innerHTML = ""; result.appendChild(el("p", "ship-warn", LVCK.t("ship.err"))); });
         });
         result.appendChild(pay);
         LVCK.applyI18n(result);
       })
       .catch(function () { result.innerHTML = ""; result.appendChild(el("p", "ship-warn", LVCK.t("ship.err"))); });
+  }
+
+  /* ---------- domestic short step (Colombia): name + city + WhatsApp ----------
+     Bold doesn't hand us a usable shipping address, so we take the minimum to
+     dispatch and confirm the exact address by WhatsApp later. Shows the real COP
+     breakdown (product + flat shipping) since that's what Bold charges. */
+  function openDom() { (document.getElementById("dom") || buildDomModal()).classList.add("open"); refreshDomTotals(); }
+  function closeDom() { var m = document.getElementById("dom"); if (m) m.classList.remove("open"); }
+
+  function domRow(box, labelKey, valStr, strong) {
+    var line = el("div", "ship-line");
+    if (strong) line.style.fontWeight = "600";
+    line.appendChild(el("span", null, LVCK.t(labelKey)));
+    line.appendChild(el("span", null, valStr));
+    box.appendChild(line);
+  }
+
+  function refreshDomTotals() {
+    var box = document.getElementById("dom-totals"); if (!box) return;
+    var lang = LVCK.getLang() || "es";
+    box.innerHTML = "";
+    var shipCOP = Number(shipCfg && shipCfg.domestic && shipCfg.domestic.flatCOP) || 0;
+    var prodCOP = LVCK.copFromUsd ? LVCK.copFromUsd(activeUsd(product)) : null;
+    if (prodCOP != null) {
+      domRow(box, "dom.product", LVCK.fmtCOP(prodCOP, lang));
+      domRow(box, "ship.shippingLbl", LVCK.fmtCOP(shipCOP, lang));
+      domRow(box, "ship.totalLbl", LVCK.fmtCOP(prodCOP + shipCOP, lang), true);
+    } else {
+      // rates not loaded yet — still show the flat shipping line
+      domRow(box, "ship.shippingLbl", LVCK.fmtCOP(shipCOP, lang));
+    }
+  }
+
+  function buildDomModal() {
+    var sheet = el("div", "sheet dom-sheet"); sheet.id = "dom";
+    var panel = el("div", "panel");
+    var h3 = el("h3"); h3.setAttribute("data-i18n", "dom.title"); panel.appendChild(h3);
+    var sub = el("p"); sub.setAttribute("data-i18n", "dom.sub"); panel.appendChild(sub);
+
+    [["ship.name", "dom-name", "text"], ["ship.city", "dom-city", "text"], ["dom.whatsapp", "dom-wa", "tel"]]
+      .forEach(function (f) {
+        var w = el("label", "ship-field");
+        var l = el("span"); l.setAttribute("data-i18n", f[0]); w.appendChild(l);
+        var i = el("input", "ship-input"); i.id = f[1]; i.type = f[2];
+        if (f[1] === "dom-wa") i.setAttribute("inputmode", "tel");
+        w.appendChild(i); panel.appendChild(w);
+      });
+
+    var totals = el("div", "dom-totals"); totals.id = "dom-totals"; panel.appendChild(totals);
+    var note = el("p", "ship-note"); note.setAttribute("data-i18n", "dom.note"); panel.appendChild(note);
+    var warn = el("p", "ship-warn"); warn.id = "dom-warn"; warn.hidden = true; panel.appendChild(warn);
+
+    var pay = el("button", "rec-apply dom-pay"); pay.type = "button";
+    pay.setAttribute("data-i18n", "ship.pay");
+    pay.addEventListener("click", function () {
+      var name = (document.getElementById("dom-name").value || "").trim();
+      var city = (document.getElementById("dom-city").value || "").trim();
+      var wa = (document.getElementById("dom-wa").value || "").trim();
+      var warnEl = document.getElementById("dom-warn");
+      if (!name || !city || !wa) { warnEl.hidden = false; warnEl.textContent = LVCK.t("dom.incomplete"); return; }
+      closeDom();
+      goBold({ name: name, city: city, whatsapp: wa, country: "CO" });
+    });
+    panel.appendChild(pay);
+
+    var close = el("button", "btn close"); close.type = "button";
+    LVCK.btnLabel(close).setAttribute("data-i18n", "p.close");
+    close.addEventListener("click", closeDom); panel.appendChild(close);
+
+    sheet.appendChild(panel);
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) closeDom(); });
+    document.body.appendChild(sheet);
+    LVCK.applyI18n(sheet);
+    return sheet;
   }
 
   /* ---------- boot ---------- */
