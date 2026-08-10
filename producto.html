@@ -191,6 +191,23 @@
     font-feature-settings: "tnum" 1;
   }
 
+  /* shipping line under the price — the cost for the selected country */
+  .ship-line-info {
+    margin-top: 8px;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ship-line-info svg { width: 15px; height: 15px; flex: 0 0 auto; stroke: currentColor; fill: none; stroke-width: 1.5; opacity: 0.85; }
+  .ship-line-info b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* real shipping detail inside the "Envío" accordion (replaces the PENDING span) */
+  .fact .ship-fact-eta { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+  .fact .ship-fact-note { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; }
+
   .size-head {
     display: flex;
     align-items: baseline;
@@ -693,6 +710,16 @@
     var pnote = el("div", "price-note"); pnote.id = "price-note"; pnote.hidden = true;
     col.appendChild(pnote);
 
+    // shipping cost for the selected country (follows the currency selector);
+    // filled/refreshed by refreshShipping()
+    var sline = el("div", "ship-line-info"); sline.id = "ship-line"; sline.hidden = true;
+    var sicon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    sicon.setAttribute("viewBox", "0 0 24 24");
+    sicon.innerHTML = '<path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="1.6"/><circle cx="17.5" cy="17" r="1.6"/>';
+    var stext = el("span"); stext.id = "ship-line-text";
+    sline.appendChild(sicon); sline.appendChild(stext);
+    col.appendChild(sline);
+
     var head = el("div", "size-head");
     var label = el("span", "label");
     label.setAttribute("data-i18n", "p.choose");
@@ -857,13 +884,17 @@
 
       var body = el("div", "body");
       var inner = el("div");
-      var p = el("p", "todo");
-      p.dataset.todo = key;
-      p.appendChild(function () {
-        var s = el("span", "pending", FACT_TODO[key][LVCK.getLang() || "es"]);
-        return s;
-      }());
-      inner.appendChild(p);
+      if (key === "p.shipping") {
+        // real shipping info (cost for the selected country), filled by
+        // refreshShipping() — not a PENDING placeholder
+        var sf = el("p"); sf.id = "ship-fact";
+        inner.appendChild(sf);
+      } else {
+        var p = el("p", "todo");
+        p.dataset.todo = key;
+        p.appendChild(el("span", "pending", FACT_TODO[key][LVCK.getLang() || "es"]));
+        inner.appendChild(p);
+      }
       body.appendChild(inner);
 
       item.appendChild(btn);
@@ -1068,6 +1099,82 @@
     alsoEl.appendChild(a);
   }
 
+  /* ---------- shipping cost for the selected country ----------
+     The country comes from the same selector that drives the currency, so the
+     shown shipping tracks it: Colombia -> the flat domestic COP; a country in a
+     zone -> that zone's flat in the visitor's currency + its duties note;
+     otherwise a neutral "calculated at checkout". Display only — never touches
+     the checkout routing. */
+  function zoneForCountry(cc) {
+    var zones = (shipCfg && shipCfg.zones) || {};
+    for (var k in zones) {
+      if (!Object.prototype.hasOwnProperty.call(zones, k)) continue;
+      if ((zones[k].countries || []).indexOf(cc) !== -1) return zones[k];
+    }
+    return null;
+  }
+
+  function shipCostFor(country) {
+    var lang = LVCK.getLang() || "es";
+    if (!shipCfg) return { served: false };
+    var cc = String(country || "CO").toUpperCase();
+    if (cc === "CO") {
+      var flat = Number(shipCfg.domestic && shipCfg.domestic.flatCOP) || 0;
+      return { served: true, costStr: LVCK.fmtCOP(flat, lang), etaStr: LVCK.t("prod.ship.eta", lang), whatsapp: true };
+    }
+    var z = zoneForCountry(cc);
+    if (z && z.flatUSD != null) {
+      return {
+        served: true,
+        costStr: LVCK.money(Number(z.flatUSD), lang),
+        etaStr: null,
+        noteStr: (z.note && (z.note[lang] || z.note.es)) || null
+      };
+    }
+    return { served: false };
+  }
+
+  function refreshShipping() {
+    var lang = LVCK.getLang() || "es";
+    // getSelectedCountry() returns the country object {n,c,cur}; we want its ISO2
+    var sel = LVCK.getSelectedCountry ? LVCK.getSelectedCountry() : null;
+    var country = sel ? (typeof sel === "string" ? sel : sel.c) : "CO";
+    var info = shipCostFor(country);
+    var label = LVCK.t("ship.shippingLbl", lang); // "Envío"
+
+    var lineText = document.getElementById("ship-line-text");
+    var line = document.getElementById("ship-line");
+    if (line && lineText) {
+      line.hidden = false;
+      lineText.innerHTML = "";
+      if (info.served) {
+        lineText.appendChild(document.createTextNode(label + ": "));
+        var b = document.createElement("b"); b.textContent = info.costStr;
+        lineText.appendChild(b);
+        if (info.etaStr) lineText.appendChild(document.createTextNode(" · " + info.etaStr));
+      } else {
+        lineText.textContent = LVCK.t("prod.ship.calc", lang);
+      }
+    }
+
+    var fact = document.getElementById("ship-fact");
+    if (fact) {
+      fact.innerHTML = "";
+      if (info.served) {
+        var main = document.createElement("span");
+        main.appendChild(document.createTextNode(label + ": "));
+        var bb = document.createElement("b"); bb.textContent = info.costStr;
+        main.appendChild(bb);
+        fact.appendChild(main);
+        if (info.etaStr) fact.appendChild(el("span", "ship-fact-eta", info.etaStr));
+        if (info.whatsapp) fact.appendChild(el("span", "ship-fact-note", LVCK.t("dom.note", lang)));
+        if (info.noteStr) fact.appendChild(el("span", "ship-fact-note", info.noteStr));
+      } else {
+        fact.textContent = LVCK.t("prod.ship.calc", lang);
+      }
+    }
+  }
+
   /* ---------- language ---------- */
 
   // names, taglines, alts and prices come from shop-config.json, so they sit
@@ -1117,6 +1224,8 @@
     document.querySelectorAll("#sizes .size.sold").forEach(function (b) {
       b.textContent = b.textContent.split(" ")[0] + " · " + LVCK.t("p.soldOut", lang);
     });
+
+    refreshShipping();
 
     buildAlso();
     LVCK.applyI18n(alsoEl);
@@ -1357,7 +1466,7 @@
   // shipCfg stays null and the storefront runs Colombia-only (current behaviour).
   fetch("shipping-config.json")
     .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (c) { shipCfg = c; })
+    .then(function (c) { shipCfg = c; if (product) refreshShipping(); })
     .catch(function () {});
 
   fetch("shop-config.json")

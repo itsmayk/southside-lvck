@@ -219,6 +219,8 @@
       "dom.product": "Producto",
       "dom.incomplete": "Completa nombre, ciudad y WhatsApp.",
       "dom.note": "Te escribimos por WhatsApp para confirmar la dirección exacta.",
+      "prod.ship.eta": "3–8 días hábiles",
+      "prod.ship.calc": "Envío calculado al finalizar la compra",
 
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Gracias",
@@ -359,6 +361,8 @@
       "dom.product": "Product",
       "dom.incomplete": "Fill in name, city and WhatsApp.",
       "dom.note": "We'll message you on WhatsApp to confirm the exact address.",
+      "prod.ship.eta": "3–8 business days",
+      "prod.ship.calc": "Shipping calculated at checkout",
 
       "ty.eyebrow": "Order confirmed",
       "ty.title": "Thank you",
@@ -499,6 +503,8 @@
       "dom.product": "Produto",
       "dom.incomplete": "Preencha nome, cidade e WhatsApp.",
       "dom.note": "Vamos te chamar no WhatsApp para confirmar o endereço exato.",
+      "prod.ship.eta": "3–8 dias úteis",
+      "prod.ship.calc": "Frete calculado no checkout",
 
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Obrigado",
