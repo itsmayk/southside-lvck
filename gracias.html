@@ -141,6 +141,11 @@
   .ship-form { margin-top: 18px; }
   .ship-form-sub { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
   .ship-form .tf { display: block; margin-bottom: 14px; }
+  /* Dirección + Código postal share a row: the street grows, the postal code
+     is a narrow field beside it */
+  .ship-form .tf-row { display: flex; gap: 12px; align-items: flex-start; }
+  .ship-form .tf-grow { flex: 1 1 auto; min-width: 0; }
+  .ship-form .tf-zip { flex: 0 0 120px; }
   .ship-form .tf span {
     display: block; margin-bottom: 6px;
     font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
@@ -210,7 +215,10 @@
       <label class="tf"><span data-i18n="ty.ship.fName">Nombres</span><input id="sf-name" type="text" autocomplete="name"></label>
       <label class="tf"><span data-i18n="ty.ship.fPhone">Celular</span><input id="sf-phone" type="tel" inputmode="tel" autocomplete="tel"></label>
       <label class="tf"><span data-i18n="ty.ship.fEmail">Email</span><input id="sf-email" type="email" inputmode="email" autocomplete="email"></label>
-      <label class="tf"><span data-i18n="ty.ship.fAddr">Dirección (con código postal)</span><input id="sf-addr" type="text" autocomplete="street-address"></label>
+      <div class="tf-row">
+        <label class="tf tf-grow"><span data-i18n="ty.ship.fAddr">Dirección</span><input id="sf-addr" type="text" autocomplete="street-address"></label>
+        <label class="tf tf-zip"><span data-i18n="ty.ship.fZip">Código postal</span><input id="sf-zip" type="text" inputmode="numeric" autocomplete="postal-code"></label>
+      </div>
       <label class="tf"><span data-i18n="ty.ship.fCity">Ciudad / País</span><input id="sf-city" type="text" autocomplete="address-level2"></label>
       <p class="ship-form-warn" id="sf-warn" hidden></p>
       <button type="submit" class="ship-save" data-i18n="ty.ship.save">Guardar datos de envío</button>
@@ -324,11 +332,11 @@
       var data = {
         reference: ref,
         name: val("sf-name"), phone: val("sf-phone"), email: val("sf-email"),
-        address: val("sf-addr"), city: val("sf-city"),
+        address: val("sf-addr"), postalCode: val("sf-zip"), city: val("sf-city"),
       };
       var save = form.querySelector(".ship-save");
       warn.hidden = true;
-      if (!data.name || !data.phone || !data.email || !data.address || !data.city) {
+      if (!data.name || !data.phone || !data.email || !data.address || !data.postalCode || !data.city) {
         warn.hidden = false; warn.textContent = LVCK.t("ship.incomplete"); return;
       }
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) {

@@ -32,10 +32,11 @@ module.exports = async function handler(req, res) {
   const name = clean(body.name, 120);
   const phone = clean(body.phone, 40);
   const email = clean(body.email, 160);
-  const address = clean(body.address, 300);   // street + postal code, one field
-  const city = clean(body.city, 160);         // city / country, one field
+  const address = clean(body.address, 300);      // street
+  const postalCode = clean(body.postalCode, 20); // its own field, beside the street
+  const city = clean(body.city, 160);            // city / country, one field
   if (!reference) return res.status(400).json({ error: "missing_reference" });
-  if (!name || !phone || !email || !address || !city) return res.status(400).json({ error: "incomplete" });
+  if (!name || !phone || !email || !address || !postalCode || !city) return res.status(400).json({ error: "incomplete" });
   if (!isEmail(email)) return res.status(400).json({ error: "bad_email" });
 
   try {
@@ -44,7 +45,7 @@ module.exports = async function handler(req, res) {
     if (!order) return res.status(404).json({ error: "unknown_reference" });
 
     order.address = Object.assign({}, order.address, {
-      name: name, phone: phone, email: email, address: address, city: city,
+      name: name, phone: phone, email: email, address: address, postalCode: postalCode, city: city,
       country: (order.country || "CO"),
     });
     order.shippingAt = Date.now();
