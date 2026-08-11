@@ -22,9 +22,14 @@ module.exports = async function handler(req, res) {
     if (!order) return res.status(200).json({ found: false });
 
     const t = order.tracking || null;
+    // whether the buyer has already left their shipping details (a boolean only —
+    // never the details themselves), so the thank-you page shows the form or the
+    // confirmation accordingly
+    const hasShipping = Boolean(order.address && (order.address.name || order.address.city));
     return res.status(200).json({
       found: true,
       status: order.status || (t ? "shipped" : "pending"),
+      hasShipping: hasShipping,
       tracking: t ? {
         carrier: t.carrier || null,
         number: t.trackingNumber || null,

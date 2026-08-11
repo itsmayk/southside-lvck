@@ -1377,13 +1377,8 @@ html.cart-open { overflow: hidden; }
   padding: 22px clamp(18px, 4vw, 28px);
   border-bottom: 1px solid var(--hairline);
 }
-.cart-title {
-  font-family: 'Cinzel', serif;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  font-size: 13px;
-  color: var(--ink);
-}
+.cart-title { display: inline-flex; align-items: center; color: var(--ink); line-height: 0; }
+.cart-title svg { width: 24px; height: 24px; display: block; }
 .cart-x {
   background: none;
   border: none;
@@ -1488,35 +1483,8 @@ html.cart-open { overflow: hidden; }
 }
 .cart-row.strong span:last-child { font-family: 'Times New Roman', Times, serif; }
 
-.cart-checkout-btn { width: 100%; }
-
-/* the short Colombia step, tucked away until the shopper commits to paying */
-.cart-checkout { display: none; margin-top: 14px; }
-.cart-foot.checking-out .cart-checkout-btn { display: none; }
-.cart-foot.checking-out .cart-checkout { display: block; }
-
-.cart-note { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 6px 0 12px; }
-.cart-drawer .ship-field { display: block; margin-bottom: 12px; }
-.cart-drawer .ship-field span {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.cart-drawer .ship-input {
-  width: 100%;
-  padding: 11px 13px;
-  border: 1px solid var(--hairline);
-  border-radius: 10px;
-  background: var(--glass);
-  color: var(--ink);
-  font: inherit;
-  font-size: 14px;
-  transition: border-color 0.2s var(--ease);
-}
-.cart-drawer .ship-input:focus { outline: none; border-color: var(--ink); }
+.cart-note { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 6px 0 0; }
+.cart-paynote { text-align: center; margin-top: 12px; }
 .cart-warn { color: #b23b3b; font-size: 12px; margin: 4px 0 10px; }
 :root[data-theme="dark"] .cart-warn { color: #e08a8a; }
 

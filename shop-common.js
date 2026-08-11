@@ -231,6 +231,7 @@
       "cart.remove": "Quitar",
       "cart.subtotal": "Subtotal",
       "cart.checkout": "Finalizar compra",
+      "cart.paynote": "Pago seguro con Bold · los datos de envío se piden después de pagar.",
       "cart.soon": "El pago se activa en el lanzamiento. Muy pronto.",
       "cart.soldout": "Una talla se agotó. La quitamos del carrito.",
       "cart.err": "No se pudo iniciar el pago. Intenta de nuevo.",
@@ -245,6 +246,10 @@
       "ty.ship.pending": "Confirmamos tu dirección por WhatsApp y te enviamos el número de guía.",
       "ty.ship.shipped": "Tu pedido va en camino",
       "ty.ship.track": "Rastrear envío",
+      "ty.ship.formSub": "Déjanos a dónde enviarlo. Confirmamos la dirección exacta por WhatsApp.",
+      "ty.ship.save": "Guardar datos de envío",
+      "ty.ship.saved": "¡Listo! Recibimos tus datos. Te confirmamos la dirección por WhatsApp.",
+      "ty.ship.saveErr": "No se pudo guardar. Intenta de nuevo.",
       "ty.next": "Qué sigue",
       "ty.circle.label": "El Círculo",
       "ty.circle.copy": "Esto no es una lista de correo. Acceso y avisos antes que nadie — solo para quienes ya cayeron en un drop.",
@@ -386,6 +391,7 @@
       "cart.remove": "Remove",
       "cart.subtotal": "Subtotal",
       "cart.checkout": "Checkout",
+      "cart.paynote": "Secure Bold payment · shipping details are asked after you pay.",
       "cart.soon": "Checkout goes live at the drop. Very soon.",
       "cart.soldout": "A size just sold out. We removed it from your cart.",
       "cart.err": "Couldn't start the payment. Try again.",
@@ -400,6 +406,10 @@
       "ty.ship.pending": "We'll confirm your address over WhatsApp and send you the tracking number.",
       "ty.ship.shipped": "Your order is on the way",
       "ty.ship.track": "Track shipment",
+      "ty.ship.formSub": "Tell us where to send it. We'll confirm the exact address over WhatsApp.",
+      "ty.ship.save": "Save shipping details",
+      "ty.ship.saved": "Done! We've got your details. We'll confirm the address over WhatsApp.",
+      "ty.ship.saveErr": "Couldn't save. Try again.",
       "ty.next": "What happens next",
       "ty.circle.label": "The Circle",
       "ty.circle.copy": "This isn't a mailing list. Early access and heads-ups before anyone else — only for those who've copped a drop.",
@@ -541,6 +551,7 @@
       "cart.remove": "Remover",
       "cart.subtotal": "Subtotal",
       "cart.checkout": "Finalizar compra",
+      "cart.paynote": "Pagamento seguro Bold · os dados de envio são pedidos após o pagamento.",
       "cart.soon": "O pagamento abre no lançamento. Em breve.",
       "cart.soldout": "Um tamanho esgotou. Removemos do carrinho.",
       "cart.err": "Não foi possível iniciar o pagamento. Tente de novo.",
@@ -555,6 +566,10 @@
       "ty.ship.pending": "Confirmamos seu endereço por WhatsApp e enviamos o código de rastreio.",
       "ty.ship.shipped": "Seu pedido está a caminho",
       "ty.ship.track": "Rastrear envio",
+      "ty.ship.formSub": "Diga para onde enviar. Confirmamos o endereço exato por WhatsApp.",
+      "ty.ship.save": "Salvar dados de envio",
+      "ty.ship.saved": "Pronto! Recebemos seus dados. Confirmamos o endereço por WhatsApp.",
+      "ty.ship.saveErr": "Não foi possível salvar. Tente de novo.",
       "ty.next": "O que acontece agora",
       "ty.circle.label": "O Círculo",
       "ty.circle.copy": "Isto não é uma lista de e-mails. Acesso e avisos antes de todos — só para quem já pegou um drop.",
@@ -1337,7 +1352,7 @@
       '<div class="cart-backdrop" data-close-cart></div>' +
       '<aside class="cart-panel" role="dialog" aria-modal="true" aria-label="' + t("cart.title") + '">' +
         '<div class="cart-head">' +
-          '<span class="cart-title">' + t("cart.title") + '</span>' +
+          '<span class="cart-title" aria-hidden="true">' + cartIcon() + '</span>' +
           '<button type="button" class="cart-x" data-close-cart aria-label="' + t("p.close") + '">&times;</button>' +
         '</div>' +
         '<div class="cart-body"></div>' +
@@ -1373,7 +1388,6 @@
     var lang = getLang() || "es";
     var body = d.querySelector(".cart-body");
     var foot = d.querySelector(".cart-foot");
-    d.querySelector(".cart-title").textContent = t("cart.title");
     var panel = d.querySelector(".cart-panel");
     if (panel) panel.setAttribute("aria-label", t("cart.title"));
     body.innerHTML = "";
@@ -1465,74 +1479,69 @@
     }
     foot.appendChild(totals);
 
-    // ----- checkout (short Colombia step, revealed on demand) -----
-    var checkout = document.createElement("div");
-    checkout.className = "cart-checkout";
-    checkout.innerHTML =
-      '<p class="cart-note">' + t("dom.sub", lang) + '</p>' +
-      '<label class="ship-field"><span>' + t("ship.name", lang) + '</span><input class="ship-input" id="cart-name" type="text" autocomplete="name"></label>' +
-      '<label class="ship-field"><span>' + t("ship.city", lang) + '</span><input class="ship-input" id="cart-city" type="text" autocomplete="address-level2"></label>' +
-      '<label class="ship-field"><span>' + t("dom.whatsapp", lang) + '</span><input class="ship-input" id="cart-wa" type="tel" inputmode="tel" autocomplete="tel"></label>' +
-      '<p class="cart-note">' + t("dom.note", lang) + '</p>' +
-      '<p class="ship-warn cart-warn" hidden></p>' +
-      '<button type="button" class="rec-apply cart-confirm">' + t("ship.pay", lang) + '</button>';
+    // ----- straight to payment (no address here; we collect shipping on the
+    // thank-you page after Bold, so nothing stands between the cart and paying) -----
+    var warn = document.createElement("p");
+    warn.className = "ship-warn cart-warn"; warn.hidden = true;
+    foot.appendChild(warn);
 
-    var openBtn = document.createElement("button");
-    openBtn.type = "button";
-    openBtn.className = "lang-btn cart-checkout-btn";
-    openBtn.textContent = t("cart.checkout", lang);
-    openBtn.addEventListener("click", function () {
-      foot.classList.add("checking-out");
-      var f = foot.querySelector("#cart-name"); if (f) f.focus();
-    });
-    foot.appendChild(openBtn);
-    foot.appendChild(checkout);
-    checkout.querySelector(".cart-confirm").addEventListener("click", cartCheckout);
+    var payBtn = document.createElement("button");
+    payBtn.type = "button";
+    payBtn.className = "cart-confirm";
+    payBtn.textContent = t("cart.checkout", lang);
+    payBtn.addEventListener("click", cartCheckout);
+    foot.appendChild(payBtn);
+
+    var note = document.createElement("p");
+    note.className = "cart-note cart-paynote";
+    note.textContent = t("cart.paynote", lang);
+    foot.appendChild(note);
   }
 
-  // Mint one Bold link for the whole cart. Colombia only for now (intl dormant),
-  // so we always collect the short CO step and charge in COP. A 503 (Bold not
-  // live yet) surfaces a friendly "opens at the drop" message.
+  // Mint one Bold link for the whole cart and go straight there. Colombia only
+  // for now (intl dormant), charged in COP; the shipping details are collected
+  // afterwards on gracias.html. A 503 (Bold not live yet) surfaces a friendly
+  // "opens at the drop" message.
   function cartCheckout() {
     if (cartPaying) return;
     var foot = document.querySelector("#cart-drawer .cart-foot");
     if (!foot) return;
     var lang = getLang() || "es";
-    var name = (foot.querySelector("#cart-name").value || "").trim();
-    var city = (foot.querySelector("#cart-city").value || "").trim();
-    var wa = (foot.querySelector("#cart-wa").value || "").trim();
     var warn = foot.querySelector(".cart-warn");
-    var confirm = foot.querySelector(".cart-confirm");
-    warn.hidden = true;
-    if (!name || !city || !wa) { warn.hidden = false; warn.textContent = t("dom.incomplete", lang); return; }
+    var btn = foot.querySelector(".cart-confirm");
+    if (warn) warn.hidden = true;
 
     var items = cartRead().map(function (i) { return { product: i.product, size: i.size }; });
     if (!items.length) return;
 
     cartPaying = true;
-    confirm.classList.add("is-disabled");
+    if (btn) btn.classList.add("is-disabled");
     fetch("/api/checkout", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: items, country: "CO", address: { name: name, city: city, whatsapp: wa, country: "CO" } })
+      body: JSON.stringify({ items: items, country: "CO" })
     }).then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
       .then(function (res) {
         if (res.status === 200 && res.body.url) { window.location.href = res.body.url; return; }
         cartPaying = false;
-        confirm.classList.remove("is-disabled");
-        warn.hidden = false;
-        if (res.status === 503) warn.textContent = t("cart.soon", lang);
-        else if (res.status === 409) {
+        if (btn) btn.classList.remove("is-disabled");
+        if (res.status === 409) {
           // a size sold out between adding and paying — drop it and re-render
           var gone = res.body && res.body.slug;
           if (gone) cartSave(cartRead().filter(function (i) { return i.size !== gone; }));
-          warn.textContent = t("cart.soldout", lang);
           renderCart();
-        } else warn.textContent = t("cart.err", lang);
+          var w2 = document.querySelector("#cart-drawer .cart-warn");
+          if (w2) { w2.hidden = false; w2.textContent = t("cart.soldout", lang); }
+          return;
+        }
+        if (warn) {
+          warn.hidden = false;
+          warn.textContent = res.status === 503 ? t("cart.soon", lang) : t("cart.err", lang);
+        }
       })
       .catch(function () {
         cartPaying = false;
-        confirm.classList.remove("is-disabled");
-        warn.hidden = false; warn.textContent = t("cart.err", lang);
+        if (btn) btn.classList.remove("is-disabled");
+        if (warn) { warn.hidden = false; warn.textContent = t("cart.err", lang); }
       });
   }
 

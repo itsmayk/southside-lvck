@@ -136,6 +136,34 @@
     transition: color 0.25s var(--ease);
   }
   .tag-link:hover { color: var(--ink); }
+
+  /* post-payment shipping form (name / city / WhatsApp) */
+  .ship-form { margin-top: 18px; }
+  .ship-form-sub { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+  .ship-form .tf { display: block; margin-bottom: 14px; }
+  .ship-form .tf span {
+    display: block; margin-bottom: 6px;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+  }
+  .ship-form input {
+    width: 100%; padding: 12px 14px;
+    border: 1px solid var(--hairline); border-radius: 10px;
+    background: var(--glass); color: var(--ink); font: inherit; font-size: 15px;
+    transition: border-color 0.2s var(--ease);
+  }
+  .ship-form input:focus { outline: none; border-color: var(--ink); }
+  .ship-form-warn { color: #b23b3b; font-size: 12px; margin: 2px 0 12px; }
+  :root[data-theme="dark"] .ship-form-warn { color: #e08a8a; }
+  .ship-save {
+    width: 100%; padding: 15px 20px;
+    border: 1px solid var(--ink); border-radius: 12px;
+    background: var(--ink); color: var(--bone);
+    font-family: 'Cinzel', serif; text-transform: uppercase; letter-spacing: 0.16em;
+    font-size: 12px; cursor: pointer;
+    transition: filter 0.2s var(--ease), opacity 0.2s var(--ease);
+  }
+  .ship-save:hover { filter: brightness(1.12); }
+  .ship-save.is-disabled { opacity: 0.55; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -175,7 +203,18 @@
 
   <section class="next ship-status" id="ship-status" hidden>
     <h2 data-i18n="ty.ship.title">Envío</h2>
-    <p id="ship-status-body" data-i18n="ty.ship.pending">Confirmamos tu dirección por WhatsApp y te enviamos el número de guía.</p>
+
+    <!-- collect the shipping details now that the payment is done -->
+    <form class="ship-form" id="ship-form" novalidate hidden>
+      <p class="ship-form-sub" data-i18n="ty.ship.formSub">Déjanos a dónde enviarlo.</p>
+      <label class="tf"><span data-i18n="ship.name">Nombre completo</span><input id="sf-name" type="text" autocomplete="name"></label>
+      <label class="tf"><span data-i18n="ship.city">Ciudad</span><input id="sf-city" type="text" autocomplete="address-level2"></label>
+      <label class="tf"><span data-i18n="dom.whatsapp">WhatsApp</span><input id="sf-wa" type="tel" inputmode="tel" autocomplete="tel"></label>
+      <p class="ship-form-warn" id="sf-warn" hidden></p>
+      <button type="submit" class="ship-save" data-i18n="ty.ship.save">Guardar datos de envío</button>
+    </form>
+
+    <p id="ship-status-body" data-i18n="ty.ship.pending" hidden>Confirmamos tu dirección por WhatsApp y te enviamos el número de guía.</p>
     <a id="ship-track" class="tag-link" href="#" target="_blank" rel="noopener" hidden><span data-i18n="ty.ship.track">Rastrear envío</span></a>
   </section>
 
@@ -233,25 +272,73 @@
     var ref = new URLSearchParams(location.search).get("reference");
     if (!ref) return;
     var box = document.getElementById("ship-status");
+    var form = document.getElementById("ship-form");
     var body = document.getElementById("ship-status-body");
     var track = document.getElementById("ship-track");
-    // show the pending note straight away; upgrade to tracking if we have it
+    var warn = document.getElementById("sf-warn");
     if (box) box.hidden = false;
+
+    // status note (translatable): swap the data-i18n key and re-translate so a
+    // later language switch still updates it
+    function showStatus(key) {
+      if (form) form.hidden = true;
+      if (body) { body.hidden = false; if (key) { body.setAttribute("data-i18n", key); LVCK.applyI18n(box); } }
+    }
+    function showForm() {
+      if (body) body.hidden = true;
+      if (form) form.hidden = false;
+    }
+
+    // default to the form; /api/order corrects it (tracking / already-given / ask)
+    showForm();
 
     fetch("/api/order?reference=" + encodeURIComponent(ref))
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (o) {
-        if (!o || !o.found) return;
+        if (!o || !o.found) return;                 // unknown/no store: leave the form up
         var t = o.tracking;
         if (t && (t.number || t.url)) {
-          var parts = [LVCK.t("ty.ship.shipped")];
-          if (t.carrier) parts.push(t.carrier);
-          if (t.number) parts.push(t.number);
-          if (body) body.textContent = parts.join(" · ");
+          // shipped: show carrier/number (not translatable) + track link
+          if (form) form.hidden = true;
+          if (body) {
+            body.removeAttribute("data-i18n");
+            var parts = [LVCK.t("ty.ship.shipped")];
+            if (t.carrier) parts.push(t.carrier);
+            if (t.number) parts.push(t.number);
+            body.textContent = parts.join(" · ");
+            body.hidden = false;
+          }
           if (track && t.url) { track.href = t.url; track.hidden = false; }
+          return;
         }
+        if (o.hasShipping) showStatus("ty.ship.pending");   // already left details
+        else showForm();
       })
       .catch(function () {});
+
+    if (form) form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var name = (document.getElementById("sf-name").value || "").trim();
+      var city = (document.getElementById("sf-city").value || "").trim();
+      var wa = (document.getElementById("sf-wa").value || "").trim();
+      var save = form.querySelector(".ship-save");
+      warn.hidden = true;
+      if (!name || !city || !wa) { warn.hidden = false; warn.textContent = LVCK.t("dom.incomplete"); return; }
+      save.classList.add("is-disabled");
+      fetch("/api/shipping", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference: ref, name: name, city: city, whatsapp: wa })
+      }).then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+        .then(function (res) {
+          if (res.status === 200) { showStatus("ty.ship.saved"); return; }
+          save.classList.remove("is-disabled");
+          warn.hidden = false; warn.textContent = LVCK.t("ty.ship.saveErr");
+        })
+        .catch(function () {
+          save.classList.remove("is-disabled");
+          warn.hidden = false; warn.textContent = LVCK.t("ty.ship.saveErr");
+        });
+    });
   })();
 
   /* "Sal en el feed" CTAs: copy the #SouthSide hashtag, and open the Instagram
