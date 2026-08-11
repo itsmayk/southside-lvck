@@ -137,7 +137,7 @@
   }
   .tag-link:hover { color: var(--ink); }
 
-  /* post-payment shipping form (name / city / WhatsApp) */
+  /* post-payment shipping form (name / phone / email / address / city-country) */
   .ship-form { margin-top: 18px; }
   .ship-form-sub { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
   .ship-form .tf { display: block; margin-bottom: 14px; }
@@ -204,17 +204,19 @@
   <section class="next ship-status" id="ship-status" hidden>
     <h2 data-i18n="ty.ship.title">Envío</h2>
 
-    <!-- collect the shipping details now that the payment is done -->
+    <!-- collect the full shipping details now that the payment is done -->
     <form class="ship-form" id="ship-form" novalidate hidden>
-      <p class="ship-form-sub" data-i18n="ty.ship.formSub">Déjanos a dónde enviarlo.</p>
-      <label class="tf"><span data-i18n="ship.name">Nombre completo</span><input id="sf-name" type="text" autocomplete="name"></label>
-      <label class="tf"><span data-i18n="ship.city">Ciudad</span><input id="sf-city" type="text" autocomplete="address-level2"></label>
-      <label class="tf"><span data-i18n="dom.whatsapp">WhatsApp</span><input id="sf-wa" type="tel" inputmode="tel" autocomplete="tel"></label>
+      <p class="ship-form-sub" data-i18n="ty.ship.formSub">Completa tus datos de envío para despachar tu pedido.</p>
+      <label class="tf"><span data-i18n="ty.ship.fName">Nombres</span><input id="sf-name" type="text" autocomplete="name"></label>
+      <label class="tf"><span data-i18n="ty.ship.fPhone">Celular</span><input id="sf-phone" type="tel" inputmode="tel" autocomplete="tel"></label>
+      <label class="tf"><span data-i18n="ty.ship.fEmail">Email</span><input id="sf-email" type="email" inputmode="email" autocomplete="email"></label>
+      <label class="tf"><span data-i18n="ty.ship.fAddr">Dirección (con código postal)</span><input id="sf-addr" type="text" autocomplete="street-address"></label>
+      <label class="tf"><span data-i18n="ty.ship.fCity">Ciudad / País</span><input id="sf-city" type="text" autocomplete="address-level2"></label>
       <p class="ship-form-warn" id="sf-warn" hidden></p>
       <button type="submit" class="ship-save" data-i18n="ty.ship.save">Guardar datos de envío</button>
     </form>
 
-    <p id="ship-status-body" data-i18n="ty.ship.pending" hidden>Confirmamos tu dirección por WhatsApp y te enviamos el número de guía.</p>
+    <p id="ship-status-body" data-i18n="ty.ship.pending" hidden>Estamos preparando tu pedido. Te enviamos el número de guía apenas se despache.</p>
     <a id="ship-track" class="tag-link" href="#" target="_blank" rel="noopener" hidden><span data-i18n="ty.ship.track">Rastrear envío</span></a>
   </section>
 
@@ -262,10 +264,10 @@
 <script src="shop-common.js"></script>
 <script>
   /* Reached after Bold / PayPal (or the Stripe fallback) redirects here. If our
-     order reference rode along (?reference=…), ask /api/order for its shipping
-     status: show the tracking once a label exists, otherwise the "we'll confirm
-     by WhatsApp" note. No reference (or no store) → the block stays hidden and the
-     page is just the reassurance it always was. */
+     order reference rode along (?reference=…), ask /api/order for its status: show
+     the tracking once a label exists, else the shipping-details form to collect
+     name/phone/email/address/city. No reference (or no store) → the block stays
+     hidden and the page is just the reassurance it always was. */
   LVCK.boot();
 
   (function () {
@@ -318,16 +320,24 @@
 
     if (form) form.addEventListener("submit", function (e) {
       e.preventDefault();
-      var name = (document.getElementById("sf-name").value || "").trim();
-      var city = (document.getElementById("sf-city").value || "").trim();
-      var wa = (document.getElementById("sf-wa").value || "").trim();
+      var val = function (id) { var n = document.getElementById(id); return n ? (n.value || "").trim() : ""; };
+      var data = {
+        reference: ref,
+        name: val("sf-name"), phone: val("sf-phone"), email: val("sf-email"),
+        address: val("sf-addr"), city: val("sf-city"),
+      };
       var save = form.querySelector(".ship-save");
       warn.hidden = true;
-      if (!name || !city || !wa) { warn.hidden = false; warn.textContent = LVCK.t("dom.incomplete"); return; }
+      if (!data.name || !data.phone || !data.email || !data.address || !data.city) {
+        warn.hidden = false; warn.textContent = LVCK.t("ship.incomplete"); return;
+      }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) {
+        warn.hidden = false; warn.textContent = LVCK.t("ty.ship.invalidEmail"); return;
+      }
       save.classList.add("is-disabled");
       fetch("/api/shipping", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reference: ref, name: name, city: city, whatsapp: wa })
+        body: JSON.stringify(data)
       }).then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
         .then(function (res) {
           if (res.status === 200) { showStatus("ty.ship.saved"); return; }
