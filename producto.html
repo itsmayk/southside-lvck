@@ -753,7 +753,7 @@
     buy.id = "buy";
     buy.rel = "noopener";
     LVCK.btnLabel(buy).textContent = LVCK.t("p.pickFirst", lang);
-    buy.addEventListener("click", startCheckout);
+    buy.addEventListener("click", addChosenToCart);
     col.appendChild(buy);
 
     var secure = el("div", "secure");
@@ -783,9 +783,24 @@
       b.classList.toggle("on", b.dataset.slug === size.slug);
     });
     buy.classList.remove("is-disabled");
-    buy.href = size.url; // Stripe fallback, used only if Bold isn't configured
-    // the label stays one word: the chosen size is already lit up right above
-    LVCK.btnLabel(buy).textContent = LVCK.t("p.buy");
+    buy.removeAttribute("href"); // the button now adds to cart; no direct link to follow
+    LVCK.btnLabel(buy).textContent = LVCK.t("cart.add");
+  }
+
+  /* Add the chosen size to the shared cart and slide the drawer open. All
+     checkout now happens from the cart (one Bold link for everything inside),
+     so the product page's job ends at "added". */
+  function addChosenToCart(e) {
+    if (e) e.preventDefault();
+    if (!chosen) return;
+    var lang = LVCK.getLang() || "es";
+    LVCK.cartAdd({ product: product.slug, size: chosen.slug, name: nameOf(product, lang), sizeLabel: chosen.size });
+    LVCK.openCart();
+    var buy = document.getElementById("buy");
+    LVCK.btnLabel(buy).textContent = LVCK.t("cart.added", lang);
+    setTimeout(function () {
+      if (chosen && buy) LVCK.btnLabel(buy).textContent = LVCK.t("cart.add", lang);
+    }, 1600);
   }
 
   /* Buy click. Asks our own /api/checkout to mint a Bold link and sends the
@@ -1223,7 +1238,7 @@
 
     var buy = document.getElementById("buy");
     if (buy) {
-      LVCK.btnLabel(buy).textContent = LVCK.t(chosen ? "p.buy" : "p.pickFirst", lang);
+      LVCK.btnLabel(buy).textContent = LVCK.t(chosen ? "cart.add" : "p.pickFirst", lang);
     }
 
     document.querySelectorAll("#sizes .size.sold").forEach(function (b) {

@@ -222,6 +222,19 @@
       "prod.ship.eta": "3–8 días hábiles",
       "prod.ship.calc": "Envío calculado al finalizar la compra",
 
+      "cart.title": "Tu carrito",
+      "cart.open": "Abrir el carrito",
+      "cart.empty": "Tu carrito está vacío.",
+      "cart.shop": "Ver la tienda",
+      "cart.add": "Agregar al carrito",
+      "cart.added": "Agregado ✓",
+      "cart.remove": "Quitar",
+      "cart.subtotal": "Subtotal",
+      "cart.checkout": "Finalizar compra",
+      "cart.soon": "El pago se activa en el lanzamiento. Muy pronto.",
+      "cart.soldout": "Una talla se agotó. La quitamos del carrito.",
+      "cart.err": "No se pudo iniciar el pago. Intenta de nuevo.",
+
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Gracias",
       "ty.sub": "Tu pedido entró. Te llega un correo con la confirmación en unos minutos.",
@@ -364,6 +377,19 @@
       "prod.ship.eta": "3–8 business days",
       "prod.ship.calc": "Shipping calculated at checkout",
 
+      "cart.title": "Your cart",
+      "cart.open": "Open cart",
+      "cart.empty": "Your cart is empty.",
+      "cart.shop": "Browse the shop",
+      "cart.add": "Add to cart",
+      "cart.added": "Added ✓",
+      "cart.remove": "Remove",
+      "cart.subtotal": "Subtotal",
+      "cart.checkout": "Checkout",
+      "cart.soon": "Checkout goes live at the drop. Very soon.",
+      "cart.soldout": "A size just sold out. We removed it from your cart.",
+      "cart.err": "Couldn't start the payment. Try again.",
+
       "ty.eyebrow": "Order confirmed",
       "ty.title": "Thank you",
       "ty.sub": "Your order went through. A confirmation email is on its way.",
@@ -505,6 +531,19 @@
       "dom.note": "Vamos te chamar no WhatsApp para confirmar o endereço exato.",
       "prod.ship.eta": "3–8 dias úteis",
       "prod.ship.calc": "Frete calculado no checkout",
+
+      "cart.title": "Seu carrinho",
+      "cart.open": "Abrir o carrinho",
+      "cart.empty": "Seu carrinho está vazio.",
+      "cart.shop": "Ver a loja",
+      "cart.add": "Adicionar ao carrinho",
+      "cart.added": "Adicionado ✓",
+      "cart.remove": "Remover",
+      "cart.subtotal": "Subtotal",
+      "cart.checkout": "Finalizar compra",
+      "cart.soon": "O pagamento abre no lançamento. Em breve.",
+      "cart.soldout": "Um tamanho esgotou. Removemos do carrinho.",
+      "cart.err": "Não foi possível iniciar o pagamento. Tente de novo.",
 
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Obrigado",
@@ -1020,7 +1059,7 @@
     if (e.target.closest && e.target.closest(".nav-list a")) { closeMenu(); return; }
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { closeMenu(); closeLangModal(); closeNotify(); closeCurrencyMenu(); }
+    if (e.key === "Escape") { closeMenu(); closeLangModal(); closeNotify(); closeCurrencyMenu(); closeCart(); }
   });
 
   /* ---------- drop notify (email) ----------
@@ -1157,11 +1196,380 @@
     global.addEventListener("lvck:lang", tick);   // "Ya disponible" is translated
   }
 
+  /* ---------- shopping cart ----------
+     A cart that lives in localStorage and a glass drawer injected into every
+     page (like the currency picker), so you can add several pieces across the
+     catalog and check out once. Bold takes a single total, so the whole cart
+     becomes ONE payment; the short Colombia step (name + city + WhatsApp) is
+     collected inside the drawer before minting the link.
+
+     A line is { product, size, name, sizeLabel }. Prices are NOT stored — they
+     are resolved live from shop-config.json at render time, so a launch/
+     post-launch price flip is always reflected and nothing goes stale. */
+  var CART_KEY = "ss-cart";
+  var cartCfg = null, cartCfgP = null;          // shop-config.json (products, postLaunch)
+  var cartShip = null, cartShipP = null;        // shipping-config.json
+  var cartShipLoaded = false;                   // its fetch has settled (null = none)
+  var cartPaying = false;
+
+  function cartRead() {
+    try { var v = JSON.parse(localStorage.getItem(CART_KEY) || "[]"); return Array.isArray(v) ? v : []; }
+    catch (e) { return []; }
+  }
+  function cartSave(items) {
+    try { localStorage.setItem(CART_KEY, JSON.stringify(items)); } catch (e) {}
+    updateCartCount();
+    global.dispatchEvent(new CustomEvent("lvck:cart", { detail: { count: items.length } }));
+  }
+  function cartCount() { return cartRead().length; }
+  function cartItems() { return cartRead(); }
+
+  // Each product+size is a single line (a limited drop has no quantities); adding
+  // one that's already in the cart just re-opens the drawer instead of duplicating.
+  function cartAdd(item) {
+    if (!item || !item.product || !item.size) return false;
+    var items = cartRead();
+    var dup = items.some(function (i) { return i.product === item.product && i.size === item.size; });
+    if (!dup) {
+      items.push({
+        product: item.product, size: item.size,
+        name: item.name || null, sizeLabel: item.sizeLabel || item.size
+      });
+      cartSave(items);
+    }
+    return !dup;
+  }
+  function cartRemove(idx) {
+    var items = cartRead();
+    if (idx < 0 || idx >= items.length) return;
+    items.splice(idx, 1);
+    cartSave(items);
+    renderCart();
+  }
+  function cartClear() { cartSave([]); }
+
+  function loadShopCfg() {
+    if (cartCfgP) return cartCfgP;
+    cartCfgP = fetch("shop-config.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (c) { cartCfg = c || { products: [] }; return cartCfg; })
+      .catch(function () { cartCfg = { products: [] }; return cartCfg; });
+    return cartCfgP;
+  }
+  function loadCartShip() {
+    if (cartShipP) return cartShipP;
+    cartShipP = fetch("shipping-config.json")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (c) { cartShip = c; cartShipLoaded = true; return c; })
+      .catch(function () { cartShip = null; cartShipLoaded = true; return null; });
+    return cartShipP;
+  }
+
+  function cartProduct(slug) {
+    var ps = (cartCfg && cartCfg.products) || [];
+    for (var i = 0; i < ps.length; i++) if (ps[i].slug === slug) return ps[i];
+    return null;
+  }
+  function cartActiveUsd(p) { return (cartCfg && cartCfg.postLaunch) ? p.priceUSDPost : p.priceUSD; }
+  function cartNameOf(p, lang) { var n = p.name; return (n && typeof n === "object") ? (n[lang] || n.es) : n; }
+
+  // Shipping for the selected country — mirrors producto.html's shipCostFor, but
+  // reduced to the numbers the cart needs (one shipment per order). CO -> flat COP;
+  // a zone country -> that zone's flat USD; otherwise unserved (calculated later).
+  function cartZoneFor(cc) {
+    var zones = (cartShip && cartShip.zones) || {};
+    for (var k in zones) {
+      if (!Object.prototype.hasOwnProperty.call(zones, k)) continue;
+      if ((zones[k].countries || []).indexOf(cc) !== -1) return zones[k];
+    }
+    return null;
+  }
+  function cartShipCost(cc) {
+    if (!cartShip) return { served: false };
+    cc = String(cc || "CO").toUpperCase();
+    if (cc === "CO") return { served: true, kind: "CO", shipCOP: Number(cartShip.domestic && cartShip.domestic.flatCOP) || 0 };
+    var z = cartZoneFor(cc);
+    if (z && z.flatUSD != null) return { served: true, kind: "USD", shipUSD: Number(z.flatUSD) };
+    return { served: false };
+  }
+
+  function cartIcon() {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M4 5h2l1.2 10.2a1.6 1.6 0 0 0 1.6 1.4h7.8a1.6 1.6 0 0 0 1.6-1.3L20.5 8H6.2"/>' +
+      '<circle cx="9.5" cy="20" r="1.1"/><circle cx="17.5" cy="20" r="1.1"/></svg>';
+  }
+
+  // Built once into every page's header (so no per-page markup edits), sitting
+  // next to the language button.
+  function buildCartButton() {
+    var head = document.querySelector(".head-links");
+    if (!head || document.getElementById("cart-btn")) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cart-btn";
+    btn.id = "cart-btn";
+    btn.setAttribute("data-open-cart", "");
+    btn.setAttribute("aria-label", t("cart.open"));
+    btn.innerHTML = cartIcon() + '<span class="cart-count" aria-hidden="true" hidden>0</span>';
+    head.insertBefore(btn, head.firstChild);
+    updateCartCount();
+  }
+  function updateCartCount() {
+    var badge = document.querySelector("#cart-btn .cart-count");
+    if (!badge) return;
+    var n = cartCount();
+    badge.textContent = n;
+    badge.hidden = n === 0;
+    var btn = document.getElementById("cart-btn");
+    if (btn) {
+      btn.classList.toggle("has-items", n > 0);
+      btn.setAttribute("aria-label", t("cart.open") + (n ? " (" + n + ")" : ""));
+    }
+  }
+
+  function buildCartDrawer() {
+    var d = document.getElementById("cart-drawer");
+    if (d) return d;
+    d = document.createElement("div");
+    d.className = "cart-drawer";
+    d.id = "cart-drawer";
+    d.innerHTML =
+      '<div class="cart-backdrop" data-close-cart></div>' +
+      '<aside class="cart-panel" role="dialog" aria-modal="true" aria-label="' + t("cart.title") + '">' +
+        '<div class="cart-head">' +
+          '<span class="cart-title">' + t("cart.title") + '</span>' +
+          '<button type="button" class="cart-x" data-close-cart aria-label="' + t("p.close") + '">&times;</button>' +
+        '</div>' +
+        '<div class="cart-body"></div>' +
+        '<div class="cart-foot"></div>' +
+      '</aside>';
+    document.body.appendChild(d);
+    return d;
+  }
+  function cartIsOpen() {
+    var d = document.getElementById("cart-drawer");
+    return d && d.classList.contains("open");
+  }
+
+  function domRowCart(box, label, valStr, strong) {
+    var line = document.createElement("div");
+    line.className = "cart-row" + (strong ? " strong" : "");
+    var l = document.createElement("span"); l.textContent = label;
+    var v = document.createElement("span"); v.textContent = valStr;
+    line.appendChild(l); line.appendChild(v);
+    box.appendChild(line);
+  }
+
+  // Price of one line in the currency being shown: COP for Colombia (what Bold
+  // charges), otherwise the reference amount in the visitor's currency.
+  function cartLinePrice(usd, info, lang) {
+    if (info.kind === "CO") { var c = copFromUsd(usd); if (c != null) return fmtCOP(c, lang); }
+    return money(usd, lang);
+  }
+
+  function renderCart() {
+    var d = document.getElementById("cart-drawer");
+    if (!d) return;
+    var lang = getLang() || "es";
+    var body = d.querySelector(".cart-body");
+    var foot = d.querySelector(".cart-foot");
+    d.querySelector(".cart-title").textContent = t("cart.title");
+    var panel = d.querySelector(".cart-panel");
+    if (panel) panel.setAttribute("aria-label", t("cart.title"));
+    body.innerHTML = "";
+    foot.innerHTML = "";
+
+    var items = cartRead();
+    if (!items.length) {
+      var empty = document.createElement("div");
+      empty.className = "cart-empty";
+      var ep = document.createElement("p"); ep.textContent = t("cart.empty");
+      var ea = document.createElement("a"); ea.className = "lang-btn"; ea.href = "shop.html"; ea.textContent = t("cart.shop");
+      empty.appendChild(ep); empty.appendChild(ea);
+      body.appendChild(empty);
+      return;
+    }
+
+    // need the catalog for names + prices; fetch then re-render
+    if (!cartCfg) {
+      var loading = document.createElement("p");
+      loading.className = "cart-loading"; loading.textContent = "…";
+      body.appendChild(loading);
+      loadShopCfg().then(function () { if (cartIsOpen()) renderCart(); });
+      return;
+    }
+
+    // shipping-config drives the shipping line/total; if its fetch hasn't settled
+    // yet, render now with what we have and re-render once it lands (like prices)
+    if (!cartShipLoaded) loadCartShip().then(function () { if (cartIsOpen()) renderCart(); });
+
+    // prune any line whose product no longer exists in the catalog
+    var valid = items.filter(function (it) { return !!cartProduct(it.product); });
+    if (valid.length !== items.length) { cartSave(valid); items = valid; if (!items.length) return renderCart(); }
+
+    var sel = getSelectedCountry();
+    var cc = sel ? sel.c : "co";
+    var info = cartShipCost(cc);
+
+    var sumUsd = 0, subCOP = 0, copReady = true;
+    items.forEach(function (it, idx) {
+      var p = cartProduct(it.product);
+      var usd = Number(cartActiveUsd(p)) || 0;
+      sumUsd += usd;
+      var c = copFromUsd(usd);
+      if (c == null) copReady = false; else subCOP += c;
+
+      var row = document.createElement("div");
+      row.className = "cart-item";
+
+      var ph = (p.photos && p.photos[0] && p.photos[0].src) || null;
+      if (ph) {
+        var img = new Image();
+        img.className = "cart-thumb"; img.src = ph; img.alt = ""; img.loading = "lazy";
+        row.appendChild(img);
+      }
+
+      var main = document.createElement("div");
+      main.className = "cart-item-main";
+      var nm = document.createElement("div"); nm.className = "cart-item-name"; nm.textContent = cartNameOf(p, lang);
+      var sz = document.createElement("div"); sz.className = "cart-item-size"; sz.textContent = it.sizeLabel || it.size;
+      main.appendChild(nm); main.appendChild(sz);
+      row.appendChild(main);
+
+      var right = document.createElement("div");
+      right.className = "cart-item-right";
+      var pr = document.createElement("div"); pr.className = "cart-item-price"; pr.textContent = cartLinePrice(usd, info, lang);
+      var rm = document.createElement("button");
+      rm.type = "button"; rm.className = "cart-remove"; rm.textContent = t("cart.remove");
+      rm.addEventListener("click", function () { cartRemove(idx); });
+      right.appendChild(pr); right.appendChild(rm);
+      row.appendChild(right);
+
+      body.appendChild(row);
+    });
+
+    // ----- totals (mirror the product page: follow the selected country) -----
+    var totals = document.createElement("div");
+    totals.className = "cart-totals";
+    if (info.kind === "CO") {
+      domRowCart(totals, t("cart.subtotal", lang), copReady ? fmtCOP(subCOP, lang) : money(sumUsd, lang));
+      domRowCart(totals, t("ship.shippingLbl", lang), fmtCOP(info.shipCOP, lang));
+      domRowCart(totals, t("ship.totalLbl", lang), fmtCOP((copReady ? subCOP : 0) + info.shipCOP, lang), true);
+    } else if (info.kind === "USD") {
+      domRowCart(totals, t("cart.subtotal", lang), money(sumUsd, lang));
+      domRowCart(totals, t("ship.shippingLbl", lang), money(info.shipUSD, lang));
+      domRowCart(totals, t("ship.totalLbl", lang), money(sumUsd + info.shipUSD, lang), true);
+    } else {
+      domRowCart(totals, t("cart.subtotal", lang), money(sumUsd, lang));
+      domRowCart(totals, t("ship.shippingLbl", lang), t("prod.ship.calc", lang));
+    }
+    foot.appendChild(totals);
+
+    // ----- checkout (short Colombia step, revealed on demand) -----
+    var checkout = document.createElement("div");
+    checkout.className = "cart-checkout";
+    checkout.innerHTML =
+      '<p class="cart-note">' + t("dom.sub", lang) + '</p>' +
+      '<label class="ship-field"><span>' + t("ship.name", lang) + '</span><input class="ship-input" id="cart-name" type="text" autocomplete="name"></label>' +
+      '<label class="ship-field"><span>' + t("ship.city", lang) + '</span><input class="ship-input" id="cart-city" type="text" autocomplete="address-level2"></label>' +
+      '<label class="ship-field"><span>' + t("dom.whatsapp", lang) + '</span><input class="ship-input" id="cart-wa" type="tel" inputmode="tel" autocomplete="tel"></label>' +
+      '<p class="cart-note">' + t("dom.note", lang) + '</p>' +
+      '<p class="ship-warn cart-warn" hidden></p>' +
+      '<button type="button" class="rec-apply cart-confirm">' + t("ship.pay", lang) + '</button>';
+
+    var openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.className = "lang-btn cart-checkout-btn";
+    openBtn.textContent = t("cart.checkout", lang);
+    openBtn.addEventListener("click", function () {
+      foot.classList.add("checking-out");
+      var f = foot.querySelector("#cart-name"); if (f) f.focus();
+    });
+    foot.appendChild(openBtn);
+    foot.appendChild(checkout);
+    checkout.querySelector(".cart-confirm").addEventListener("click", cartCheckout);
+  }
+
+  // Mint one Bold link for the whole cart. Colombia only for now (intl dormant),
+  // so we always collect the short CO step and charge in COP. A 503 (Bold not
+  // live yet) surfaces a friendly "opens at the drop" message.
+  function cartCheckout() {
+    if (cartPaying) return;
+    var foot = document.querySelector("#cart-drawer .cart-foot");
+    if (!foot) return;
+    var lang = getLang() || "es";
+    var name = (foot.querySelector("#cart-name").value || "").trim();
+    var city = (foot.querySelector("#cart-city").value || "").trim();
+    var wa = (foot.querySelector("#cart-wa").value || "").trim();
+    var warn = foot.querySelector(".cart-warn");
+    var confirm = foot.querySelector(".cart-confirm");
+    warn.hidden = true;
+    if (!name || !city || !wa) { warn.hidden = false; warn.textContent = t("dom.incomplete", lang); return; }
+
+    var items = cartRead().map(function (i) { return { product: i.product, size: i.size }; });
+    if (!items.length) return;
+
+    cartPaying = true;
+    confirm.classList.add("is-disabled");
+    fetch("/api/checkout", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: items, country: "CO", address: { name: name, city: city, whatsapp: wa, country: "CO" } })
+    }).then(function (r) { return r.json().then(function (j) { return { status: r.status, body: j }; }); })
+      .then(function (res) {
+        if (res.status === 200 && res.body.url) { window.location.href = res.body.url; return; }
+        cartPaying = false;
+        confirm.classList.remove("is-disabled");
+        warn.hidden = false;
+        if (res.status === 503) warn.textContent = t("cart.soon", lang);
+        else if (res.status === 409) {
+          // a size sold out between adding and paying — drop it and re-render
+          var gone = res.body && res.body.slug;
+          if (gone) cartSave(cartRead().filter(function (i) { return i.size !== gone; }));
+          warn.textContent = t("cart.soldout", lang);
+          renderCart();
+        } else warn.textContent = t("cart.err", lang);
+      })
+      .catch(function () {
+        cartPaying = false;
+        confirm.classList.remove("is-disabled");
+        warn.hidden = false; warn.textContent = t("cart.err", lang);
+      });
+  }
+
+  function openCart() {
+    var d = buildCartDrawer();
+    loadShopCfg(); loadCartShip();
+    renderCart();
+    void d.offsetWidth;
+    d.classList.add("open");
+    document.documentElement.classList.add("cart-open");
+  }
+  function closeCart() {
+    var d = document.getElementById("cart-drawer");
+    if (!d) return;
+    d.classList.remove("open");
+    document.documentElement.classList.remove("cart-open");
+  }
+
+  function initCart() {
+    buildCartButton();
+    updateCartCount();
+  }
+
+  document.addEventListener("click", function (e) {
+    if (e.target.closest && e.target.closest("[data-open-cart]")) { e.preventDefault(); openCart(); return; }
+    if (e.target.closest && e.target.closest("[data-close-cart]")) { closeCart(); return; }
+  });
+  global.addEventListener("lvck:cart", updateCartCount);
+  global.addEventListener("lvck:currency", function () { if (cartIsOpen()) renderCart(); });
+  global.addEventListener("lvck:lang", function () { updateCartCount(); if (cartIsOpen()) renderCart(); });
+
   // called by every page once its own markup exists
   function boot(afterLang) {
     initTheme();
     initCountdown();
     initCurrencyControl();
+    initCart();
     // fetch live rates, then re-render any prices already on the page
     loadRates(function () {
       updateCurrencyControl();
@@ -1190,6 +1598,8 @@
     getCurrency: getCurrency, setCountry: setCountry, getSelectedCountry: getSelectedCountry,
     copFromUsd: copFromUsd, fmtCOP: fmtCOP,
     openCurrencyMenu: openCurrencyMenu,
-    getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme
+    getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme,
+    cartAdd: cartAdd, cartRemove: cartRemove, cartItems: cartItems,
+    cartCount: cartCount, cartClear: cartClear, openCart: openCart, closeCart: closeCart
   };
 })(window);
