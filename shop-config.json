@@ -2,7 +2,7 @@
   "_comment": "Prices are defined in COP (base currency — Colombia is the primary market). postLaunch:false shows the launch price (priceCOP); flip to true to switch to priceCOPPost. Bold charges priceCOP exactly. Every other currency (incl. USD) is a live-rate reference derived from the COP price and charm-rounded for display.",
   "postLaunch": false,
   "_setsComment": "A 'set' is the jacket + jean of one colorway. When both members are in the cart, setDiscountPct comes off the two garments (applied in the cart drawer AND recomputed server-side in api/checkout.js, so what Bold charges matches).",
-  "setDiscountPct": 10,
+  "setDiscountPct": 13,
   "sets": [
     { "id": "hueso", "members": ["boxi-fit", "jean-lxc"] },
     { "id": "negro", "members": ["chaqueta-negra", "jean-negro"] }
