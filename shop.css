@@ -234,6 +234,17 @@ img { display: block; max-width: 100%; }
 .head-links a:hover,
 .head-links button:hover { color: var(--ink); }
 
+/* language trigger is now a flag (of the current language), not the word "Idioma" */
+.head-links [data-open-lang] { padding: 0; display: inline-flex; align-items: center; line-height: 0; }
+.lang-flag {
+  width: 24px; height: 17px; display: block; object-fit: cover;
+  border-radius: 3px; box-shadow: 0 0 0 1px var(--hairline);
+  transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease);
+}
+.head-links [data-open-lang]:hover .lang-flag { box-shadow: 0 0 0 1px var(--ink); transform: translateY(-1px); }
+/* flags beside each option in the language modal */
+.lang-btn .lang-opt-flag { width: 26px; height: 18px; border-radius: 3px; object-fit: cover; flex-shrink: 0; }
+
 .site-foot {
   border-top: 1px solid var(--hairline);
   margin-top: clamp(60px, 12vh, 120px);

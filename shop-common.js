@@ -944,6 +944,9 @@
       .catch(function () { clearTimeout(timer); store(COUNTRY_KEY, "ZZ"); finish(null); });
   }
 
+  // language -> the flag (flagcdn ISO2) that stands for it: Spain, US, Brazil
+  var LANG_FLAG = { es: "es", en: "us", pt: "br" };
+
   function buildLangModal() {
     var modal = document.createElement("div");
     modal.className = "lang-modal";
@@ -951,13 +954,26 @@
     modal.innerHTML =
       '<div class="panel">' +
         '<div class="eyebrow">Language · Idioma</div>' +
-        '<button class="lang-btn" data-set-lang="es">Español</button>' +
-        '<button class="lang-btn" data-set-lang="en">English</button>' +
-        '<button class="lang-btn" data-set-lang="pt">Português</button>' +
+        '<button class="lang-btn" data-set-lang="es">' + flagImg("es", "lang-opt-flag") + '<span>Español</span></button>' +
+        '<button class="lang-btn" data-set-lang="en">' + flagImg("us", "lang-opt-flag") + '<span>English</span></button>' +
+        '<button class="lang-btn" data-set-lang="pt">' + flagImg("br", "lang-opt-flag") + '<span>Português</span></button>' +
       '</div>';
     document.body.appendChild(modal);
     return modal;
   }
+
+  // Render the current language's flag into the header trigger (replaces the word
+  // "Idioma"). Runs on boot and whenever the language changes.
+  function updateLangTrigger() {
+    var cc = LANG_FLAG[getLang() || "es"] || "es";
+    var label = t("nav.lang");
+    document.querySelectorAll("[data-open-lang]").forEach(function (btn) {
+      btn.innerHTML = flagImg(cc, "lang-flag");
+      btn.setAttribute("aria-label", label);
+      btn.setAttribute("title", label);
+    });
+  }
+  global.addEventListener("lvck:lang", updateLangTrigger);
 
   function openLangModal() {
     (document.getElementById("lang-modal") || buildLangModal()).classList.add("open");
@@ -1868,6 +1884,7 @@
     });
     var lang = getLang();
     applyI18n();
+    updateLangTrigger();
     if (!lang) {
       detectLang(function (detected) {
         if (getLang()) return;             // visitor picked one while we waited
