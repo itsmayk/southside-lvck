@@ -842,6 +842,41 @@ h1.display {
   }
 }
 
+/* ---------- floating cart button ---------- */
+
+/* Sits in the bottom-right control cluster, directly above the theme toggle,
+   with the same frosted glass. Opens the same cart drawer as the header icon. */
+.cart-fab {
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
+  bottom: calc(max(18px, env(safe-area-inset-bottom)) + 56px);  /* one slot above the theme toggle */
+  z-index: 90;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  background: rgba(245, 245, 240, 0.34);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  color: var(--muted);
+  cursor: pointer;
+  box-shadow: 0 6px 20px -8px rgba(10, 10, 10, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  transition: border-color 0.3s var(--ease), transform 0.3s var(--ease),
+              color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+:root[data-theme="dark"] .cart-fab {
+  background: rgba(35, 35, 32, 0.34);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 6px 20px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+.cart-fab:hover, .cart-fab.has-items { color: var(--ink); }
+.cart-fab:hover { border-color: var(--ink); transform: translateY(-2px); box-shadow: 0 7px 22px rgba(0, 0, 0, 0.22); }
+.cart-fab:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.cart-fab svg { width: 21px; height: 21px; display: block; }
+
 /* ---------- theme switch ---------- */
 
 /* Floats bottom-right, out of the header's way. Same frosted glass as the

@@ -112,7 +112,7 @@
     s.id = STYLE_ID;
     s.textContent =
       /* matches the theme-switch glass exactly (same tokens, size, shadow, hover) */
-      "#" + BTN_ID + "{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:74px;z-index:120;width:46px;height:46px;" +
+      "#" + BTN_ID + "{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:130px;z-index:120;width:46px;height:46px;" +
       "border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--ink);" +
       "border:1px solid rgba(255,255,255,.16);background:rgba(245,245,240,.34);" +
       "-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2);" +

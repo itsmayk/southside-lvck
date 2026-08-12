@@ -1451,17 +1451,30 @@
     head.insertBefore(btn, head.firstChild);
     updateCartCount();
   }
+  // update every cart trigger (header button + floating FAB) and their badges
   function updateCartCount() {
-    var badge = document.querySelector("#cart-btn .cart-count");
-    if (!badge) return;
     var n = cartCount();
-    badge.textContent = n;
-    badge.hidden = n === 0;
-    var btn = document.getElementById("cart-btn");
-    if (btn) {
+    document.querySelectorAll(".cart-count").forEach(function (badge) {
+      badge.textContent = n; badge.hidden = n === 0;
+    });
+    document.querySelectorAll("[data-open-cart]").forEach(function (btn) {
       btn.classList.toggle("has-items", n > 0);
       btn.setAttribute("aria-label", t("cart.open") + (n ? " (" + n + ")" : ""));
-    }
+    });
+  }
+
+  // A floating cart button in the bottom-right control cluster, sitting directly
+  // above the theme toggle (same frosted-glass treatment). Opens the same drawer.
+  function buildCartFab() {
+    if (document.getElementById("ss-cart-fab")) return;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.id = "ss-cart-fab";
+    b.className = "cart-fab";
+    b.setAttribute("data-open-cart", "");
+    b.setAttribute("aria-label", t("cart.open"));
+    b.innerHTML = cartIcon() + '<span class="cart-count" aria-hidden="true" hidden>0</span>';
+    document.body.appendChild(b);
   }
 
   function buildCartDrawer() {
@@ -1860,6 +1873,7 @@
 
   function initCart() {
     buildCartButton();
+    buildCartFab();
     updateCartCount();
   }
 
