@@ -131,10 +131,12 @@
   .chip:hover { border-color: var(--pearl); }
   .chip.done { color: var(--pending); border-color: var(--pending); }
   .tag-link {
+    display: inline-flex; align-items: center; gap: 8px;
     font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.14em;
     text-transform: uppercase; color: var(--muted); text-decoration: none;
     transition: color 0.25s var(--ease);
   }
+  .tag-link svg { display: block; flex-shrink: 0; }
   .tag-link:hover { color: var(--ink); }
 
   /* post-payment shipping form (name / phone / email / address / city-country) */
@@ -233,7 +235,7 @@
     <p class="lead" data-i18n="ty.tag.copy">Súbela con #SouthSide y etiquétanos. Reposteamos a los del drop.</p>
     <div class="join-actions">
       <button type="button" class="chip" id="copy-hash" data-hash="#SouthSide"><span data-i18n="ty.tag.hash">Copiar #SouthSide</span></button>
-      <a class="tag-link" href="https://instagram.com/lvck.world" target="_blank" rel="noopener" data-i18n="ty.tag.cta">Etiquétanos</a>
+      <a class="tag-link" href="https://instagram.com/lvck.world" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"></circle></svg><span data-i18n="ty.tag.cta">Etiquétanos</span></a>
     </div>
   </section>
 

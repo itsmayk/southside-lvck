@@ -272,10 +272,13 @@ img { display: block; max-width: 100%; }
 /* Instagram — plain footer text, centred between the brand and the city.
    Routes through the site's language picker (@lvck.us/es/br). */
 .site-foot a {
+  display: inline-flex;         /* centres the Instagram glyph in the row */
+  align-items: center;
   color: inherit;               /* matches the other footer text */
   text-decoration: none;
   transition: color 0.25s var(--ease);
 }
+.site-foot a svg { width: 17px; height: 17px; display: block; }
 .site-foot a:hover { color: var(--ink); }
 
 /* Hierarchy: the brand line leads (Cinzel, weightier, warmer tone); Instagram
