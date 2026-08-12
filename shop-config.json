@@ -1,6 +1,12 @@
 {
   "_comment": "Prices are defined in USD (base currency). postLaunch:false shows the launch price (priceUSD); flip to true to switch to priceUSDPost. Colombia's Bold charge is derived from USD via lib/fx.js (auto-convert + round to nearest thousand ending in 5/9).",
   "postLaunch": false,
+  "_setsComment": "A 'set' is the jacket + jean of one colorway. When both members are in the cart, setDiscountPct comes off the two garments (applied in the cart drawer AND recomputed server-side in api/checkout.js, so what Bold charges matches).",
+  "setDiscountPct": 10,
+  "sets": [
+    { "id": "hueso", "members": ["boxi-fit", "jean-lxc"] },
+    { "id": "negro", "members": ["chaqueta-negra", "jean-negro"] }
+  ],
   "products": [
     {
       "slug": "boxi-fit",

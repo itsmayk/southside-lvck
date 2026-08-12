@@ -112,13 +112,39 @@ module.exports = async function handler(req, res) {
       product: l.product.slug, name: nameOf(l.product), size: l.size.size, sizeSlug: l.size.slug,
     }));
 
+    // Complete sets in this order earn setDiscountPct off the two garments. Same
+    // rule as the cart drawer (k = min member line counts), recomputed here so the
+    // amount Bold charges matches what the shopper saw.
+    const setPct = Number(config.setDiscountPct) || 0;
+    const countBySlug = {};
+    lines.forEach((l) => { countBySlug[l.product.slug] = (countBySlug[l.product.slug] || 0) + 1; });
+    const completeSets = [];
+    if (setPct > 0) {
+      for (const s of (config.sets || [])) {
+        const mem = s.members || [];
+        if (mem.length < 2) continue;
+        const k = Math.min(countBySlug[mem[0]] || 0, countBySlug[mem[1]] || 0);
+        if (k > 0) {
+          const pA = products.find((p) => p.slug === mem[0]);
+          const pB = products.find((p) => p.slug === mem[1]);
+          if (pA && pB) completeSets.push({ pA, pB, k });
+        }
+      }
+    }
+
     // ---------------- Colombia -> Bold (COP) ----------------
     if (isCO) {
-      // Σ product COP (each USD -> COP, rounded 5/9) + one flat domestic shipping
+      // Σ product COP (each USD -> COP, rounded 5/9) − set discount + one flat shipping
       let productCOP = 0;
       for (const l of lines) productCOP += await fx.copFor(activeUsd(l.product));
+      let setDiscountCOP = 0;
+      for (const cs of completeSets) {
+        const copA = await fx.copFor(activeUsd(cs.pA));
+        const copB = await fx.copFor(activeUsd(cs.pB));
+        setDiscountCOP += cs.k * Math.round(setPct / 100 * (copA + copB));
+      }
       const shipCOP = Number(shipCfg.domestic && shipCfg.domestic.flatCOP) || 0;
-      const totalCOP = productCOP + shipCOP;
+      const totalCOP = productCOP - setDiscountCOP + shipCOP;
 
       let link;
       try {
@@ -137,7 +163,7 @@ module.exports = async function handler(req, res) {
         method: "bold", country: "CO",
         items: orderItems,
         address: address, // short: { name, city, whatsapp }
-        amounts: { productCOP: productCOP, shipCOP: shipCOP, totalCOP: totalCOP, currency: "COP" },
+        amounts: { productCOP: productCOP, setDiscountCOP: setDiscountCOP, shipCOP: shipCOP, totalCOP: totalCOP, currency: "COP" },
         createdAt: Date.now(),
       });
 
@@ -147,8 +173,10 @@ module.exports = async function handler(req, res) {
     // ---------------- International -> intl processor (USD) ----------------
     let productUSD = 0;
     for (const l of lines) productUSD += Number(activeUsd(l.product));
+    let setDiscountUSD = 0;
+    for (const cs of completeSets) setDiscountUSD += cs.k * Math.round(setPct / 100 * (Number(activeUsd(cs.pA)) + Number(activeUsd(cs.pB))));
     const shippingUSD = Number(body.shippingAmount) || 0; // quoted earlier by /api/quote
-    const totalUSD = productUSD + shippingUSD;
+    const totalUSD = productUSD - setDiscountUSD + shippingUSD;
 
     let order;
     try {
@@ -167,7 +195,7 @@ module.exports = async function handler(req, res) {
       method: intlpay.provider || "paypal", country: country,
       items: orderItems,
       address: address, rateId: body.rateId || null,
-      amounts: { productUSD: productUSD, shippingUSD: shippingUSD, totalUSD: totalUSD, currency: "USD" },
+      amounts: { productUSD: productUSD, setDiscountUSD: setDiscountUSD, shippingUSD: shippingUSD, totalUSD: totalUSD, currency: "USD" },
       payOrderId: order.id || null,
       createdAt: Date.now(),
     });

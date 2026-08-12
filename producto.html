@@ -424,6 +424,22 @@
   .also .n { font-family: 'Cinzel', serif; font-size: clamp(17px, 2.4vw, 23px); }
   .also .p { font-family: 'Times New Roman', Times, serif; font-size: 15px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
+  /* "Completa el set" module (reuses .set-price-* + .size-chip from shop.css) */
+  .set-mod-card { max-width: 640px; }
+  .set-mod-partner { display: flex; gap: 20px; align-items: center; text-decoration: none; color: var(--ink); margin-bottom: 20px; }
+  .set-mod-partner img { width: clamp(96px, 16vw, 150px); aspect-ratio: 4/5; object-fit: cover; background: var(--bone-deep); border-radius: 12px; border: 1px solid var(--glass-edge); }
+  .set-mod-meta .n { font-family: 'Cinzel', serif; font-size: clamp(17px, 2.4vw, 23px); }
+  .set-mod-meta .tl { color: var(--muted); font-size: 14px; margin-top: 6px; }
+  .set-mod-sizes { margin-bottom: 16px; }
+  .set-mod-sizelbl { display: block; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 9px; }
+  .set-mod-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .set-module.need-partner-size .set-mod-chips { animation: setShake 0.4s var(--ease); }
+  .set-module.need-partner-size .size-chip { border-color: var(--pending); }
+  .size-chip.sold { opacity: 0.4; text-decoration: line-through; cursor: not-allowed; }
+  .set-mod-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+  .set-mod-add { padding: 15px 20px; border: 1px solid var(--ink); border-radius: 12px; background: var(--ink); color: var(--bone); font-family: 'Cinzel', serif; text-transform: uppercase; letter-spacing: 0.16em; font-size: 12px; cursor: pointer; transition: filter 0.2s var(--ease); }
+  .set-mod-add:hover { filter: brightness(1.12); }
+
   .missing { max-width: 700px; margin: 18vh auto; padding: 0 24px; text-align: center; }
 </style>
 </head>
@@ -486,6 +502,8 @@
   var product = null, allProducts = [], stock = null;
   var postLaunch = false;          // shop-config.postLaunch: false = launch price, true = post-launch
   var chosen = null;               // the size object the visitor picked
+  var shopConfig = null;           // the whole shop-config (for sets + set discount)
+  var partnerChosen = null;        // size chosen for the set partner in "Completa el set"
 
   // active USD price for a product (prices are USD-based; launch vs post-launch)
   function activeUsd(p) { return postLaunch ? p.priceUSDPost : p.priceUSD; }
@@ -1086,32 +1104,142 @@
     LVCK.btnLabel(buy).textContent = LVCK.t("p.pickFirst");
   }
 
-  /* ---------- cross-sell ---------- */
+  /* ---------- "Completa el set" (jacket + jean of the same colorway) ----------
+     Replaces the old generic cross-sell. Shows the current product's set partner
+     with its own size picker and a discounted set price; "Agregar el set" drops
+     BOTH garments into the cart (the −% applies in the drawer, and the server
+     recomputes it so Bold charges the same). */
+  function partnerProduct() {
+    if (!shopConfig || !product) return null;
+    var sets = shopConfig.sets || [];
+    for (var i = 0; i < sets.length; i++) {
+      var m = sets[i].members || [];
+      if (m.indexOf(product.slug) !== -1) {
+        var other = m.filter(function (s) { return s !== product.slug; })[0];
+        return allProducts.filter(function (p) { return p.slug === other; })[0] || null;
+      }
+    }
+    return null;
+  }
+  function setPct() { return Number(shopConfig && shopConfig.setDiscountPct) || 0; }
 
-  function buildAlso() {
-    var other = allProducts.filter(function (p) { return p.slug !== product.slug; })[0];
-    if (!other) return;
+  function buildSetModule() {
+    var partner = partnerProduct();
+    if (!partner) { alsoEl.hidden = true; return; }
     var lang = LVCK.getLang() || "es";
-
     alsoEl.hidden = false;
+    alsoEl.className = "also set-module";
     alsoEl.innerHTML = "";
-    var h2 = el("h2");
-    h2.setAttribute("data-i18n", "p.also");
+
+    var h2 = el("h2", null, LVCK.t("set.title", lang));
     alsoEl.appendChild(h2);
 
-    var a = el("a");
-    a.href = "producto.html?p=" + encodeURIComponent(other.slug);
+    var card = el("div", "set-mod-card");
+
+    var a = el("a", "set-mod-partner");
+    a.href = "producto.html?p=" + encodeURIComponent(partner.slug);
     a.setAttribute("data-reveal", "up");
     var img = new Image();
-    img.src = other.photos[0].src;
-    img.alt = other.photos[0].alt[lang] || other.photos[0].alt.es;
+    img.src = partner.photos[0].src;
+    img.alt = partner.photos[0].alt[lang] || partner.photos[0].alt.es;
     img.loading = "lazy";
     a.appendChild(img);
-    var txt = el("div");
-    txt.appendChild(el("div", "n", nameOf(other, lang)));
-    txt.appendChild(el("div", "p", LVCK.money(activeUsd(other), lang)));
-    a.appendChild(txt);
-    alsoEl.appendChild(a);
+    var meta = el("div", "set-mod-meta");
+    meta.appendChild(el("div", "n", nameOf(partner, lang)));
+    meta.appendChild(el("div", "tl", partner.tagline[lang] || partner.tagline.es));
+    a.appendChild(meta);
+    card.appendChild(a);
+
+    var szWrap = el("div", "set-mod-sizes");
+    szWrap.appendChild(el("span", "set-mod-sizelbl", LVCK.t("set.pickPartnerSize", lang)));
+    var chips = el("div", "set-mod-chips");
+    partnerChosen = null;
+    partner.sizes.forEach(function (s) {
+      var b = el("button", "size-chip", s.size);
+      b.type = "button";
+      if (stock && stock[s.slug] === false) { b.classList.add("sold"); b.disabled = true; }
+      b.addEventListener("click", function () {
+        partnerChosen = s;
+        chips.querySelectorAll(".size-chip").forEach(function (x) { x.classList.remove("on"); });
+        b.classList.add("on");
+        alsoEl.classList.remove("need-partner-size");
+      });
+      chips.appendChild(b);
+    });
+    szWrap.appendChild(chips);
+    card.appendChild(szWrap);
+
+    card.appendChild(el("div", "set-mod-price"));
+
+    var add = el("button", "set-mod-add", LVCK.t("set.add", lang));
+    add.type = "button";
+    add.addEventListener("click", addSetToCart);
+    card.appendChild(add);
+
+    alsoEl.appendChild(card);
+    refreshSetPrice();
+  }
+
+  // set price in the selected currency (orig → discounted → save), reactive to
+  // country/currency like the rest of the page
+  function refreshSetPrice() {
+    var line = alsoEl.querySelector(".set-mod-price");
+    var partner = partnerProduct();
+    if (!line || !partner) return;
+    var lang = LVCK.getLang() || "es";
+    var ua = activeUsd(product), ub = activeUsd(partner), pct = setPct();
+    var sel = LVCK.getSelectedCountry ? LVCK.getSelectedCountry() : null;
+    var cc = sel ? (typeof sel === "string" ? sel : sel.c) : "co";
+    var origStr, nowStr, saveStr;
+    if (String(cc).toUpperCase() === "CO" && LVCK.copFromUsd) {
+      var ca = LVCK.copFromUsd(ua), cb = LVCK.copFromUsd(ub);
+      if (ca != null && cb != null) {
+        var o = ca + cb, d = Math.round(pct / 100 * o);
+        origStr = LVCK.fmtCOP(o, lang); nowStr = LVCK.fmtCOP(o - d, lang); saveStr = LVCK.fmtCOP(d, lang);
+      }
+    }
+    if (!nowStr) {
+      var oU = ua + ub, dU = Math.round(pct / 100 * oU);
+      origStr = LVCK.money(oU, lang); nowStr = LVCK.money(oU - dU, lang); saveStr = LVCK.money(dU, lang);
+    }
+    line.innerHTML =
+      '<span class="set-price-orig"></span><span class="set-price-now"></span><span class="set-price-save"></span>';
+    line.querySelector(".set-price-orig").textContent = origStr;
+    line.querySelector(".set-price-now").textContent = nowStr;
+    line.querySelector(".set-price-save").textContent = LVCK.t("set.save", lang) + " " + saveStr;
+  }
+
+  // refresh the module's text + price in place on lang/currency change (keeps the
+  // partner size the visitor already picked)
+  function updateSetModule() {
+    if (alsoEl.hidden || !alsoEl.querySelector(".set-mod-card")) return;
+    var lang = LVCK.getLang() || "es";
+    var partner = partnerProduct();
+    if (!partner) return;
+    var h2 = alsoEl.querySelector("h2"); if (h2) h2.textContent = LVCK.t("set.title", lang);
+    var n = alsoEl.querySelector(".set-mod-meta .n"); if (n) n.textContent = nameOf(partner, lang);
+    var tl = alsoEl.querySelector(".set-mod-meta .tl"); if (tl) tl.textContent = partner.tagline[lang] || partner.tagline.es;
+    var lbl = alsoEl.querySelector(".set-mod-sizelbl"); if (lbl) lbl.textContent = LVCK.t("set.pickPartnerSize", lang);
+    var add = alsoEl.querySelector(".set-mod-add"); if (add) add.textContent = LVCK.t("set.add", lang);
+    refreshSetPrice();
+  }
+
+  function addSetToCart() {
+    var partner = partnerProduct();
+    if (!partner) return;
+    var lang = LVCK.getLang() || "es";
+    // need the current garment's size first — nudge the main picker
+    if (!chosen) {
+      var sizes = document.getElementById("sizes");
+      if (sizes) sizes.scrollIntoView({ behavior: "smooth", block: "center" });
+      var buy = document.getElementById("buy");
+      if (buy) { buy.classList.remove("hint"); void buy.offsetWidth; buy.classList.add("hint"); }
+      return;
+    }
+    if (!partnerChosen) { alsoEl.classList.add("need-partner-size"); return; }
+    LVCK.cartAdd({ product: product.slug, size: chosen.slug, name: nameOf(product, lang), sizeLabel: chosen.size });
+    LVCK.cartAdd({ product: partner.slug, size: partnerChosen.slug, name: nameOf(partner, lang), sizeLabel: partnerChosen.size });
+    LVCK.openCart();
   }
 
   /* ---------- shipping cost for the selected country ----------
@@ -1247,8 +1375,7 @@
 
     refreshShipping();
 
-    buildAlso();
-    LVCK.applyI18n(alsoEl);
+    updateSetModule();
   }
 
   /* One-shot "this flame is a button" nudge, only the first time anyone opens a
@@ -1512,6 +1639,7 @@
     .then(function (r) { return r.json(); })
     .then(function (config) {
       allProducts = config.products || [];
+      shopConfig = config;
       postLaunch = !!config.postLaunch;
       var slug = param("p");
       product = allProducts.filter(function (p) { return p.slug === slug; })[0] || null;
@@ -1530,7 +1658,7 @@
       document.body.appendChild(buildGuide());
       document.body.appendChild(buildRec());
 
-      buildAlso();
+      buildSetModule();
       LVCK.applyI18n();
       refreshDynamicCopy();
       LVCK.initReveal();

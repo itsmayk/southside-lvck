@@ -246,6 +246,16 @@
   .sel-readout.sold .price { color: var(--pending); }
   .sel-readout .btn { margin: 18px auto 0; }
   .sel-readout .btn.is-sold { opacity: 0.4; pointer-events: none; }
+  /* secondary "+ Set" action under "Ver" — opens the add-the-set sheet */
+  .sel-set-btn {
+    display: inline-block; margin: 12px auto 0;
+    background: none; border: none; cursor: pointer;
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); padding: 6px 10px;
+    transition: color 0.25s var(--ease);
+  }
+  .sel-set-btn::before { content: "+ "; }
+  .sel-set-btn:hover { color: var(--ink); }
 
   /* dots */
   .sel-dots { display: flex; gap: 9px; justify-content: center; margin-top: 16px; }
@@ -519,12 +529,17 @@
    centred piece or its CTA opens that product's page to pick a size and pay. */
 (function () {
   var section = document.getElementById("shop-selector");
-  var stage, rail, readout, nameEl, priceEl, ctaEl, dotsWrap, ctaLabel, glowEl, centerObj;
+  var stage, rail, readout, nameEl, priceEl, ctaEl, dotsWrap, ctaLabel, glowEl, centerObj, setEl;
   var audioCtx = null, soundOff = false;
   try { soundOff = localStorage.getItem("ss-sound") === "off"; } catch (e) {}
   var products = [];
   var postLaunch = false;           // shop-config.postLaunch: false = launch price, true = post-launch
+  var shopSets = [];                // shop-config.sets — colorway jacket+jean pairs
   function activeUsd(p) { return postLaunch ? p.priceUSDPost : p.priceUSD; }
+  function setIdFor(slug) {
+    for (var i = 0; i < shopSets.length; i++) if ((shopSets[i].members || []).indexOf(slug) !== -1) return shopSets[i].id;
+    return null;
+  }
   var stock = null;                 // size-slug -> boolean, null until /api/stock answers
   var items = [];
   var current = 0, N = 0;
@@ -552,6 +567,7 @@
   function build(config) {
     products = config.products || [];
     postLaunch = !!config.postLaunch;
+    shopSets = config.sets || [];
     N = products.length;
 
     var sk = section.querySelector(".sel-skeleton");   // drop the loading placeholder
@@ -583,9 +599,19 @@
     ctaEl = document.createElement("a"); ctaEl.className = "btn";
     ctaLabel = LVCK.btnLabel(ctaEl);
     ctaLabel.setAttribute("data-i18n", "shop.view");
+    setEl = document.createElement("button");
+    setEl.type = "button";
+    setEl.className = "sel-set-btn";
+    setEl.hidden = true;
+    setEl.setAttribute("data-i18n", "set.add");
+    setEl.addEventListener("click", function () {
+      var sid = setIdFor(products[current].slug);
+      if (sid && LVCK.openSetSheet) LVCK.openSetSheet(sid);
+    });
     readout.appendChild(nameEl);
     readout.appendChild(priceEl);
     readout.appendChild(ctaEl);
+    readout.appendChild(setEl);
     section.appendChild(readout);
 
     dotsWrap = document.createElement("div");
@@ -695,6 +721,8 @@
       ctaEl.href = link(p);
       ctaEl.classList.toggle("is-sold", sold);
       ctaLabel.setAttribute("data-i18n", sold ? "shop.soldOut" : "shop.view");
+      // "+ Set" appears when this garment is part of a colorway set
+      if (setEl) setEl.hidden = !setIdFor(p.slug);
       LVCK.applyI18n(readout);
     }
     if (animate) {

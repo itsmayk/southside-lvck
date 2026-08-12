@@ -1514,3 +1514,152 @@ html.cart-open { overflow: hidden; }
   .cart-panel { transition: none; }
   .cart-backdrop { transition: none; }
 }
+
+/* ================= sets (jacket + jean) ================= */
+
+/* small size button, shared by the cart nudge and the set sheet */
+.size-chip {
+  min-width: 38px;
+  padding: 7px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--glass);
+  color: var(--ink);
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease), background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.size-chip:hover { border-color: var(--pearl); }
+.size-chip.on { background: var(--ink); color: var(--bone); border-color: var(--ink); }
+
+/* "complete your set" nudge inside the drawer */
+.cart-nudge {
+  margin: 14px 0 4px;
+  padding: 14px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 14px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.cart-nudge-eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pearl);
+  margin-bottom: 10px;
+}
+.cart-nudge-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.cart-nudge-thumb { width: 44px; height: 54px; object-fit: cover; border-radius: 7px; background: var(--bone-deep); flex-shrink: 0; }
+.cart-nudge-meta { min-width: 0; }
+.cart-nudge-name { font-family: 'Playfair Display', serif; font-size: 14px; color: var(--ink); }
+.cart-nudge-price { font-family: 'Times New Roman', Times, serif; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums lining-nums; margin-top: 2px; }
+.cart-nudge-sizes { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
+.cart-nudge-add {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid var(--ink);
+  border-radius: 10px;
+  background: none;
+  color: var(--ink);
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.cart-nudge-add:hover { background: var(--ink); color: var(--bone); }
+.cart-nudge.need-size .cart-nudge-sizes { animation: setShake 0.4s var(--ease); }
+.cart-nudge.need-size .size-chip { border-color: var(--pending); }
+
+/* the set-discount line + the "SET COMPLETO" badge */
+.cart-row-discount span { color: var(--pearl); }
+:root[data-theme="dark"] .cart-row-discount span { color: var(--pearl); }
+.set-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 9px;
+  border-radius: 10px;
+  border: 1px solid var(--glass-edge);
+  background: var(--glass);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.set-spark { color: var(--pearl); }
+.set-badge.pop { animation: setPop 0.7s var(--ease); }
+.set-badge.pop .set-spark { animation: setSpark 0.7s var(--ease); }
+@keyframes setPop {
+  0% { transform: scale(0.9); opacity: 0; }
+  40% { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes setSpark {
+  0% { transform: scale(0.4) rotate(-30deg); opacity: 0; }
+  50% { transform: scale(1.5) rotate(12deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes setShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* the reusable "add the set" glass sheet (shop.html coverflow "+ Set") */
+.set-sheet .set-panel { width: min(460px, 90vw); gap: 16px; }
+.set-cols { display: flex; gap: 14px; }
+.set-col {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--glass-edge);
+  border-radius: 12px;
+  background: var(--glass);
+  text-align: center;
+}
+.set-col-thumb { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; background: var(--bone-deep); }
+.set-col-name { font-family: 'Playfair Display', serif; font-size: 14px; color: var(--ink); margin: 10px 0; }
+.set-col-sizes { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.set-col.need-size .set-col-sizes { animation: setShake 0.4s var(--ease); }
+.set-col.need-size .size-chip { border-color: var(--pending); }
+.set-price-line { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.set-price-orig { color: var(--muted); text-decoration: line-through; font-family: 'Times New Roman', Times, serif; font-size: 15px; font-variant-numeric: tabular-nums lining-nums; }
+.set-price-now { color: var(--ink); font-family: 'Times New Roman', Times, serif; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums lining-nums; }
+.set-price-save {
+  font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--bone); background: var(--pearl); border-radius: 999px; padding: 4px 10px;
+}
+.set-warn { text-align: center; }
+.set-add-btn {
+  width: 100%;
+  padding: 15px 20px;
+  border: 1px solid var(--ink);
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--bone);
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 12px;
+  cursor: pointer;
+  transition: filter 0.2s var(--ease);
+}
+.set-add-btn:hover { filter: brightness(1.12); }
+
+@media (prefers-reduced-motion: reduce) {
+  .set-badge.pop, .set-badge.pop .set-spark,
+  .cart-nudge.need-size .cart-nudge-sizes, .set-col.need-size .set-col-sizes { animation: none; }
+}
+@media (max-width: 380px) {
+  .set-cols { flex-direction: column; }
+  .set-col-thumb { height: 180px; }
+}

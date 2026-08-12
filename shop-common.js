@@ -236,6 +236,16 @@
       "cart.soldout": "Una talla se agotó. La quitamos del carrito.",
       "cart.err": "No se pudo iniciar el pago. Intenta de nuevo.",
 
+      "set.title": "Completa el set",
+      "set.add": "Agregar el set",
+      "set.addPartner": "Agregar",
+      "set.discountLbl": "Descuento del set",
+      "set.priceLbl": "Set",
+      "set.save": "Ahorra",
+      "set.complete": "Set completo",
+      "set.pickPartnerSize": "Elige la talla",
+      "cart.setNudge": "Completa tu set",
+
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Gracias",
       "ty.sub": "Tu pedido entró. Te llega un correo con la confirmación en unos minutos.",
@@ -403,6 +413,16 @@
       "cart.soldout": "A size just sold out. We removed it from your cart.",
       "cart.err": "Couldn't start the payment. Try again.",
 
+      "set.title": "Complete the set",
+      "set.add": "Add the set",
+      "set.addPartner": "Add",
+      "set.discountLbl": "Set discount",
+      "set.priceLbl": "Set",
+      "set.save": "Save",
+      "set.complete": "Set complete",
+      "set.pickPartnerSize": "Pick a size",
+      "cart.setNudge": "Complete your set",
+
       "ty.eyebrow": "Order confirmed",
       "ty.title": "Thank you",
       "ty.sub": "Your order went through. A confirmation email is on its way.",
@@ -569,6 +589,16 @@
       "cart.soon": "O pagamento abre no lançamento. Em breve.",
       "cart.soldout": "Um tamanho esgotou. Removemos do carrinho.",
       "cart.err": "Não foi possível iniciar o pagamento. Tente de novo.",
+
+      "set.title": "Complete o conjunto",
+      "set.add": "Adicionar o conjunto",
+      "set.addPartner": "Adicionar",
+      "set.discountLbl": "Desconto do conjunto",
+      "set.priceLbl": "Conjunto",
+      "set.save": "Economize",
+      "set.complete": "Conjunto completo",
+      "set.pickPartnerSize": "Escolha o tamanho",
+      "cart.setNudge": "Complete seu conjunto",
 
       "ty.eyebrow": "Pedido confirmado",
       "ty.title": "Obrigado",
@@ -1095,7 +1125,7 @@
     if (e.target.closest && e.target.closest(".nav-list a")) { closeMenu(); return; }
   });
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") { closeMenu(); closeLangModal(); closeNotify(); closeCurrencyMenu(); closeCart(); }
+    if (e.key === "Escape") { closeMenu(); closeLangModal(); closeNotify(); closeCurrencyMenu(); closeCart(); closeSetSheet(); }
   });
 
   /* ---------- drop notify (email) ----------
@@ -1329,6 +1359,56 @@
     return { served: false };
   }
 
+  /* ---------- sets (jacket + jean of one colorway) ----------
+     A set is defined in shop-config.json (`sets`); when both members are in the
+     cart it earns `setDiscountPct`. The discount is computed here for the drawer
+     AND recomputed identically in api/checkout.js, so what Bold charges matches. */
+  function setDefs() { return (cartCfg && cartCfg.sets) || []; }
+  function setDiscountPct() { return Number(cartCfg && cartCfg.setDiscountPct) || 0; }
+  function setDefFor(slug) {
+    var defs = setDefs();
+    for (var i = 0; i < defs.length; i++) if ((defs[i].members || []).indexOf(slug) !== -1) return defs[i];
+    return null;
+  }
+  function setPartnerSlug(slug) {
+    var d = setDefFor(slug);
+    if (!d) return null;
+    var m = d.members || [];
+    for (var i = 0; i < m.length; i++) if (m[i] !== slug) return m[i];
+    return null;
+  }
+  // Walk the sets against the cart. A set is complete when every member has ≥1
+  // line; k = min(member line counts). Discount = k · pct% of the members' prices.
+  // Also flags "half" sets (one member present, the other missing) for the nudge.
+  function cartSetSummary() {
+    var out = { completeCount: 0, discountUSD: 0, discountCOP: 0, halfSets: [] };
+    if (!cartCfg) return out;
+    var pct = setDiscountPct();
+    if (!pct) return out;
+    var counts = {};
+    cartRead().forEach(function (it) { counts[it.product] = (counts[it.product] || 0) + 1; });
+    setDefs().forEach(function (def) {
+      var m = def.members || [];
+      if (m.length < 2) return;
+      var cA = counts[m[0]] || 0, cB = counts[m[1]] || 0;
+      var k = Math.min(cA, cB);
+      if (k > 0) {
+        var pa = cartProduct(m[0]), pb = cartProduct(m[1]);
+        if (pa && pb) {
+          var ua = Number(cartActiveUsd(pa)) || 0, ub = Number(cartActiveUsd(pb)) || 0;
+          out.completeCount += k;
+          out.discountUSD += k * Math.round(pct / 100 * (ua + ub));
+          var ca = copFromUsd(ua), cb = copFromUsd(ub);
+          if (ca != null && cb != null) out.discountCOP += k * Math.round(pct / 100 * (ca + cb));
+        }
+      }
+      if ((cA > 0) !== (cB > 0)) {   // exactly one member present
+        out.halfSets.push({ setId: def.id, presentSlug: cA > 0 ? m[0] : m[1], missingSlug: cA > 0 ? m[1] : m[0] });
+      }
+    });
+    return out;
+  }
+
   function cartIcon() {
     return '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
       '<path d="M4 5h2l1.2 10.2a1.6 1.6 0 0 0 1.6 1.4h7.8a1.6 1.6 0 0 0 1.6-1.3L20.5 8H6.2"/>' +
@@ -1387,14 +1467,18 @@
     return d && d.classList.contains("open");
   }
 
-  function domRowCart(box, label, valStr, strong) {
+  function domRowCart(box, label, valStr, strong, extraCls) {
     var line = document.createElement("div");
-    line.className = "cart-row" + (strong ? " strong" : "");
+    line.className = "cart-row" + (strong ? " strong" : "") + (extraCls ? " " + extraCls : "");
     var l = document.createElement("span"); l.textContent = label;
     var v = document.createElement("span"); v.textContent = valStr;
     line.appendChild(l); line.appendChild(v);
     box.appendChild(line);
   }
+
+  // how many complete sets the drawer showed last render, so a fresh completion
+  // (count goes up) can play the "SET COMPLETO" flourish exactly once
+  var cartLastComplete = 0;
 
   // Price of one line in the currency being shown: COP for Colombia (what Bold
   // charges), otherwise the reference amount in the visitor's currency.
@@ -1483,21 +1567,45 @@
       body.appendChild(row);
     });
 
+    // ----- set logic: nudge for a half set, discount + badge for a full one -----
+    var setSum = cartSetSummary();
+    setSum.halfSets.forEach(function (h) {
+      var partner = cartProduct(h.missingSlug);
+      if (partner) body.appendChild(buildSetNudge(partner, lang, info));
+    });
+
     // ----- totals (mirror the product page: follow the selected country) -----
     var totals = document.createElement("div");
     totals.className = "cart-totals";
     if (info.kind === "CO") {
+      var discCOP = (copReady && setSum.completeCount) ? setSum.discountCOP : 0;
       domRowCart(totals, t("cart.subtotal", lang), copReady ? fmtCOP(subCOP, lang) : money(sumUsd, lang));
+      if (discCOP) domRowCart(totals, t("set.discountLbl", lang), "−" + fmtCOP(discCOP, lang), false, "cart-row-discount");
       domRowCart(totals, t("ship.shippingLbl", lang), fmtCOP(info.shipCOP, lang));
-      domRowCart(totals, t("ship.totalLbl", lang), fmtCOP((copReady ? subCOP : 0) + info.shipCOP, lang), true);
+      domRowCart(totals, t("ship.totalLbl", lang), fmtCOP((copReady ? subCOP : 0) - discCOP + info.shipCOP, lang), true);
     } else if (info.kind === "USD") {
+      var discU = setSum.completeCount ? setSum.discountUSD : 0;
       domRowCart(totals, t("cart.subtotal", lang), money(sumUsd, lang));
+      if (discU) domRowCart(totals, t("set.discountLbl", lang), "−" + money(discU, lang), false, "cart-row-discount");
       domRowCart(totals, t("ship.shippingLbl", lang), money(info.shipUSD, lang));
-      domRowCart(totals, t("ship.totalLbl", lang), money(sumUsd + info.shipUSD, lang), true);
+      domRowCart(totals, t("ship.totalLbl", lang), money(sumUsd - discU + info.shipUSD, lang), true);
     } else {
+      var discX = setSum.completeCount ? setSum.discountUSD : 0;
       domRowCart(totals, t("cart.subtotal", lang), money(sumUsd, lang));
+      if (discX) domRowCart(totals, t("set.discountLbl", lang), "−" + money(discX, lang), false, "cart-row-discount");
       domRowCart(totals, t("ship.shippingLbl", lang), t("prod.ship.calc", lang));
     }
+
+    // "SET COMPLETO" badge above the totals; it pops the moment a set is completed
+    if (setSum.completeCount > 0) {
+      var badge = document.createElement("div");
+      badge.className = "set-badge";
+      badge.innerHTML = '<span class="set-spark" aria-hidden="true">✦</span><span>' + t("set.complete", lang) + '</span>';
+      foot.appendChild(badge);
+      if (setSum.completeCount > cartLastComplete) { void badge.offsetWidth; badge.classList.add("pop"); }
+    }
+    cartLastComplete = setSum.completeCount;
+
     foot.appendChild(totals);
 
     // ----- straight to payment (no address here; we collect shipping on the
@@ -1566,6 +1674,154 @@
       });
   }
 
+  // "Completa tu set" strip shown in the drawer when one half of a set is in the
+  // cart. Pick the partner's size, hit Agregar → it joins the cart and the
+  // discount + "SET COMPLETO" badge appear on the next render.
+  function buildSetNudge(partner, lang, info) {
+    var wrap = document.createElement("div");
+    wrap.className = "cart-nudge";
+
+    var eb = document.createElement("div");
+    eb.className = "cart-nudge-eyebrow";
+    eb.textContent = "✦ " + t("cart.setNudge", lang);
+    wrap.appendChild(eb);
+
+    var top = document.createElement("div");
+    top.className = "cart-nudge-top";
+    var ph = (partner.photos && partner.photos[0] && partner.photos[0].src) || null;
+    if (ph) { var img = new Image(); img.className = "cart-nudge-thumb"; img.src = ph; img.alt = ""; img.loading = "lazy"; top.appendChild(img); }
+    var meta = document.createElement("div"); meta.className = "cart-nudge-meta";
+    var nm = document.createElement("div"); nm.className = "cart-nudge-name"; nm.textContent = cartNameOf(partner, lang);
+    var pr = document.createElement("div"); pr.className = "cart-nudge-price"; pr.textContent = cartLinePrice(Number(cartActiveUsd(partner)) || 0, info, lang);
+    meta.appendChild(nm); meta.appendChild(pr); top.appendChild(meta);
+    wrap.appendChild(top);
+
+    var chips = document.createElement("div"); chips.className = "cart-nudge-sizes";
+    var chosen = null;
+    (partner.sizes || []).forEach(function (s) {
+      var b = document.createElement("button"); b.type = "button"; b.className = "size-chip"; b.textContent = s.size;
+      b.addEventListener("click", function () {
+        chosen = s;
+        chips.querySelectorAll(".size-chip").forEach(function (x) { x.classList.remove("on"); });
+        b.classList.add("on"); wrap.classList.remove("need-size");
+      });
+      chips.appendChild(b);
+    });
+    wrap.appendChild(chips);
+
+    var add = document.createElement("button");
+    add.type = "button"; add.className = "cart-nudge-add"; add.textContent = t("set.addPartner", lang);
+    add.addEventListener("click", function () {
+      if (!chosen) { wrap.classList.add("need-size"); return; }
+      cartAdd({ product: partner.slug, size: chosen.slug, name: cartNameOf(partner, lang), sizeLabel: chosen.size });
+      renderCart();
+    });
+    wrap.appendChild(add);
+    return wrap;
+  }
+
+  // Set price in the selected currency: { original, discounted, save }. CO-ness is
+  // read straight from the picked country (not from shipping config), so the exact
+  // COP path is used even before shipping-config.json has loaded.
+  function setPriceStrings(def, lang) {
+    var m = def.members || [];
+    var pa = cartProduct(m[0]), pb = cartProduct(m[1]);
+    if (!pa || !pb) return null;
+    var ua = Number(cartActiveUsd(pa)) || 0, ub = Number(cartActiveUsd(pb)) || 0;
+    var pct = setDiscountPct();
+    var sel = getSelectedCountry();
+    if (sel && String(sel.c).toUpperCase() === "CO") {
+      var ca = copFromUsd(ua), cb = copFromUsd(ub);
+      if (ca != null && cb != null) {
+        var o = ca + cb, dc = Math.round(pct / 100 * o);
+        return { original: fmtCOP(o, lang), discounted: fmtCOP(o - dc, lang), save: fmtCOP(dc, lang) };
+      }
+    }
+    var oU = ua + ub, dU = Math.round(pct / 100 * oU);
+    return { original: money(oU, lang), discounted: money(oU - dU, lang), save: money(dU, lang) };
+  }
+
+  // Reusable "add the set" glass sheet (used by shop.html's coverflow "+ Set"):
+  // both garments, a size picker each, the discounted set price, one button that
+  // drops both into the cart.
+  function buildSetSheet(def) {
+    var old = document.getElementById("set-sheet"); if (old) old.remove();
+    var lang = getLang() || "es";
+    var m = def.members || [];
+    var pa = cartProduct(m[0]), pb = cartProduct(m[1]);
+    if (!pa || !pb) return null;
+
+    var sheet = document.createElement("div");
+    sheet.className = "lang-modal set-sheet"; sheet.id = "set-sheet";
+    var panel = document.createElement("div"); panel.className = "panel set-panel"; sheet.appendChild(panel);
+
+    var title = document.createElement("div"); title.className = "eyebrow"; title.textContent = t("set.title", lang); panel.appendChild(title);
+
+    var chosen = {};
+    var cols = document.createElement("div"); cols.className = "set-cols";
+    [pa, pb].forEach(function (p) {
+      var col = document.createElement("div"); col.className = "set-col";
+      var ph = (p.photos && p.photos[0] && p.photos[0].src) || null;
+      if (ph) { var img = new Image(); img.className = "set-col-thumb"; img.src = ph; img.alt = ""; img.loading = "lazy"; col.appendChild(img); }
+      var nm = document.createElement("div"); nm.className = "set-col-name"; nm.textContent = cartNameOf(p, lang); col.appendChild(nm);
+      var chips = document.createElement("div"); chips.className = "set-col-sizes";
+      (p.sizes || []).forEach(function (s) {
+        var b = document.createElement("button"); b.type = "button"; b.className = "size-chip"; b.textContent = s.size;
+        b.addEventListener("click", function () {
+          chosen[p.slug] = s;
+          chips.querySelectorAll(".size-chip").forEach(function (x) { x.classList.remove("on"); });
+          b.classList.add("on"); col.classList.remove("need-size");
+        });
+        chips.appendChild(b);
+      });
+      col.appendChild(chips);
+      cols.appendChild(col);
+    });
+    panel.appendChild(cols);
+
+    var priceLine = document.createElement("div"); priceLine.className = "set-price-line"; panel.appendChild(priceLine);
+    function renderPrice() {
+      var ss = setPriceStrings(def, getLang() || "es");
+      if (!ss) { priceLine.textContent = ""; return; }
+      priceLine.innerHTML =
+        '<span class="set-price-orig">' + ss.original + '</span>' +
+        '<span class="set-price-now">' + ss.discounted + '</span>' +
+        '<span class="set-price-save">' + t("set.save", getLang() || "es") + ' ' + ss.save + '</span>';
+    }
+    renderPrice();
+
+    var warn = document.createElement("p"); warn.className = "ship-warn set-warn"; warn.hidden = true; panel.appendChild(warn);
+
+    var add = document.createElement("button"); add.type = "button"; add.className = "cart-confirm set-add-btn"; add.textContent = t("set.add", lang);
+    add.addEventListener("click", function () {
+      if (!chosen[pa.slug] || !chosen[pb.slug]) {
+        warn.hidden = false; warn.textContent = t("set.pickPartnerSize", lang);
+        cols.querySelectorAll(".set-col").forEach(function (c, i) { if (!chosen[(i === 0 ? pa : pb).slug]) c.classList.add("need-size"); });
+        return;
+      }
+      cartAdd({ product: pa.slug, size: chosen[pa.slug].slug, name: cartNameOf(pa, lang), sizeLabel: chosen[pa.slug].size });
+      cartAdd({ product: pb.slug, size: chosen[pb.slug].slug, name: cartNameOf(pb, lang), sizeLabel: chosen[pb.slug].size });
+      closeSetSheet(); openCart();
+    });
+    panel.appendChild(add);
+
+    var close = document.createElement("button"); close.type = "button"; close.className = "ig-close"; close.setAttribute("data-close-set", ""); close.textContent = t("p.close", lang); panel.appendChild(close);
+
+    sheet._renderPrice = renderPrice;   // re-priced on lvck:currency/lvck:lang while open
+    document.body.appendChild(sheet);
+    return sheet;
+  }
+  function openSetSheet(setId) {
+    loadShopCfg().then(function () {
+      var def = setDefs().filter(function (d) { return d.id === setId; })[0];
+      if (!def) return;
+      var sheet = buildSetSheet(def);
+      if (!sheet) return;
+      void sheet.offsetWidth; sheet.classList.add("open");
+    });
+  }
+  function closeSetSheet() { var s = document.getElementById("set-sheet"); if (s) s.classList.remove("open"); }
+
   function openCart() {
     var d = buildCartDrawer();
     loadShopCfg(); loadCartShip();
@@ -1586,13 +1842,18 @@
     updateCartCount();
   }
 
+  function setSheetOpen() { var s = document.getElementById("set-sheet"); return s && s.classList.contains("open"); }
+  function repriceSetSheet() { var s = document.getElementById("set-sheet"); if (s && s.classList.contains("open") && s._renderPrice) s._renderPrice(); }
+
   document.addEventListener("click", function (e) {
     if (e.target.closest && e.target.closest("[data-open-cart]")) { e.preventDefault(); openCart(); return; }
     if (e.target.closest && e.target.closest("[data-close-cart]")) { closeCart(); return; }
+    if (e.target.closest && e.target.closest("[data-close-set]")) { closeSetSheet(); return; }
+    if (e.target.id === "set-sheet") { closeSetSheet(); return; }
   });
   global.addEventListener("lvck:cart", updateCartCount);
-  global.addEventListener("lvck:currency", function () { if (cartIsOpen()) renderCart(); });
-  global.addEventListener("lvck:lang", function () { updateCartCount(); if (cartIsOpen()) renderCart(); });
+  global.addEventListener("lvck:currency", function () { if (cartIsOpen()) renderCart(); repriceSetSheet(); });
+  global.addEventListener("lvck:lang", function () { updateCartCount(); if (cartIsOpen()) renderCart(); if (setSheetOpen()) repriceSetSheet(); });
 
   // called by every page once its own markup exists
   function boot(afterLang) {
@@ -1630,6 +1891,8 @@
     openCurrencyMenu: openCurrencyMenu,
     getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme,
     cartAdd: cartAdd, cartRemove: cartRemove, cartItems: cartItems,
-    cartCount: cartCount, cartClear: cartClear, openCart: openCart, closeCart: closeCart
+    cartCount: cartCount, cartClear: cartClear, openCart: openCart, closeCart: closeCart,
+    setDefFor: setDefFor, setPartnerSlug: setPartnerSlug, setDiscountPct: setDiscountPct,
+    cartSetSummary: cartSetSummary, openSetSheet: openSetSheet
   };
 })(window);
