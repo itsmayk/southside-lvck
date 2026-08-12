@@ -984,6 +984,10 @@
         '<svg class="lang-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       btn.setAttribute("aria-label", label);
       btn.setAttribute("title", label);
+      // the flag greets for the first second (on load / on change), then tucks away
+      btn.classList.remove("flag-tucked");
+      if (btn._flagTimer) clearTimeout(btn._flagTimer);
+      btn._flagTimer = setTimeout(function () { btn.classList.add("flag-tucked"); }, 1000);
     });
   }
   global.addEventListener("lvck:lang", updateLangTrigger);

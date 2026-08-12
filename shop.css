@@ -242,7 +242,13 @@ img { display: block; max-width: 100%; }
   transition: border-color 0.25s var(--ease), color 0.25s var(--ease);
 }
 .head-links [data-open-lang]:hover { border-color: var(--ink); color: var(--ink); }
-.lang-flag { width: 20px; height: 14px; display: block; object-fit: cover; border-radius: 2px; flex-shrink: 0; }
+.lang-flag {
+  width: 20px; height: 14px; display: block; object-fit: cover; border-radius: 2px; flex-shrink: 0;
+  transition: width 0.45s var(--ease), opacity 0.35s var(--ease), margin-right 0.45s var(--ease);
+}
+/* the flag greets on load then tucks away, leaving code + chevron */
+[data-open-lang].flag-tucked .lang-flag { width: 0; opacity: 0; margin-right: -7px; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .lang-flag { transition: none; } }
 .lang-code { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.12em; line-height: 1; }
 .lang-chev { width: 12px; height: 12px; }
 /* flags beside each option in the language modal */
