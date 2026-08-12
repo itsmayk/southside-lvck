@@ -1135,7 +1135,7 @@ h1.display {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  max-height: 232px;   /* ~5 rows, then scroll — a short, compact menu */
+  max-height: 148px;   /* ~3 rows, then scroll — a short, compact menu */
   overflow-y: auto;
   padding-right: 3px;
 }
