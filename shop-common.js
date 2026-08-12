@@ -133,7 +133,7 @@
       "cur.charged": "Precio de referencia · el cobro se hace en USD (o COP en Colombia).",
       "test.notice": "Modo prueba · ningún pago es real todavía",
       "drop.label": "Lanzamiento",
-      "drop.date": "20 AGO 2026",
+      "drop.date": "26 AGO 2026",
       "drop.live": "Ya disponible",
 
       "shop.eyebrow": "Lanzamiento",
@@ -170,7 +170,7 @@
 
       "notify.open": "Avísame en el drop",
       "notify.title": "Avísame en el drop",
-      "notify.sub": "Te escribimos apenas caiga, el 20 AGO. Nada de spam.",
+      "notify.sub": "Te escribimos apenas caiga, el 26 AGO. Nada de spam.",
       "notify.ph": "tu@correo.com",
       "notify.cta": "Avísame",
       "notify.sending": "Enviando…",
@@ -310,7 +310,7 @@
       "cur.charged": "Reference price · you are charged in USD (or COP in Colombia).",
       "test.notice": "Test mode · no payment is real yet",
       "drop.label": "Drop",
-      "drop.date": "20 AUG 2026",
+      "drop.date": "26 AUG 2026",
       "drop.live": "Available now",
 
       "shop.eyebrow": "Drop",
@@ -347,7 +347,7 @@
 
       "notify.open": "Notify me at the drop",
       "notify.title": "Notify me at the drop",
-      "notify.sub": "We'll email you the moment it drops, AUG 20. No spam.",
+      "notify.sub": "We'll email you the moment it drops, AUG 26. No spam.",
       "notify.ph": "you@email.com",
       "notify.cta": "Notify me",
       "notify.sending": "Sending…",
@@ -487,7 +487,7 @@
       "cur.charged": "Preço de referência · a cobrança é feita em USD (ou COP na Colômbia).",
       "test.notice": "Modo teste · nenhum pagamento é real ainda",
       "drop.label": "Lançamento",
-      "drop.date": "20 AGO 2026",
+      "drop.date": "26 AGO 2026",
       "drop.live": "Já disponível",
 
       "shop.eyebrow": "Lançamento",
@@ -524,7 +524,7 @@
 
       "notify.open": "Avise-me no drop",
       "notify.title": "Avise-me no drop",
-      "notify.sub": "Mandamos um e-mail assim que cair, 20 AGO. Sem spam.",
+      "notify.sub": "Mandamos um e-mail assim que cair, 26 AGO. Sem spam.",
       "notify.ph": "voce@email.com",
       "notify.cta": "Avise-me",
       "notify.sending": "Enviando…",
@@ -1228,7 +1228,7 @@
   /* ---------- countdown ---------- */
 
   // same instant the landing page counts to: midnight in Colombia, 20 Aug 2026
-  var DROP_AT = new Date("2026-08-20T00:00:00-05:00").getTime();
+  var DROP_AT = new Date("2026-08-26T00:00:00-05:00").getTime();
 
   function pad(n) { return n < 10 ? "0" + n : String(n); }
 
