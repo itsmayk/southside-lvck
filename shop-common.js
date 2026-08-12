@@ -1436,22 +1436,7 @@
       '<circle cx="9.5" cy="20" r="1.1"/><circle cx="17.5" cy="20" r="1.1"/></svg>';
   }
 
-  // Built once into every page's header (so no per-page markup edits), sitting
-  // next to the language button.
-  function buildCartButton() {
-    var head = document.querySelector(".head-links");
-    if (!head || document.getElementById("cart-btn")) return;
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "cart-btn";
-    btn.id = "cart-btn";
-    btn.setAttribute("data-open-cart", "");
-    btn.setAttribute("aria-label", t("cart.open"));
-    btn.innerHTML = cartIcon() + '<span class="cart-count" aria-hidden="true" hidden>0</span>';
-    head.insertBefore(btn, head.firstChild);
-    updateCartCount();
-  }
-  // update every cart trigger (header button + floating FAB) and their badges
+  // update every cart trigger (the floating FAB) and its badge
   function updateCartCount() {
     var n = cartCount();
     document.querySelectorAll(".cart-count").forEach(function (badge) {
@@ -1872,8 +1857,7 @@
   }
 
   function initCart() {
-    buildCartButton();
-    buildCartFab();
+    buildCartFab();   // the cart lives in the floating button now, not the header
     updateCartCount();
   }
 

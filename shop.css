@@ -245,8 +245,6 @@ img { display: block; max-width: 100%; }
 .lang-flag { width: 20px; height: 14px; display: block; object-fit: cover; border-radius: 2px; flex-shrink: 0; }
 .lang-code { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.12em; line-height: 1; }
 .lang-chev { width: 12px; height: 12px; }
-/* a little breathing room between the cart and the language selector */
-.head-links .cart-btn { margin-right: clamp(4px, 1.4vw, 10px); }
 /* flags beside each option in the language modal */
 .lang-btn .lang-opt-flag { width: 26px; height: 18px; border-radius: 3px; object-fit: cover; flex-shrink: 0; }
 
@@ -1353,17 +1351,7 @@ h1.display {
 
 /* ================= shopping cart ================= */
 
-/* header trigger + item-count badge (injected into .head-links) */
-.cart-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted);
-  line-height: 0;
-}
-.cart-btn svg { width: 21px; height: 21px; display: block; }
-.cart-btn:hover, .cart-btn.has-items { color: var(--ink); }
+/* item-count badge, shared by the floating cart button */
 .cart-count {
   position: absolute;
   top: -7px;
