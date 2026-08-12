@@ -987,7 +987,7 @@
       // the flag greets for the first second (on load / on change), then tucks away
       btn.classList.remove("flag-tucked");
       if (btn._flagTimer) clearTimeout(btn._flagTimer);
-      btn._flagTimer = setTimeout(function () { btn.classList.add("flag-tucked"); }, 2500);
+      btn._flagTimer = setTimeout(function () { btn.classList.add("flag-tucked"); }, 2000);
     });
   }
   global.addEventListener("lvck:lang", updateLangTrigger);
