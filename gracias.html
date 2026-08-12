@@ -233,7 +233,7 @@
     <p class="lead" data-i18n="ty.tag.copy">Súbela con #SouthSide y etiquétanos. Reposteamos a los del drop.</p>
     <div class="join-actions">
       <button type="button" class="chip" id="copy-hash" data-hash="#SouthSide"><span data-i18n="ty.tag.hash">Copiar #SouthSide</span></button>
-      <a class="tag-link" href="social-instagram.html" data-open-ig data-i18n="ty.tag.cta">Etiquétanos</a>
+      <a class="tag-link" href="https://instagram.com/lvck.world" target="_blank" rel="noopener" data-i18n="ty.tag.cta">Etiquétanos</a>
     </div>
   </section>
 
@@ -244,19 +244,6 @@
   <div data-i18n="foot.brand">LVCK · South Side</div>
   <div data-i18n="foot.note">Bogotá, Colombia</div>
 </footer>
-
-<!-- Instagram picker — reused from the shop. The "Etiquétanos" link, and the
-     Circle button until its real link exists, open this. -->
-<div class="lang-modal ig-modal" id="ig-modal" role="dialog" aria-modal="true" aria-label="Instagram">
-  <div class="panel">
-    <div class="eyebrow">Instagram</div>
-    <a class="lang-btn" href="https://instagram.com/lvck.us" target="_blank" rel="noopener"><span class="flag">🇺🇸</span><span>@lvck.us</span></a>
-    <a class="lang-btn" href="https://instagram.com/lvck.es" target="_blank" rel="noopener"><span class="flag">🇪🇸</span><span>@lvck.es</span></a>
-    <a class="lang-btn" href="https://instagram.com/lvck.br" target="_blank" rel="noopener"><span class="flag">🇧🇷</span><span>@lvck.br</span></a>
-    <a class="lang-btn" href="https://instagram.com/lvckcreationz" target="_blank" rel="noopener"><span class="flag">✦</span><span>@lvckcreationz</span></a>
-    <button type="button" class="ig-close" data-close-ig data-i18n="p.close">Cerrar</button>
-  </div>
-</div>
 
 <button type="button" class="theme-switch" id="ss-theme-btn" data-toggle-theme
         aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">
@@ -359,31 +346,21 @@
     });
   })();
 
-  /* "Sal en el feed" CTAs: copy the #SouthSide hashtag, and open the Instagram
-     picker to tag us. */
+  /* "Sal en el feed": copy the #SouthSide hashtag (the "Etiquétanos" link now
+     goes straight to @lvck.world). */
   (function () {
-    function openIg()  { var m = document.getElementById("ig-modal"); if (m) m.classList.add("open"); }
-    function closeIg() { var m = document.getElementById("ig-modal"); if (m) m.classList.remove("open"); }
-
     document.addEventListener("click", function (e) {
-      if (!e.target.closest) return;
-      if (e.target.closest("[data-open-ig]")) { e.preventDefault(); openIg(); return; }
-      if (e.target.closest("[data-close-ig]")) { closeIg(); return; }
-      if (e.target.id === "ig-modal") { closeIg(); return; }
-
-      var hashBtn = e.target.closest("#copy-hash");
-      if (hashBtn) {
-        var tag = hashBtn.getAttribute("data-hash") || "#SouthSide";
-        var done = function () {
-          hashBtn.classList.add("done");
-          var span = hashBtn.querySelector("span");
-          if (span) span.textContent = LVCK.t("ty.tag.copied");
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(tag).then(done, done);
-        else done();
-      }
+      var hashBtn = e.target.closest && e.target.closest("#copy-hash");
+      if (!hashBtn) return;
+      var tag = hashBtn.getAttribute("data-hash") || "#SouthSide";
+      var done = function () {
+        hashBtn.classList.add("done");
+        var span = hashBtn.querySelector("span");
+        if (span) span.textContent = LVCK.t("ty.tag.copied");
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(tag).then(done, done);
+      else done();
     });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeIg(); });
   })();
 </script>
 <script src="music.js"></script>

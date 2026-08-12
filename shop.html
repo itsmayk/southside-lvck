@@ -468,22 +468,9 @@
 
 <footer class="site-foot">
   <div data-i18n="foot.brand">LVCK · South Side</div>
-  <a href="social-instagram.html" data-open-ig>Instagram</a>
+  <a href="https://instagram.com/lvck.world" target="_blank" rel="noopener">Instagram</a>
   <div data-i18n="foot.note">Bogotá, Colombia</div>
 </footer>
-
-<!-- Instagram picker — reuses the language modal's shell. Opened from the
-     footer "Instagram" text instead of navigating to the shared 3-account page. -->
-<div class="lang-modal ig-modal" id="ig-modal" role="dialog" aria-modal="true" aria-label="Instagram">
-  <div class="panel">
-    <div class="eyebrow">Instagram</div>
-    <a class="lang-btn" href="https://instagram.com/lvck.us" target="_blank" rel="noopener"><span class="flag">🇺🇸</span><span>@lvck.us</span></a>
-    <a class="lang-btn" href="https://instagram.com/lvck.es" target="_blank" rel="noopener"><span class="flag">🇪🇸</span><span>@lvck.es</span></a>
-    <a class="lang-btn" href="https://instagram.com/lvck.br" target="_blank" rel="noopener"><span class="flag">🇧🇷</span><span>@lvck.br</span></a>
-    <a class="lang-btn" href="https://instagram.com/lvckcreationz" target="_blank" rel="noopener"><span class="flag">✦</span><span>@lvckcreationz</span></a>
-    <button type="button" class="ig-close" data-close-ig data-i18n="p.close">Cerrar</button>
-  </div>
-</div>
 
 <button type="button" class="theme-switch" id="ss-theme-btn" data-toggle-theme
         aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">
@@ -507,21 +494,6 @@
 }
 </script>
 <script src="shop-common.js"></script>
-<script>
-/* Instagram picker: open the little modal instead of leaving the shop. The
-   footer link keeps its href as a no-JS fallback, so this preventDefault only
-   matters when JS is alive. */
-(function () {
-  function openIg()  { var m = document.getElementById("ig-modal"); if (m) m.classList.add("open"); }
-  function closeIg() { var m = document.getElementById("ig-modal"); if (m) m.classList.remove("open"); }
-  document.addEventListener("click", function (e) {
-    if (e.target.closest && e.target.closest("[data-open-ig]")) { e.preventDefault(); openIg(); return; }
-    if (e.target.closest && e.target.closest("[data-close-ig]")) { closeIg(); return; }
-    if (e.target.id === "ig-modal") closeIg();               // click on the backdrop
-  });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeIg(); });
-})();
-</script>
 <script>
 /* The product selector: a character-select carousel. The centred garment is
    sharp and floats; its neighbours peek blurred at the sides; sliding (arrows,

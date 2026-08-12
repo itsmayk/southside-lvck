@@ -1111,7 +1111,7 @@
       '<div class="nav-meta">' +
         '<span data-i18n="foot.brand">LVCK · South Side</span>' +
         '<span class="dot">/</span>' +
-        '<a href="social-instagram.html">Instagram</a>' +
+        '<a href="https://instagram.com/lvck.world" target="_blank" rel="noopener">Instagram</a>' +
         '<span class="dot">/</span>' +
         '<span>Est. Bogotá · CO</span>' +
       '</div>';
