@@ -683,6 +683,12 @@
     var sym = curSym(co.cur);
     return co.n + " (" + co.cur + (sym ? " " + sym : "") + ")";
   }
+  // trigger shows just the currency: "COP $" (no country name) — the flag already
+  // signals the place; the dropdown list keeps country names for searching.
+  function currencyLabel(co) {
+    var sym = curSym(co.cur);
+    return co.cur + (sym ? " " + sym : "");
+  }
   function flagUrl(cc) { return "https://flagcdn.com/" + cc + ".svg"; }
 
   function setCountry(cc) {
@@ -1054,7 +1060,7 @@
     var co = getSelectedCountry();
     wrap.querySelector(".cur-trigger").innerHTML =
       flagImg(co.c, "cur-flag") +
-      '<span class="cur-trig-label">' + countryLabel(co) + '</span>' +
+      '<span class="cur-trig-label">' + currencyLabel(co) + '</span>' +
       '<svg class="cur-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     wrap.querySelectorAll(".cur-btn").forEach(function (b) {
       b.classList.toggle("on", b.getAttribute("data-set-cur") === co.c);

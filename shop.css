@@ -254,25 +254,34 @@ img { display: block; max-width: 100%; }
 /* flags beside each option in the language modal */
 .lang-btn .lang-opt-flag { width: 26px; height: 18px; border-radius: 3px; object-fit: cover; flex-shrink: 0; }
 
+/* Two columns: currency selector + city on the LEFT, Instagram + brand on the
+   RIGHT. Same shape on desktop and mobile:
+     [ currency ]            [ Instagram ]
+     [ Bogotá  ]            [ LVCK · SS  ]  */
 .site-foot {
   border-top: 1px solid var(--hairline);
   margin-top: clamp(60px, 12vh, 120px);
-  padding: 40px clamp(16px, 4vw, 48px) 60px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: space-between;
+  /* tall bottom padding so the two rows clear the floating cart/theme/music
+     buttons (fixed in the bottom corners) at max scroll — they hover in this
+     empty band instead of covering the Instagram link and brand line */
+  padding: 40px clamp(16px, 4vw, 48px) 130px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 20px;
+  align-items: center;
   font-size: 11px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--muted);
-  align-items: center;
 }
+.site-foot [data-i18n="foot.note"]  { grid-area: 2 / 1; justify-self: start; }
+.site-foot [data-i18n="foot.brand"] { grid-area: 2 / 2; justify-self: end; text-align: right; }
 
-/* Instagram — plain footer text, centred between the brand and the city.
-   Routes through the site's language picker (@lvck.us/es/br). */
+/* Instagram glyph — top-right, above the brand line. */
 .site-foot a {
-  display: inline-flex;         /* centres the Instagram glyph in the row */
+  grid-area: 1 / 2;
+  justify-self: end;
+  display: inline-flex;
   align-items: center;
   color: inherit;               /* matches the other footer text */
   text-decoration: none;
@@ -1026,13 +1035,12 @@ h1.display {
 .ig-close:hover { color: var(--ink); }
 
 /* ---------- country / currency picker (footer dropdown, real flags) ---------- */
-/* its own row at the bottom of the footer, aligned left */
+/* top-left cell of the footer grid, above the city line */
 .site-foot .cur-select {
   position: relative;
-  flex: 1 0 100%;
   display: flex;
-  justify-content: flex-start;
-  margin-top: clamp(14px, 3vh, 22px);
+  grid-area: 1 / 1;
+  justify-self: start;
 }
 
 /* rounded flag chip — real image, renders on Windows too (unlike flag emoji) */
@@ -1145,19 +1153,12 @@ h1.display {
 .cur-btn.on { background: var(--ink); color: var(--bone); }
 .cur-btn.on .cur-flag { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35); }
 
-/* Mobile: the footer stacks centred, so the currency selector centres too (not
-   left), and its menu opens centred + clamped so it never spills off-screen. */
+/* Mobile: keep the same two-column footer (currency left, IG right). Just tighten
+   the gap and clamp the menu so it opens from the left without spilling off-screen. */
 @media (max-width: 620px) {
-  .site-foot .cur-select {
-    justify-content: center;
-    margin-top: clamp(12px, 2.4vh, 18px);
-  }
-  .cur-pop {
-    left: 50%;
-    width: min(340px, 92vw);
-    transform: translateX(-50%) translateY(8px);
-  }
-  .cur-select.open .cur-pop { transform: translateX(-50%) translateY(0); }
+  .site-foot { gap: 14px 14px; }
+  .cur-pop { left: 0; width: min(300px, 88vw); transform: translateY(8px); }
+  .cur-select.open .cur-pop { transform: translateY(0); }
 }
 
 /* the reference-price disclaimer under a converted price */
