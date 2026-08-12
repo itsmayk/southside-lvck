@@ -130,7 +130,7 @@
       "lang.pick": "Elige tu idioma",
       "cur.title": "Elige tu moneda",
       "cur.search": "Buscar moneda…",
-      "cur.charged": "Precio de referencia · el cobro se hace en USD (o COP en Colombia).",
+      "cur.charged": "Precio de referencia · el cobro se hace en COP (pesos colombianos).",
       "test.notice": "Modo prueba · ningún pago es real todavía",
       "drop.label": "Lanzamiento",
       "drop.date": "26 AGO 2026",
@@ -307,7 +307,7 @@
       "lang.pick": "Choose your language",
       "cur.title": "Choose your currency",
       "cur.search": "Search currency…",
-      "cur.charged": "Reference price · you are charged in USD (or COP in Colombia).",
+      "cur.charged": "Reference price · you are charged in COP (Colombian pesos).",
       "test.notice": "Test mode · no payment is real yet",
       "drop.label": "Drop",
       "drop.date": "26 AUG 2026",
@@ -484,7 +484,7 @@
       "lang.pick": "Escolha seu idioma",
       "cur.title": "Escolha sua moeda",
       "cur.search": "Buscar moeda…",
-      "cur.charged": "Preço de referência · a cobrança é feita em USD (ou COP na Colômbia).",
+      "cur.charged": "Preço de referência · a cobrança é feita em COP (pesos colombianos).",
       "test.notice": "Modo teste · nenhum pagamento é real ainda",
       "drop.label": "Lançamento",
       "drop.date": "26 AGO 2026",
@@ -740,33 +740,41 @@
     }
   }
 
-  // The price shown to the visitor. Takes a USD amount (prices are USD-based).
-  //   USD  -> exact, 2 decimals ($89.00), it's the base
-  //   COP  -> converted, rounded to a clean 5/9 thousands (Colombia's Bold charge)
-  //   else -> converted, charm-rounded (retail 9-ending) reference
-  // Before rates load (or for an unknown currency) it falls back to the USD price.
-  function money(usd, lang) {
+  // The price shown to the visitor. Prices are COP-based (Colombia is the primary
+  // market and Bold charges COP exactly), so this takes a COP amount:
+  //   COP  -> exact, it's the anchor (what Bold charges)
+  //   USD / else -> convert COP -> USD (÷ rate) -> the currency, charm-rounded
+  // Before rates load it falls back to showing the exact COP price.
+  function money(cop, lang) {
+    var cur = getCurrency();
+    var loc = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-CO";
+    var c = Number(cop);
+
+    if (cur === "COP") return fmtMoney(c, "COP", 0, loc);
+    if (!fxRates || !fxRates.COP || !fxRates[cur]) return fmtMoney(c, "COP", 0, loc);
+
+    var usd = c / Number(fxRates.COP);           // COP -> USD
+    var amount = usd * Number(fxRates[cur]);     // USD -> currency (USD itself: rate 1)
+    var ch = charmPrice(amount, cur, loc);
+    return fmtMoney(ch.value, cur, ch.dp, loc);
+  }
+
+  // For amounts that are still defined in USD (only the international shipping
+  // zones): convert a USD amount to the selected currency, charm-rounded. Same
+  // shape as money() but USD-sourced.
+  function moneyUsd(usd, lang) {
     var cur = getCurrency();
     var loc = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-CO";
     var u = Number(usd);
-
-    if (cur === BASE_CURRENCY || !fxRates || !fxRates[cur]) return fmtMoney(u, "USD", 2, loc);
-
-    var amount = u * Number(fxRates[cur]);
-    if (cur === "COP") return fmtMoney(roundCOP59(amount), "COP", 0, loc);
-    var c = charmPrice(amount, cur, loc);
+    if (cur === "USD") { var cu = charmPrice(u, "USD", loc); return fmtMoney(cu.value, "USD", cu.dp, loc); }
+    if (!fxRates || !fxRates[cur]) return fmtMoney(u, "USD", 2, loc);
+    if (cur === "COP") return fmtMoney(roundCOP59(u * Number(fxRates.COP)), "COP", 0, loc);
+    var c = charmPrice(u * Number(fxRates[cur]), cur, loc);
     return fmtMoney(c.value, cur, c.dp, loc);
   }
 
-  // COP helpers for the Colombia checkout (the real Bold charge is always COP,
-  // regardless of the currency the visitor is browsing in).
-  //   copFromUsd(usd) -> the rounded 5/9 COP integer, or null before rates load
-  //   fmtCOP(cop)     -> that integer formatted as "$355.000" (symbol + digits)
-  function copFromUsd(usd) {
-    var rate = fxRates && fxRates.COP;
-    if (!rate) return null;
-    return roundCOP59(Number(usd) * Number(rate));
-  }
+  // Format a COP integer as "$355.000" (symbol + digits). Used for the exact
+  // Colombian amounts (product COP, flat shipping, set discount).
   function fmtCOP(cop, lang) {
     var loc = lang === "en" ? "en-US" : lang === "pt" ? "pt-BR" : "es-CO";
     return fmtMoney(Number(cop) || 0, "COP", 0, loc);
@@ -1357,7 +1365,7 @@
     for (var i = 0; i < ps.length; i++) if (ps[i].slug === slug) return ps[i];
     return null;
   }
-  function cartActiveUsd(p) { return (cartCfg && cartCfg.postLaunch) ? p.priceUSDPost : p.priceUSD; }
+  function cartActiveCop(p) { return Number((cartCfg && cartCfg.postLaunch) ? p.priceCOPPost : p.priceCOP) || 0; }
   function cartNameOf(p, lang) { var n = p.name; return (n && typeof n === "object") ? (n[lang] || n.es) : n; }
 
   // Shipping for the selected country — mirrors producto.html's shipCostFor, but
@@ -1399,10 +1407,10 @@
     return null;
   }
   // Walk the sets against the cart. A set is complete when every member has ≥1
-  // line; k = min(member line counts). Discount = k · pct% of the members' prices.
-  // Also flags "half" sets (one member present, the other missing) for the nudge.
+  // line; k = min(member line counts). Discount = k · pct% of the members' COP
+  // prices. Also flags "half" sets (one member present, the other missing).
   function cartSetSummary() {
-    var out = { completeCount: 0, discountUSD: 0, discountCOP: 0, halfSets: [] };
+    var out = { completeCount: 0, discountCOP: 0, halfSets: [] };
     if (!cartCfg) return out;
     var pct = setDiscountPct();
     if (!pct) return out;
@@ -1416,11 +1424,8 @@
       if (k > 0) {
         var pa = cartProduct(m[0]), pb = cartProduct(m[1]);
         if (pa && pb) {
-          var ua = Number(cartActiveUsd(pa)) || 0, ub = Number(cartActiveUsd(pb)) || 0;
           out.completeCount += k;
-          out.discountUSD += k * Math.round(pct / 100 * (ua + ub));
-          var ca = copFromUsd(ua), cb = copFromUsd(ub);
-          if (ca != null && cb != null) out.discountCOP += k * Math.round(pct / 100 * (ca + cb));
+          out.discountCOP += k * Math.round(pct / 100 * (cartActiveCop(pa) + cartActiveCop(pb)));
         }
       }
       if ((cA > 0) !== (cB > 0)) {   // exactly one member present
@@ -1499,12 +1504,9 @@
   // (count goes up) can play the "SET COMPLETO" flourish exactly once
   var cartLastComplete = 0;
 
-  // Price of one line in the currency being shown: COP for Colombia (what Bold
-  // charges), otherwise the reference amount in the visitor's currency.
-  function cartLinePrice(usd, info, lang) {
-    if (info.kind === "CO") { var c = copFromUsd(usd); if (c != null) return fmtCOP(c, lang); }
-    return money(usd, lang);
-  }
+  // Price of one line in the selected currency (COP exact for Colombia, a
+  // converted reference elsewhere).
+  function cartLinePrice(cop, lang) { return money(cop, lang); }
 
   function renderCart() {
     var d = document.getElementById("cart-drawer");
@@ -1549,13 +1551,11 @@
     var cc = sel ? sel.c : "co";
     var info = cartShipCost(cc);
 
-    var sumUsd = 0, subCOP = 0, copReady = true;
+    var subCOP = 0;
     items.forEach(function (it, idx) {
       var p = cartProduct(it.product);
-      var usd = Number(cartActiveUsd(p)) || 0;
-      sumUsd += usd;
-      var c = copFromUsd(usd);
-      if (c == null) copReady = false; else subCOP += c;
+      var cop = cartActiveCop(p);
+      subCOP += cop;
 
       var row = document.createElement("div");
       row.className = "cart-item";
@@ -1576,7 +1576,7 @@
 
       var right = document.createElement("div");
       right.className = "cart-item-right";
-      var pr = document.createElement("div"); pr.className = "cart-item-price"; pr.textContent = cartLinePrice(usd, info, lang);
+      var pr = document.createElement("div"); pr.className = "cart-item-price"; pr.textContent = cartLinePrice(cop, lang);
       var rm = document.createElement("button");
       rm.type = "button"; rm.className = "cart-remove"; rm.textContent = t("cart.remove");
       rm.addEventListener("click", function () { cartRemove(idx); });
@@ -1593,25 +1593,22 @@
       if (partner) body.appendChild(buildSetNudge(partner, lang, info));
     });
 
-    // ----- totals (mirror the product page: follow the selected country) -----
+    // ----- totals (everything computed in COP, then shown in the selected
+    // currency via money(): COP is exact, other currencies are converted refs) -----
+    var discountCOP = setSum.completeCount ? setSum.discountCOP : 0;
+    // shipping to COP: domestic is already COP; a zone's flat USD is converted
+    var shipCOPval = info.kind === "CO" ? info.shipCOP
+      : (info.kind === "USD" && fxRates && fxRates.COP) ? Math.round(info.shipUSD * Number(fxRates.COP))
+      : null;
+
     var totals = document.createElement("div");
     totals.className = "cart-totals";
-    if (info.kind === "CO") {
-      var discCOP = (copReady && setSum.completeCount) ? setSum.discountCOP : 0;
-      domRowCart(totals, t("cart.subtotal", lang), copReady ? fmtCOP(subCOP, lang) : money(sumUsd, lang));
-      if (discCOP) domRowCart(totals, t("set.discountLbl", lang), "−" + fmtCOP(discCOP, lang), false, "cart-row-discount");
-      domRowCart(totals, t("ship.shippingLbl", lang), fmtCOP(info.shipCOP, lang));
-      domRowCart(totals, t("ship.totalLbl", lang), fmtCOP((copReady ? subCOP : 0) - discCOP + info.shipCOP, lang), true);
-    } else if (info.kind === "USD") {
-      var discU = setSum.completeCount ? setSum.discountUSD : 0;
-      domRowCart(totals, t("cart.subtotal", lang), money(sumUsd, lang));
-      if (discU) domRowCart(totals, t("set.discountLbl", lang), "−" + money(discU, lang), false, "cart-row-discount");
-      domRowCart(totals, t("ship.shippingLbl", lang), money(info.shipUSD, lang));
-      domRowCart(totals, t("ship.totalLbl", lang), money(sumUsd - discU + info.shipUSD, lang), true);
+    domRowCart(totals, t("cart.subtotal", lang), money(subCOP, lang));
+    if (discountCOP) domRowCart(totals, t("set.discountLbl", lang), "−" + money(discountCOP, lang), false, "cart-row-discount");
+    if (shipCOPval != null) {
+      domRowCart(totals, t("ship.shippingLbl", lang), money(shipCOPval, lang));
+      domRowCart(totals, t("ship.totalLbl", lang), money(subCOP - discountCOP + shipCOPval, lang), true);
     } else {
-      var discX = setSum.completeCount ? setSum.discountUSD : 0;
-      domRowCart(totals, t("cart.subtotal", lang), money(sumUsd, lang));
-      if (discX) domRowCart(totals, t("set.discountLbl", lang), "−" + money(discX, lang), false, "cart-row-discount");
       domRowCart(totals, t("ship.shippingLbl", lang), t("prod.ship.calc", lang));
     }
 
@@ -1711,7 +1708,7 @@
     if (ph) { var img = new Image(); img.className = "cart-nudge-thumb"; img.src = ph; img.alt = ""; img.loading = "lazy"; top.appendChild(img); }
     var meta = document.createElement("div"); meta.className = "cart-nudge-meta";
     var nm = document.createElement("div"); nm.className = "cart-nudge-name"; nm.textContent = cartNameOf(partner, lang);
-    var pr = document.createElement("div"); pr.className = "cart-nudge-price"; pr.textContent = cartLinePrice(Number(cartActiveUsd(partner)) || 0, info, lang);
+    var pr = document.createElement("div"); pr.className = "cart-nudge-price"; pr.textContent = cartLinePrice(cartActiveCop(partner), lang);
     meta.appendChild(nm); meta.appendChild(pr); top.appendChild(meta);
     wrap.appendChild(top);
 
@@ -1739,25 +1736,16 @@
     return wrap;
   }
 
-  // Set price in the selected currency: { original, discounted, save }. CO-ness is
-  // read straight from the picked country (not from shipping config), so the exact
-  // COP path is used even before shipping-config.json has loaded.
+  // Set price in the selected currency: { original, discounted, save }. Computed
+  // in COP (the anchor) and shown via money() — exact for Colombia, converted
+  // reference elsewhere.
   function setPriceStrings(def, lang) {
     var m = def.members || [];
     var pa = cartProduct(m[0]), pb = cartProduct(m[1]);
     if (!pa || !pb) return null;
-    var ua = Number(cartActiveUsd(pa)) || 0, ub = Number(cartActiveUsd(pb)) || 0;
     var pct = setDiscountPct();
-    var sel = getSelectedCountry();
-    if (sel && String(sel.c).toUpperCase() === "CO") {
-      var ca = copFromUsd(ua), cb = copFromUsd(ub);
-      if (ca != null && cb != null) {
-        var o = ca + cb, dc = Math.round(pct / 100 * o);
-        return { original: fmtCOP(o, lang), discounted: fmtCOP(o - dc, lang), save: fmtCOP(dc, lang) };
-      }
-    }
-    var oU = ua + ub, dU = Math.round(pct / 100 * oU);
-    return { original: money(oU, lang), discounted: money(oU - dU, lang), save: money(dU, lang) };
+    var o = cartActiveCop(pa) + cartActiveCop(pb), dc = Math.round(pct / 100 * o);
+    return { original: money(o, lang), discounted: money(o - dc, lang), save: money(dc, lang) };
   }
 
   // Reusable "add the set" glass sheet (used by shop.html's coverflow "+ Set"):
@@ -1907,7 +1895,7 @@
     openNotify: openNotify, closeNotify: closeNotify,
     openMenu: openMenu, closeMenu: closeMenu,
     getCurrency: getCurrency, setCountry: setCountry, getSelectedCountry: getSelectedCountry,
-    copFromUsd: copFromUsd, fmtCOP: fmtCOP,
+    moneyUsd: moneyUsd, fmtCOP: fmtCOP,
     openCurrencyMenu: openCurrencyMenu,
     getTheme: getTheme, applyTheme: applyTheme, toggleTheme: toggleTheme,
     cartAdd: cartAdd, cartRemove: cartRemove, cartItems: cartItems,

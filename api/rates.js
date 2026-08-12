@@ -1,6 +1,7 @@
 // Live FX rates so the storefront can show a reference price in the visitor's
-// currency. Base is USD (our prices are defined in USD); each rate is "how much
-// 1 USD is worth in X", so amountX = priceUSD * rates[X].
+// currency. Base is USD; each rate is "how much 1 USD is worth in X". Our prices
+// are defined in COP, so the front converts COP -> USD (÷ rates.COP) -> the
+// visitor's currency (× rates[X]).
 //
 // Source: open.er-api.com — free, no key, CORS-enabled, refreshed daily. Cached
 // in module scope (survives warm invocations) + at the CDN for a day. Never

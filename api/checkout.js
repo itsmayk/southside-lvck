@@ -26,8 +26,8 @@ const products = config.products || [];
 const HOLD_SECONDS = 30 * 60; // how long a size is reserved once checkout starts
 
 // prices are USD-based; postLaunch picks launch vs post-launch
-function activeUsd(product) {
-  return config.postLaunch ? product.priceUSDPost : product.priceUSD;
+function activeCop(product) {
+  return Number(config.postLaunch ? product.priceCOPPost : product.priceCOP) || 0;
 }
 
 function findSize(productSlug, sizeSlug) {
@@ -134,14 +134,12 @@ module.exports = async function handler(req, res) {
 
     // ---------------- Colombia -> Bold (COP) ----------------
     if (isCO) {
-      // Σ product COP (each USD -> COP, rounded 5/9) − set discount + one flat shipping
+      // Σ product COP (the exact anchor prices) − set discount + one flat shipping
       let productCOP = 0;
-      for (const l of lines) productCOP += await fx.copFor(activeUsd(l.product));
+      for (const l of lines) productCOP += activeCop(l.product);
       let setDiscountCOP = 0;
       for (const cs of completeSets) {
-        const copA = await fx.copFor(activeUsd(cs.pA));
-        const copB = await fx.copFor(activeUsd(cs.pB));
-        setDiscountCOP += cs.k * Math.round(setPct / 100 * (copA + copB));
+        setDiscountCOP += cs.k * Math.round(setPct / 100 * (activeCop(cs.pA) + activeCop(cs.pB)));
       }
       const shipCOP = Number(shipCfg.domestic && shipCfg.domestic.flatCOP) || 0;
       const totalCOP = productCOP - setDiscountCOP + shipCOP;
@@ -171,12 +169,16 @@ module.exports = async function handler(req, res) {
     }
 
     // ---------------- International -> intl processor (USD) ----------------
+    // prices are COP; derive the USD reference at the live rate (dormant path)
+    const rate = await fx.usdToCop();   // COP per 1 USD
+    const round2 = (n) => Math.round(n * 100) / 100;
     let productUSD = 0;
-    for (const l of lines) productUSD += Number(activeUsd(l.product));
+    for (const l of lines) productUSD += activeCop(l.product) / rate;
     let setDiscountUSD = 0;
-    for (const cs of completeSets) setDiscountUSD += cs.k * Math.round(setPct / 100 * (Number(activeUsd(cs.pA)) + Number(activeUsd(cs.pB))));
+    for (const cs of completeSets) setDiscountUSD += cs.k * (setPct / 100) * (activeCop(cs.pA) + activeCop(cs.pB)) / rate;
+    productUSD = round2(productUSD); setDiscountUSD = round2(setDiscountUSD);
     const shippingUSD = Number(body.shippingAmount) || 0; // quoted earlier by /api/quote
-    const totalUSD = productUSD - setDiscountUSD + shippingUSD;
+    const totalUSD = round2(productUSD - setDiscountUSD + shippingUSD);
 
     let order;
     try {

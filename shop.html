@@ -507,7 +507,7 @@
   var products = [];
   var postLaunch = false;           // shop-config.postLaunch: false = launch price, true = post-launch
   var shopSets = [];                // shop-config.sets — colorway jacket+jean pairs
-  function activeUsd(p) { return postLaunch ? p.priceUSDPost : p.priceUSD; }
+  function activeCop(p) { return Number(postLaunch ? p.priceCOPPost : p.priceCOP) || 0; }
   function setIdFor(slug) {
     for (var i = 0; i < shopSets.length; i++) if ((shopSets[i].members || []).indexOf(slug) !== -1) return shopSets[i].id;
     return null;
@@ -688,7 +688,7 @@
       var sold = isSold(p);
       nameEl.textContent = nameOf(p, lang);
       if (animate) { nameEl.classList.remove("slam"); void nameEl.offsetWidth; nameEl.classList.add("slam"); }
-      priceEl.textContent = sold ? "" : LVCK.money(activeUsd(p), lang);
+      priceEl.textContent = sold ? "" : LVCK.money(activeCop(p), lang);
       readout.classList.toggle("sold", sold);
       ctaEl.href = link(p);
       ctaEl.classList.toggle("is-sold", sold);

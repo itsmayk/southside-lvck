@@ -518,8 +518,8 @@
   var shopConfig = null;           // the whole shop-config (for sets + set discount)
   var partnerChosen = null;        // size chosen for the set partner in "Completa el set"
 
-  // active USD price for a product (prices are USD-based; launch vs post-launch)
-  function activeUsd(p) { return postLaunch ? p.priceUSDPost : p.priceUSD; }
+  // active COP price for a product (prices are COP-based; launch vs post-launch)
+  function activeCop(p) { return Number(postLaunch ? p.priceCOPPost : p.priceCOP) || 0; }
   var shipCfg = null;              // shipping-config.json; null/intlEnabled:false = Colombia-only (current behaviour)
 
   // display names for the country <select> in the (dormant) international modal
@@ -733,7 +733,7 @@
     tag.id = "tagline";
     col.appendChild(tag);
 
-    var price = el("div", "price", LVCK.money(activeUsd(product), lang));
+    var price = el("div", "price", LVCK.money(activeCop(product), lang));
     price.id = "price";
     col.appendChild(price);
 
@@ -1219,21 +1219,11 @@
     var partner = partnerProduct();
     if (!line || !partner) return;
     var lang = LVCK.getLang() || "es";
-    var ua = activeUsd(product), ub = activeUsd(partner), pct = setPct();
-    var sel = LVCK.getSelectedCountry ? LVCK.getSelectedCountry() : null;
-    var cc = sel ? (typeof sel === "string" ? sel : sel.c) : "co";
-    var origStr, nowStr, saveStr;
-    if (String(cc).toUpperCase() === "CO" && LVCK.copFromUsd) {
-      var ca = LVCK.copFromUsd(ua), cb = LVCK.copFromUsd(ub);
-      if (ca != null && cb != null) {
-        var o = ca + cb, d = Math.round(pct / 100 * o);
-        origStr = LVCK.fmtCOP(o, lang); nowStr = LVCK.fmtCOP(o - d, lang); saveStr = LVCK.fmtCOP(d, lang);
-      }
-    }
-    if (!nowStr) {
-      var oU = ua + ub, dU = Math.round(pct / 100 * oU);
-      origStr = LVCK.money(oU, lang); nowStr = LVCK.money(oU - dU, lang); saveStr = LVCK.money(dU, lang);
-    }
+    // COP-based: the set price is the two COP prices; money() shows it exact for
+    // Colombia and converted for other currencies.
+    var o = activeCop(product) + activeCop(partner), pct = setPct();
+    var d = Math.round(pct / 100 * o);
+    var origStr = LVCK.money(o, lang), nowStr = LVCK.money(o - d, lang), saveStr = LVCK.money(d, lang);
     line.innerHTML =
       '<span class="set-price-orig"></span><span class="set-price-now"></span><span class="set-price-save"></span>';
     line.querySelector(".set-price-orig").textContent = origStr;
@@ -1303,7 +1293,7 @@
       // zones charge in USD; costStr converts it to the visitor's currency
       return {
         served: true, kind: "USD", shipUSD: Number(z.flatUSD),
-        costStr: LVCK.money(Number(z.flatUSD), lang),
+        costStr: LVCK.moneyUsd(Number(z.flatUSD), lang),
         etaStr: null,
         noteStr: (z.note && (z.note[lang] || z.note.es)) || null
       };
@@ -1369,13 +1359,13 @@
     var tag = document.getElementById("tagline");
     if (tag) tag.textContent = product.tagline[lang] || product.tagline.es;
     var price = document.getElementById("price");
-    if (price) price.textContent = LVCK.money(activeUsd(product), lang);
+    if (price) price.textContent = LVCK.money(activeCop(product), lang);
     var pnote = document.getElementById("price-note");
     if (pnote) {
       // USD (base) and COP (Colombia/Bold) are exact charges — no note. Every
       // other currency is a converted reference, so flag it.
       var cur = LVCK.getCurrency ? LVCK.getCurrency() : "USD";
-      var isReference = cur !== "USD" && cur !== "COP";
+      var isReference = cur !== "COP";
       pnote.hidden = !isReference;
       if (isReference) pnote.textContent = LVCK.t("cur.charged", lang);
     }
@@ -1578,7 +1568,7 @@
     var sel = LVCK.getSelectedCountry ? LVCK.getSelectedCountry() : null;
     var country = sel ? (typeof sel === "string" ? sel : sel.c) : "CO";
     var info = shipCostFor(country);
-    var usd = activeUsd(product);
+    var usd = activeCop(product);
 
     if (info.kind === "CO") {
       var prodCOP = LVCK.copFromUsd ? LVCK.copFromUsd(usd) : null;
