@@ -946,6 +946,7 @@
 
   // language -> the flag (flagcdn ISO2) that stands for it: Spain, US, Brazil
   var LANG_FLAG = { es: "es", en: "us", pt: "br" };
+  var LANG_CODE = { es: "ES", en: "EN", pt: "PT" };   // short label beside the flag
 
   function buildLangModal() {
     var modal = document.createElement("div");
@@ -962,13 +963,17 @@
     return modal;
   }
 
-  // Render the current language's flag into the header trigger (replaces the word
-  // "Idioma"). Runs on boot and whenever the language changes.
+  // Render the header trigger as a little selector: the current language's flag +
+  // its code (ES/EN/PT) + a chevron. Runs on boot and on every language change.
   function updateLangTrigger() {
-    var cc = LANG_FLAG[getLang() || "es"] || "es";
+    var lang = getLang() || "es";
+    var cc = LANG_FLAG[lang] || "es";
+    var code = LANG_CODE[lang] || "ES";
     var label = t("nav.lang");
     document.querySelectorAll("[data-open-lang]").forEach(function (btn) {
-      btn.innerHTML = flagImg(cc, "lang-flag");
+      btn.innerHTML = flagImg(cc, "lang-flag") +
+        '<span class="lang-code">' + code + '</span>' +
+        '<svg class="lang-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       btn.setAttribute("aria-label", label);
       btn.setAttribute("title", label);
     });
