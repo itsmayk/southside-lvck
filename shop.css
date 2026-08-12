@@ -254,10 +254,10 @@ img { display: block; max-width: 100%; }
 /* flags beside each option in the language modal */
 .lang-btn .lang-opt-flag { width: 26px; height: 18px; border-radius: 3px; object-fit: cover; flex-shrink: 0; }
 
-/* Two columns: currency selector + city on the LEFT, Instagram + brand on the
+/* Two columns: currency selector + city on the LEFT, brand + Instagram on the
    RIGHT. Same shape on desktop and mobile:
-     [ currency ]            [ Instagram ]
-     [ Bogotá  ]            [ LVCK · SS  ]  */
+     [ currency ]            [ LVCK  (IG) ]
+     [ Bogotá  ]            [ South Side ]  */
 .site-foot {
   border-top: 1px solid var(--hairline);
   margin-top: clamp(60px, 12vh, 120px);
@@ -277,10 +277,8 @@ img { display: block; max-width: 100%; }
 .site-foot [data-i18n="foot.note"]  { grid-area: 2 / 1; justify-self: start; }
 .site-foot [data-i18n="foot.brand"] { grid-area: 2 / 2; justify-self: end; text-align: right; }
 
-/* Instagram glyph — top-right, above the brand line. */
+/* Instagram glyph — sits beside the LVCK wordmark (inside .foot-top-right). */
 .site-foot a {
-  grid-area: 1 / 2;
-  justify-self: end;
   display: inline-flex;
   align-items: center;
   color: inherit;               /* matches the other footer text */
@@ -290,9 +288,24 @@ img { display: block; max-width: 100%; }
 .site-foot a svg { width: 17px; height: 17px; display: block; }
 .site-foot a:hover { color: var(--ink); }
 
-/* Hierarchy: the brand line leads (Cinzel, weightier, warmer tone); Instagram
-   and the city stay quiet muted sans so the footer reads as signature + detail
-   rather than three equal blurbs. */
+/* Right column: "LVCK" next to the Instagram glyph on the top row, "South Side"
+   as a quieter line underneath. */
+.foot-top-right {
+  grid-area: 1 / 2;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.foot-lvck {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  color: var(--pearl);
+}
+.foot-ss { grid-area: 2 / 2; justify-self: end; text-align: right; }
+
+/* Legacy single-line brand (pages without an Instagram link keep foot.brand). */
 .site-foot [data-i18n="foot.brand"] {
   font-family: 'Cinzel', serif;
   font-size: 13px;
