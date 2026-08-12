@@ -424,6 +424,19 @@
   .also .n { font-family: 'Cinzel', serif; font-size: clamp(17px, 2.4vw, 23px); }
   .also .p { font-family: 'Times New Roman', Times, serif; font-size: 15px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
+  /* secondary "add the set" action directly under the buy button */
+  .buy-set-link {
+    display: block; width: 100%; margin-top: 10px;
+    padding: 13px 20px;
+    border: 1px solid var(--hairline); border-radius: 12px;
+    background: none; color: var(--ink);
+    font-family: 'Cinzel', serif; text-transform: uppercase; letter-spacing: 0.16em; font-size: 11px;
+    cursor: pointer;
+    transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+  }
+  .buy-set-link:hover { border-color: var(--ink); }
+  .buy-set-off { color: var(--muted); }
+
   /* "Completa el set" module (reuses .set-price-* + .size-chip from shop.css) */
   .set-mod-card { max-width: 640px; }
   .set-mod-partner { display: flex; gap: 20px; align-items: center; text-decoration: none; color: var(--ink); margin-bottom: 20px; }
@@ -774,6 +787,19 @@
     buy.addEventListener("click", addChosenToCart);
     col.appendChild(buy);
 
+    // quick "add the set" right under the button — opens the set sheet (both
+    // sizes + the −% discount). Only when this garment belongs to a set.
+    var setId = currentSetId();
+    if (setId) {
+      var setLink = el("button", "buy-set-link");
+      setLink.type = "button";
+      setLink.innerHTML = '<span data-i18n="set.add">' + LVCK.t("set.add", lang) + '</span><span class="buy-set-off"></span>';
+      var off = setPct();
+      if (off) setLink.querySelector(".buy-set-off").textContent = " · −" + off + "%";
+      setLink.addEventListener("click", function () { LVCK.openSetSheet(setId); });
+      col.appendChild(setLink);
+    }
+
     var secure = el("div", "secure");
     secure.setAttribute("data-i18n", "p.secure");
     col.appendChild(secure);
@@ -1122,6 +1148,12 @@
     return null;
   }
   function setPct() { return Number(shopConfig && shopConfig.setDiscountPct) || 0; }
+  function currentSetId() {
+    if (!shopConfig || !product) return null;
+    var sets = shopConfig.sets || [];
+    for (var i = 0; i < sets.length; i++) if ((sets[i].members || []).indexOf(product.slug) !== -1) return sets[i].id;
+    return null;
+  }
 
   function buildSetModule() {
     var partner = partnerProduct();
