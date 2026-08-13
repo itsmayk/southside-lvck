@@ -12,9 +12,9 @@
 const BASE = "https://southside-lvck.vercel.app";
 
 const OG = {
-  es: { title: "SouthSide — LVCK", desc: "LVCK vuelve con SouthSide — el drop que marca nuestro nuevo capítulo. 26 AGO 2026.", locale: "es_CO" },
-  en: { title: "SouthSide — LVCK", desc: "LVCK returns with SouthSide — the drop that marks our new chapter. 26 AUG 2026.", locale: "en_US" },
-  pt: { title: "SouthSide — LVCK", desc: "A LVCK volta com SouthSide — o drop que marca nosso novo capítulo. 26 AGO 2026.", locale: "pt_BR" }
+  es: { title: "SouthSide — LVCK", desc: "LVCK vuelve con SouthSide — el drop que marca nuestro nuevo capítulo. 28 AGO 2026.", locale: "es_CO" },
+  en: { title: "SouthSide — LVCK", desc: "LVCK returns with SouthSide — the drop that marks our new chapter. 28 AUG 2026.", locale: "en_US" },
+  pt: { title: "SouthSide — LVCK", desc: "A LVCK volta com SouthSide — o drop que marca nosso novo capítulo. 28 AGO 2026.", locale: "pt_BR" }
 };
 const DEST = { home: "/", shop: "/shop.html" };
 

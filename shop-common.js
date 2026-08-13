@@ -133,7 +133,7 @@
       "cur.charged": "Precio de referencia · el cobro se hace en COP (pesos colombianos).",
       "test.notice": "Modo prueba · ningún pago es real todavía",
       "drop.label": "Lanzamiento",
-      "drop.date": "26 AGO 2026",
+      "drop.date": "28 AGO 2026",
       "drop.live": "Ya disponible",
 
       "shop.eyebrow": "Lanzamiento",
@@ -170,7 +170,7 @@
 
       "notify.open": "Avísame en el drop",
       "notify.title": "Avísame en el drop",
-      "notify.sub": "Te escribimos apenas caiga, el 26 AGO. Nada de spam.",
+      "notify.sub": "Te escribimos apenas caiga, el 28 AGO. Nada de spam.",
       "notify.ph": "tu@correo.com",
       "notify.cta": "Avísame",
       "notify.sending": "Enviando…",
@@ -310,7 +310,7 @@
       "cur.charged": "Reference price · you are charged in COP (Colombian pesos).",
       "test.notice": "Test mode · no payment is real yet",
       "drop.label": "Drop",
-      "drop.date": "26 AUG 2026",
+      "drop.date": "28 AUG 2026",
       "drop.live": "Available now",
 
       "shop.eyebrow": "Drop",
@@ -487,7 +487,7 @@
       "cur.charged": "Preço de referência · a cobrança é feita em COP (pesos colombianos).",
       "test.notice": "Modo teste · nenhum pagamento é real ainda",
       "drop.label": "Lançamento",
-      "drop.date": "26 AGO 2026",
+      "drop.date": "28 AGO 2026",
       "drop.live": "Já disponível",
 
       "shop.eyebrow": "Lançamento",
@@ -524,7 +524,7 @@
 
       "notify.open": "Avise-me no drop",
       "notify.title": "Avise-me no drop",
-      "notify.sub": "Mandamos um e-mail assim que cair, 26 AGO. Sem spam.",
+      "notify.sub": "Mandamos um e-mail assim que cair, 28 AGO. Sem spam.",
       "notify.ph": "voce@email.com",
       "notify.cta": "Avise-me",
       "notify.sending": "Enviando…",
@@ -1266,8 +1266,8 @@
 
   /* ---------- countdown ---------- */
 
-  // same instant the landing page counts to: midnight in Colombia, 20 Aug 2026
-  var DROP_AT = new Date("2026-08-26T00:00:00-05:00").getTime();
+  // same instant the landing page counts to: midnight in Colombia, 28 Aug 2026
+  var DROP_AT = new Date("2026-08-28T00:00:00-05:00").getTime();
 
   function pad(n) { return n < 10 ? "0" + n : String(n); }
 
